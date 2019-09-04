@@ -27,6 +27,7 @@ camera::camera(const vector3 &pos_, const vector3 &dir_) : ray(pos_, dir_) {
 }
 
 camera::~camera(){
+	// The SDL window's destructor will automatically handle its own clean-up
 	delete window;
 }
 
@@ -62,17 +63,14 @@ void camera::draw(const triangle &tri, const drawMode &mode/*=WIREFRAME*/){
 
 	// Draw the triangle to the screen
 	if(mode == WIREFRAME || mode == MESH){
-		window->setDrawColor(Colors::WHITE);
-		window->drawTriangle(pixelX, pixelY);
+		drawTriangle(pixelX, pixelY, Colors::WHITE);
 	}
 	else if(mode == SOLID){
 		// Draw the triangle face
-		window->setDrawColor(Colors::WHITE);
-		window->drawTriangle(pixelX, pixelY, true);
+		drawFilledTriangle(pixelX, pixelY, Colors::WHITE);
 		
 		// Draw the outline of the triangle
-		window->setDrawColor(Colors::BLACK);
-		window->drawTriangle(pixelX, pixelY);
+		drawTriangle(pixelX, pixelY, Colors::BLACK);
 	}
 	else if(mode == RENDER){
 		// Compute the dot-product between the triangle normal and the light direction
@@ -82,8 +80,7 @@ void camera::draw(const triangle &tri, const drawMode &mode/*=WIREFRAME*/){
 		dp = -(light * tri.norm);
 		if(dp < 0) dp = 0;
 		sdlColor col(dp);
-		window->setDrawColor(col);
-		window->drawTriangle(pixelX, pixelY, true);
+		drawFilledTriangle(pixelX, pixelY, col);
 	}
 	
 	if(drawNorm){
@@ -108,7 +105,7 @@ void camera::draw(const triangle &tri, const drawMode &mode/*=WIREFRAME*/){
 	}
 }
 
-void camera::clear(){
+void camera::clear(const sdlColor &color/*=Colors::BLACK*/){
 	window->clear();
 }
 
@@ -174,8 +171,6 @@ void camera::convertToScreenSpace(const vector3 &vec, double &x, double &y){
 void camera::convertToPixelSpace(const double &x, const double &y, int &px, int &py){
 	px = (int)((W/pX)*((x + 1)/2));
 	py = (int)((H/pY)*(1 - (y + 1)/2));
-	//px = (int)(screenWidthPixels * 0.5 * (x/pX + 1));
-	//py = (int)(screenHeightPixels * (1 - 0.5*(y/pY + 1)));
 }
 
 bool camera::compute(const vector3 &vertex, double &sX, double &sY){
@@ -211,4 +206,63 @@ bool camera::rayTrace(const double &sX, const double &sY, const triangle &tri, v
 		return true;
 	}
 	return false;
+}
+
+void camera::drawTriangle(const int *x, const int *y, const sdlColor &color){
+	window->setDrawColor(color);
+	for(size_t i = 0; i < 2; i++)
+		window->drawLine(x[i], y[i], x[i+1], y[i+1]);
+	window->drawLine(x[2], y[2], x[0], y[0]);
+}
+	
+void camera::drawFilledTriangle(const int *x, const int *y, const sdlColor &color){
+	window->setDrawColor(color);
+
+	int x0, y0;
+	int x1, y1;
+	int x2, y2;
+	
+	x0 = x[0]; y0 = y[0];
+	x1 = x[1]; y1 = y[1];
+	x2 = x[2]; y2 = y[2];
+
+	// Sort points by ascending Y
+	// Insertion sort
+	if(y1 < y0){
+		std::swap(y0, y1);
+		std::swap(x0, x1);
+	}
+	if(y2 < y1){
+		std::swap(y1, y2);
+		std::swap(x1, x2);
+		if(y1 < y0){
+			std::swap(y1, y0);
+			std::swap(x1, x0);
+		}
+	}
+	
+	float xA, xB;
+	for(int scanline = y0; scanline <= y2; scanline++){
+		if(y0 == y1){ // y10 is a horizontal line
+				xA = (scanline-y1)*(float(x2-x1))/(y2-y1) + x1;
+				xB = (scanline-y2)*(float(x0-x2))/(y0-y2) + x2;				
+		}
+		else if(y0 == y2){ // y20 is a horizontal line
+				xA = (scanline-y1)*(float(x2-x1))/(y2-y1) + x1;
+				xB = (scanline-y0)*(float(x1-x0))/(y1-y0) + x0;			
+		}
+		else{
+			if(scanline <= y1)
+				xA = (scanline-y0)*(float(x1-x0))/(y1-y0) + x0;
+			else
+				xA = (scanline-y1)*(float(x2-x1))/(y2-y1) + x1;
+			xB = (scanline-y2)*(float(x0-x2))/(y0-y2) + x2;
+		}
+
+		// Draw the scanline
+		if(xA <= xB)
+			window->drawLine((int)xA, scanline, (int)xB, scanline);
+		else
+			window->drawLine((int)xB, scanline, (int)xA, scanline);
+	}
 }

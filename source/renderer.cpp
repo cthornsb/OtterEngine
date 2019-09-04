@@ -8,34 +8,41 @@
 #include "triangle.hpp"
 #include "camera.hpp"
 #include "cube.hpp"
+#include "colors.hpp"
 
 int main(){
-	/*triangle tri(vector3(1, -1.25, 0),
-	             vector3(0, 1, 0),
-	             vector3(-1, -1, 0));
-
-	camera cam(vector3(0, 0, -5));
-	cam.clear();
-	cam.draw(tri, camera::SOLID);
-	cam.render();
-	cam.loop();*/
-
+	// Define a new cube
 	cube myCube(vector3(), 1, 1, 1);
-	myCube.rotate(30*deg2rad, 30*deg2rad, 30*deg2rad);
 	std::vector<triangle> *tris = myCube.getPolygons();
 	
+	// Setup the camera at z=-5 m
 	camera cam(vector3(0, 0, -5));
+	
+	// Show some info about the camera
+	cam.dump();
+	
+	// Set the camera to draw surface normal vectors
 	//cam.setDrawNormals();
 
-	double angle[3] = {0.12, 0.07, 0.17};
+	// "Animate" the cube by rotating it and moving the camera
 	for(int i = 0; i < 1000; i++){
-		cam.clear();
-		cam.draw(tris, camera::RENDER);
+		// Clear the screen with a color
+		cam.clear(Colors::BLACK);
+		
+		// Draw the cube mesh
+		cam.draw(tris, camera::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
+		
+		// Update the screen
 		cam.render();
 		
+		// Move the camera forward
 		cam.moveCam(0.002);
-		myCube.rotate(angle[0]*deg2rad, angle[1]*deg2rad, angle[2]*deg2rad);
-		usleep(16700); // ~60 Hz
+		
+		// Rotate the cube
+		myCube.rotate(0.12*deg2rad, 0.07*deg2rad, 0.17*deg2rad);
+		
+		// Sleep for a short time (16.7 ms ~= 60 fps) to avoid rendering too fast
+		usleep(16700);
 	}
 	
 	return 0;

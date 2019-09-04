@@ -47,7 +47,7 @@ public:
 	  */
 	void clear(const sdlColor &color=Colors::BLACK);
 	
-	/** Draw a single line to the screen
+	/** Draw a single line to the screen between points (x1, y1) and (x2, y2)
 	  */
 	void drawLine(const int &x1, const int &y1, const int &x2, const int &y2);
 
@@ -58,24 +58,6 @@ public:
 	  * @note Since it is assumed that the number of elements in the arrays is equal to @a N, the total number of lines which will be drawn is equal to N-1
 	  */
 	void drawLine(const int *x, const int *y, const size_t &N);
-
-	/** Draw multiple lines to the screen
-	  * @param x Array of X pixel coordinates
-	  * @param y Array of Y pixel coordinates
-	  * @param fill Flag indicating that the polygon will be filled with the current draw color
-	  * @note There must be AT LEAST three elements in each array
-	  */
-	void drawTriangle(const int *x, const int *y, const bool &fill=false);
-
-	/** Draw multiple lines to the screen
-	  * @param x Array of X pixel coordinates
-	  * @param y Array of Y pixel coordinates
-	  * @param N The number of elements in the arrays and the number of sides of the polygon
-	  * @param fill Flag indicating that the polygon will be filled with the current draw color
-	  * @note Since it is assumed that the number of elements in the arrays is equal to @a N, the Nth line will be drawn from the final element in the array
-	  *       back to the first element
-	  */
-	void drawPolygon(const int *x, const int *y, const size_t &N, const bool &fill=false);
 
 	/** Render the current frame
 	  */
