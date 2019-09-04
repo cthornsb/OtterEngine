@@ -19,6 +19,14 @@ public:
 	  */
 	sdlColor(const float &red, const float &green, const float &blue);
 
+	/** Equality operator
+	  */
+	bool operator == (const sdlColor &rhs) const { return (r==rhs.r && g==rhs.g && b==rhs.b); }
+
+	/** Inequality operator
+	  */
+	bool operator != (const sdlColor &rhs) const { return (r!=rhs.r || g!=rhs.g || b!=rhs.b); }
+
 	/** Conver the color to grayscale using RGB coefficients based on the sRGB convention
 	  */
 	void toGrayscale();
@@ -33,7 +41,7 @@ public:
 };
 
 namespace Colors{
-	const sdlColor BLACK;
+	const sdlColor BLACK(0, 0, 0);
 	const sdlColor WHITE(1, 1, 1);
 	
 	// Primary colors

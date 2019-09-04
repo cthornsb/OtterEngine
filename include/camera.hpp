@@ -171,6 +171,19 @@ private:
 	  */
 	bool rayTrace(const double &sX, const double &sY, const triangle &tri, vector3 &P);
 	
+	/** Draw a vector to the screen
+	  * @param start The start point of the vector to draw
+	  * @param direction The direction of the vector to draw
+	  * @param proj The total length to draw
+	  */	
+	void drawVector(const vector3 &start, const vector3 &direction, const sdlColor &color, const double &length=1);
+	
+	/** Draw a ray to the screen
+	  * @param proj The 3d ray to draw (in real-space)
+	  * @param proj The total length to draw
+	  */
+	void drawRay(const ray &proj, const sdlColor &color, const double &length=1);
+	
 	/** Draw the outline of a triangle to the screen
 	  * @param x Array of X pixel coordinates
 	  * @param y Array of Y pixel coordinates

@@ -21,6 +21,15 @@ void sdlWindow::clear(const sdlColor &color/*=Colors::BLACK*/){
 	SDL_RenderClear(renderer);
 }
 
+void sdlWindow::drawPixel(const int &x, const int &y){
+	SDL_RenderDrawPoint(renderer, x, y);
+}
+
+void sdlWindow::drawPixel(const int *x, const int *y, const size_t &N){
+	for(size_t i = 0; i < N; i++) // Draw N pixels
+		drawPixel(x[i], y[i]);
+}
+
 void sdlWindow::drawLine(const int &x1, const int &y1, const int &x2, const int &y2){
 	SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 }

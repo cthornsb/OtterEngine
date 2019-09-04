@@ -66,10 +66,10 @@ void camera::draw(const triangle &tri, const drawMode &mode/*=WIREFRAME*/){
 		drawTriangle(pixelX, pixelY, Colors::WHITE);
 	}
 	else if(mode == SOLID){
-		// Draw the triangle face
+		// Draw the triangle face and the outline of the triangle
 		drawFilledTriangle(pixelX, pixelY, Colors::WHITE);
 		
-		// Draw the outline of the triangle
+		// Draw the edges of the triangles
 		drawTriangle(pixelX, pixelY, Colors::BLACK);
 	}
 	else if(mode == RENDER){
@@ -83,26 +83,8 @@ void camera::draw(const triangle &tri, const drawMode &mode/*=WIREFRAME*/){
 		drawFilledTriangle(pixelX, pixelY, col);
 	}
 	
-	if(drawNorm){
-		// Compute the normal vector from the center of the triangle
-		vector3 P = tri.p + tri.norm;
-
-		// Draw the triangle normals
-		double cmX0, cmY0;
-		double cmX1, cmY1;
-		if(compute(tri.p, cmX0, cmY0) && compute(P, cmX1, cmY1)){
-			int cmpX0, cmpY0;
-			int cmpX1, cmpY1;
-			
-			// Convert the screen-space coordinates to pixel-space
-			convertToPixelSpace(cmX0, cmY0, cmpX0, cmpY0);
-			convertToPixelSpace(cmX1, cmY1, cmpX1, cmpY1);
-			
-			// Draw the normal vector
-			window->setDrawColor(Colors::WHITE);
-			window->drawLine(cmpX0, cmpY0, cmpX1, cmpY1);
-		}
-	}
+	if(drawNorm) // Draw the surface normal vector
+		drawVector(tri.p, tri.norm, Colors::RED);
 }
 
 void camera::clear(const sdlColor &color/*=Colors::BLACK*/){
@@ -133,9 +115,10 @@ void camera::dump() const {
 	std::cout << " Height: " << H << " m\n";
 	std::cout << " PixelX: " << pX << " m\n";
 	std::cout << " PixelY: " << pY << " m\n";
-	std::cout << " uX = (" << uX.x << ", " << uX.y << ", " << uX.z << ")\n";
-	std::cout << " uY = (" << uY.x << ", " << uY.y << ", " << uY.z << ")\n";
-	std::cout << " uZ = (" << uZ.x << ", " << uZ.y << ", " << uZ.z << ")\n";
+	std::cout << " Light = (" << light.x << ", " << light.y << ", " << light.z << ")\n";
+	std::cout << " unitX = (" << uX.x << ", " << uX.y << ", " << uX.z << ")\n";
+	std::cout << " unitY = (" << uY.x << ", " << uY.y << ", " << uY.z << ")\n";
+	std::cout << " unitZ = (" << uZ.x << ", " << uZ.y << ", " << uZ.z << ")\n";
 }
 
 void camera::initialize(){
@@ -152,7 +135,7 @@ void camera::initialize(){
 	uX = vector3(1, 0, 0);
 	uY = vector3(0, 1, 0);
 	uZ = vector3(0, 0, 1);
-	light = vector3(0, -1, 0);
+	light = vector3(0, 0, 1);
 
 	// Setup the viewing plane (looking down the Z-axis)
 	vPlane = plane(pos + uZ*L, uZ);
@@ -208,6 +191,31 @@ bool camera::rayTrace(const double &sX, const double &sY, const triangle &tri, v
 	return false;
 }
 
+void camera::drawVector(const vector3 &start, const vector3 &direction, const sdlColor &color, const double &length/*=1*/){
+	// Compute the normal vector from the center of the triangle
+	vector3 P = start + direction;
+
+	// Draw the triangle normals
+	double cmX0, cmY0;
+	double cmX1, cmY1;
+	if(compute(start, cmX0, cmY0) && compute(P, cmX1, cmY1)){
+		int cmpX0, cmpY0;
+		int cmpX1, cmpY1;
+		
+		// Convert the screen-space coordinates to pixel-space
+		convertToPixelSpace(cmX0, cmY0, cmpX0, cmpY0);
+		convertToPixelSpace(cmX1, cmY1, cmpX1, cmpY1);
+		
+		// Draw the normal vector
+		window->setDrawColor(color);
+		window->drawLine(cmpX0, cmpY0, cmpX1, cmpY1);
+	}
+}
+
+void camera::drawRay(const ray &proj, const sdlColor &color, const double &length/*=1*/){
+	drawVector(proj.pos, proj.dir, color, length);
+}
+
 void camera::drawTriangle(const int *x, const int *y, const sdlColor &color){
 	window->setDrawColor(color);
 	for(size_t i = 0; i < 2; i++)
@@ -216,8 +224,6 @@ void camera::drawTriangle(const int *x, const int *y, const sdlColor &color){
 }
 	
 void camera::drawFilledTriangle(const int *x, const int *y, const sdlColor &color){
-	window->setDrawColor(color);
-
 	int x0, y0;
 	int x1, y1;
 	int x2, y2;
@@ -241,6 +247,9 @@ void camera::drawFilledTriangle(const int *x, const int *y, const sdlColor &colo
 		}
 	}
 	
+	// Set the fill color
+	window->setDrawColor(color);
+	
 	float xA, xB;
 	for(int scanline = y0; scanline <= y2; scanline++){
 		if(y0 == y1){ // y10 is a horizontal line
@@ -251,7 +260,7 @@ void camera::drawFilledTriangle(const int *x, const int *y, const sdlColor &colo
 				xA = (scanline-y1)*(float(x2-x1))/(y2-y1) + x1;
 				xB = (scanline-y0)*(float(x1-x0))/(y1-y0) + x0;			
 		}
-		else{
+		else{ // No lines are horizontal
 			if(scanline <= y1)
 				xA = (scanline-y0)*(float(x1-x0))/(y1-y0) + x0;
 			else
@@ -259,10 +268,10 @@ void camera::drawFilledTriangle(const int *x, const int *y, const sdlColor &colo
 			xB = (scanline-y2)*(float(x0-x2))/(y0-y2) + x2;
 		}
 
+		if(xB < xA) // Sort xA and xB
+			std::swap(xA, xB);
+
 		// Draw the scanline
-		if(xA <= xB)
-			window->drawLine((int)xA, scanline, (int)xB, scanline);
-		else
-			window->drawLine((int)xB, scanline, (int)xA, scanline);
+		window->drawLine((int)xA, scanline, (int)xB, scanline);
 	}
 }

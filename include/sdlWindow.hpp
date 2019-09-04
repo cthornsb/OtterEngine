@@ -46,6 +46,17 @@ public:
 	/** Clear the screen with a given color
 	  */
 	void clear(const sdlColor &color=Colors::BLACK);
+
+	/** Draw a single pixel at position (x, y)
+	  */
+	void drawPixel(const int &x, const int &y);
+
+	/** Draw multiple pixels at positions (x1, y1) (x2, y2) ... (xN, yN)
+	  * @param x Array of X pixel coordinates
+	  * @param y Array of Y pixel coordinates
+	  * @param N The number of elements in the arrays and the number of pixels to draw
+	  */
+	void drawPixel(const int *x, const int *y, const size_t &N);
 	
 	/** Draw a single line to the screen between points (x1, y1) and (x2, y2)
 	  */
@@ -54,8 +65,8 @@ public:
 	/** Draw multiple lines to the screen
 	  * @param x Array of X pixel coordinates
 	  * @param y Array of Y pixel coordinates
-	  * @param N The number of elements in the arrays
-	  * @note Since it is assumed that the number of elements in the arrays is equal to @a N, the total number of lines which will be drawn is equal to N-1
+	  * @param N The number of elements in the arrays. Since it is assumed that the number of elements 
+	           in the arrays is equal to @a N, the total number of lines which will be drawn is equal to N-1
 	  */
 	void drawLine(const int *x, const int *y, const size_t &N);
 
