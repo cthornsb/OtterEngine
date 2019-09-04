@@ -43,6 +43,11 @@ void camera::draw(std::vector<triangle> *tri, const drawMode &mode/*=WIREFRAME*/
 }
 
 void camera::draw(const triangle &tri, const drawMode &mode/*=WIREFRAME*/){
+	// Do backface culling
+	double dp = (tri.p - pos) * tri.norm;
+	if(mode != WIREFRAME && (dp > 0)) // The triangle is facing away from the camera
+		return;
+
 	double sX[3] = {0, 0, 0};
 	double sY[3] = {0, 0, 0};
 	
@@ -55,11 +60,6 @@ void camera::draw(const triangle &tri, const drawMode &mode/*=WIREFRAME*/){
 	int pixelX[3], pixelY[3];
 	for(size_t i = 0; i < 3; i++)
 		convertToPixelSpace(sX[i], sY[i], pixelX[i], pixelY[i]);
-
-	// Do backface culling
-	double dp = (tri.p - pos) * tri.norm;
-	if(mode != WIREFRAME && (dp > 0))
-		return;
 
 	// Draw the triangle to the screen
 	if(mode == WIREFRAME || mode == MESH){
@@ -109,7 +109,11 @@ void camera::clear(const sdlColor &color/*=Colors::BLACK*/){
 	window->clear();
 }
 
-void camera::render(){
+void camera::update(){
+	if(!window->status()){ // Check if the window has been closed
+		isRunning = false;
+		return;
+	}
 	window->render();
 }
 
@@ -144,6 +148,7 @@ void camera::initialize(){
 	L = 50E-3; // m
 	A = 16.0/9; // unitless
 	drawNorm = false;
+	isRunning = true;
 	uX = vector3(1, 0, 0);
 	uY = vector3(0, 1, 0);
 	uZ = vector3(0, 0, 1);
@@ -175,11 +180,6 @@ void camera::convertToPixelSpace(const double &x, const double &y, int &px, int 
 
 bool camera::compute(const vector3 &vertex, double &sX, double &sY){
 	ray proj(vertex, pos-vertex);
-	
-	/*if(mode == CULLED){
-		if(proj.dir * tri.norm < 0)
-			return;
-	}*/
 	
 	double t;
 	if(vPlane.intersects(proj, t)){

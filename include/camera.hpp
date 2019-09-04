@@ -54,6 +54,10 @@ public:
 	  */	
 	int getScreenHeight() const { return screenHeightPixels; }
 
+	/** Return true if the window is still open, and return false otherwise
+	  */
+	bool getStatus() const { return isRunning; }
+
 	/** Set the width of the screen (in pixels)
 	  */
 	void setScreenWidth(const int &width){ screenWidthPixels = width; }
@@ -87,9 +91,11 @@ public:
 	  */
 	void clear(const sdlColor &color=Colors::BLACK);
 	
-	/** Render the current screen
+	/** Update the screen
+	  * @note This method will check whether or not the user has closed the window. If so,
+	  *       this method will set the @a isRunning flag to false and return
 	  */
-	void render();
+	void update();
 
 	/** Wait until the user closes the screen, and then return
 	  */
@@ -113,7 +119,8 @@ private:
 	
 	plane vPlane; ///< The viewing plane of the camera
 	
-	bool drawNorm; ///< Draw normal vectors on each polygon
+	bool drawNorm; ///< Flag indicating that normal vectors will be drawn on each triangle
+	bool isRunning; ///< Flag indicating that the window is still open and active
 	
 	vector3 uX; ///< Unit vector for the x-axis
 	vector3 uY; ///< Unit vector for the y-axis

@@ -25,7 +25,7 @@ int main(){
 	//cam.setDrawNormals();
 
 	// "Animate" the cube by rotating it and moving the camera
-	for(int i = 0; i < 1000; i++){
+	while(cam.getStatus()){
 		// Clear the screen with a color
 		cam.clear(Colors::BLACK);
 		
@@ -33,7 +33,7 @@ int main(){
 		cam.draw(tris, camera::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 		
 		// Update the screen
-		cam.render();
+		cam.update();
 		
 		// Move the camera forward
 		cam.moveCam(0.002);
