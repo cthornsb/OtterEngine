@@ -51,9 +51,9 @@ void camera::draw(const triangle &tri, const drawMode &mode/*=WIREFRAME*/){
 	double sX[3] = {0, 0, 0};
 	double sY[3] = {0, 0, 0};
 	
-	compute(tri.p0, sX[0], sY[0]);
-	compute(tri.p1, sX[1], sY[1]);
-	compute(tri.p2, sX[2], sY[2]);
+	compute(*tri.p0, sX[0], sY[0]);
+	compute(*tri.p1, sX[1], sY[1]);
+	compute(*tri.p2, sX[2], sY[2]);
 	
 	// Convert to pixel coordinates
 	// (0, 0) is at the top-left of the screen
