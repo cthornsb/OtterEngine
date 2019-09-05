@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "camera.hpp"
+#include "object.hpp"
 #include "sdlWindow.hpp"
 
 const double pi = 3.14159265359;
@@ -36,24 +37,26 @@ void camera::moveCam(const double &dist){
 	vPlane = plane(pos + uZ*L, uZ);
 }
 
-void camera::draw(std::vector<triangle> *tri, const drawMode &mode/*=WIREFRAME*/){
-	for(std::vector<triangle>::iterator iter = tri->begin(); iter != tri->end(); iter++){
-		draw((*iter), mode);
+void camera::draw(object* obj, const drawMode &mode/*=WIREFRAME*/){
+	std::vector<triangle>* polys = obj->getPolygons();
+	vector3 offset = obj->getPosition();
+	for(std::vector<triangle>::iterator iter = polys->begin(); iter != polys->end(); iter++){
+		draw(offset, (*iter), mode);
 	}
 }
 
-void camera::draw(const triangle &tri, const drawMode &mode/*=WIREFRAME*/){
+void camera::draw(const vector3 &offset, const triangle &tri, const drawMode &mode/*=WIREFRAME*/){
 	// Do backface culling
-	double dp = (tri.p - pos) * tri.norm;
+	double dp = ((tri.p+offset) - pos) * tri.norm;
 	if(mode != WIREFRAME && (dp > 0)) // The triangle is facing away from the camera
 		return;
 
 	double sX[3] = {0, 0, 0};
 	double sY[3] = {0, 0, 0};
 	
-	compute(*tri.p0, sX[0], sY[0]);
-	compute(*tri.p1, sX[1], sY[1]);
-	compute(*tri.p2, sX[2], sY[2]);
+	compute(*tri.p0+offset, sX[0], sY[0]);
+	compute(*tri.p1+offset, sX[1], sY[1]);
+	compute(*tri.p2+offset, sX[2], sY[2]);
 	
 	// Convert to pixel coordinates
 	// (0, 0) is at the top-left of the screen
@@ -84,7 +87,7 @@ void camera::draw(const triangle &tri, const drawMode &mode/*=WIREFRAME*/){
 	}
 	
 	if(drawNorm) // Draw the surface normal vector
-		drawVector(tri.p, tri.norm, Colors::RED);
+		drawVector(tri.p+offset, tri.norm, Colors::RED);
 }
 
 void camera::clear(const sdlColor &color/*=Colors::BLACK*/){

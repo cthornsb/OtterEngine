@@ -7,6 +7,10 @@ void object::rotate(const double &theta, const double &phi, const double &psi){
 	transform();
 }
 
+void object::move(const vector3 &offset){
+	pos += offset;
+}
+
 void object::setRotation(const double &theta, const double &phi, const double &psi){
 	rot.setRotation(theta, phi, psi);
 
@@ -15,6 +19,10 @@ void object::setRotation(const double &theta, const double &phi, const double &p
 	
 	// Update the rotation of all vertices
 	transform();
+}
+
+void object::setPosition(const vector3 &position){
+	pos = position;
 }
 
 void object::resetVertices(){

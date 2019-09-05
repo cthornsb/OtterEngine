@@ -13,6 +13,7 @@ extern const double deg2rad;
 extern const double rad2deg;
 
 class sdlWindow;
+class object;
 
 /** @class camera
   * @brief Handles all projections of 3d geometry onto the screen
@@ -75,17 +76,18 @@ public:
 	  */
 	void moveCam(const double &dist);
 
-	/** Render a vector of triangles in 3d space
-	  * @param tri Pointer to the vector of triangles to draw
+	/** Render a 3d object
+	  * @param obj Pointer to the object to draw
 	  * @param mode The drawing mode to use
 	  */
-	void draw(std::vector<triangle> *tri, const drawMode &mode=WIREFRAME);
+	void draw(object* obj, const drawMode &mode=WIREFRAME);
 	
-	/** Render a single triangle in 3d space
+	/** Render a single triangle
+	  * @param offset The offset of the object from the world origin
 	  * @param tri The triangles to draw
 	  * @param mode The drawing mode to use
 	  */
-	void draw(const triangle &tri, const drawMode &mode=WIREFRAME);
+	void draw(const vector3 &offset, const triangle &tri, const drawMode &mode=WIREFRAME);
 
 	/** Clear the screen by filling it with a color (black by default)
 	  */

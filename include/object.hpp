@@ -20,6 +20,10 @@ public:
 	  */
 	std::vector<triangle>* getPolygons(){ return &polys; }
 
+	/** Get the position offset of the object
+	  */
+	vector3 getPosition() const { return pos; }
+
 	/** Get the number of unique vertices
 	  */
 	size_t getNumberOfVertices() const { return vertices.size(); }
@@ -29,16 +33,22 @@ public:
 	size_t getNumberOfPolygons() const { return polys.size(); }
 
 	/** Rotate the object by a given amount about the X, Y, and Z, axes (all in radians)
-	  * @note This method will rotate vertices from their current position, not their original position.
-	  *       Use setRotation() to specify the rotation explicitly
+	  * @note This method will rotate vertices from their current position. Use setRotation() to specify the rotation explicitly
 	  */
 	void rotate(const double &theta, const double &phi, const double &psi);
 
+	/** Move the position of the object
+	  * @note This method moves the object relative to its current position. Use setPosition() to specify the position explicitly
+	  */
+	void move(const vector3 &offset);
+
 	/** Rotate the object to specified angles about the X, Y, and Z, axes (all in radians)
-	  * @note This method will rotate vertices from their current position, not their original position.
-	  *       Use rotate() to specify the rotation explicitly
 	  */
 	void setRotation(const double &theta, const double &phi, const double &psi);
+
+	/** Set the position of the object
+	  */
+	void setPosition(const vector3 &position);
 
 	/** Reset the coordinates of all vertices to their original values
 	  */

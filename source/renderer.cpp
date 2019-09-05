@@ -13,7 +13,6 @@
 int main(){
 	// Define a new cube
 	cube myCube(vector3(), 1, 1, 1);
-	std::vector<triangle> *tris = myCube.getPolygons();
 	
 	// Setup the camera at z=-5 m
 	camera cam(vector3(0, 0, -5));
@@ -24,13 +23,16 @@ int main(){
 	// Set the camera to draw surface normal vectors
 	//cam.setDrawNormals();
 
+	// Variable to track the "time"
+	float dummyTime = 0;
+
 	// "Animate" the cube by rotating it and moving the camera
 	while(cam.getStatus()){
 		// Clear the screen with a color
 		cam.clear(Colors::BLACK);
 		
 		// Draw the cube mesh
-		cam.draw(tris, camera::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
+		cam.draw(&myCube, camera::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 		
 		// Update the screen
 		cam.update();
@@ -41,8 +43,14 @@ int main(){
 		// Rotate the cube
 		myCube.rotate(0.12*deg2rad, 0.07*deg2rad, 0.17*deg2rad);
 		
+		// Move the cube along the x-axis
+		myCube.setPosition(vector3(std::sin(0.02*dummyTime), 0, 0));
+		
 		// Sleep for a short time (16.7 ms ~= 60 fps) to avoid rendering too fast
 		usleep(16700);
+		
+		// Update the "time"
+		dummyTime += 1;
 	}
 	
 	return 0;
