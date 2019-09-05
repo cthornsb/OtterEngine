@@ -7,6 +7,7 @@
 #include "plane.hpp"
 #include "triangle.hpp"
 #include "colors.hpp"
+#include "lightSource.hpp"
 
 extern const double pi;
 extern const double deg2rad;
@@ -58,6 +59,10 @@ public:
 	/** Return true if the window is still open, and return false otherwise
 	  */
 	bool getStatus() const { return isRunning; }
+
+	/** Get a pointer to the world light source
+	  */
+	lightSource *getLight(){ return &light; }
 
 	/** Set the width of the screen (in pixels)
 	  */
@@ -128,7 +133,7 @@ private:
 	vector3 uY; ///< Unit vector for the y-axis
 	vector3 uZ; ///< Unit vector for the z-axis
 	
-	vector3 light; ///< Global light direction
+	directionalLight light; ///< Global light source
 
 	sdlWindow *window; ///< Pointer to the main renderer window
 

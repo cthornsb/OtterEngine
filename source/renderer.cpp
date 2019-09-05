@@ -32,7 +32,7 @@ int main(){
 		cam.clear(Colors::BLACK);
 		
 		// Draw the cube mesh
-		cam.draw(&myCube, camera::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
+		cam.draw(&myCube, camera::RENDER); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 		
 		// Update the screen
 		cam.update();

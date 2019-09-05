@@ -1,4 +1,4 @@
-set(CORE_SOURCES matrix3.cpp vector3.cpp plane.cpp triangle.cpp ray.cpp object.cpp cube.cpp colors.cpp sdlWindow.cpp camera.cpp)
+set(CORE_SOURCES matrix3.cpp vector3.cpp plane.cpp triangle.cpp ray.cpp object.cpp cube.cpp colors.cpp lightSource.cpp sdlWindow.cpp camera.cpp)
 
 #Add the sources to the library.
 add_library(CORE_OBJECTS OBJECT ${CORE_SOURCES})

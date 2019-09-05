@@ -13,7 +13,7 @@ sdlWindow::~sdlWindow(){
 }
 
 void sdlWindow::setDrawColor(const sdlColor &color, const float &alpha/*=1*/){
-	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, sdlColor::convertToUChar(alpha));
+	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, sdlColor::toUChar(alpha));
 }
 
 void sdlWindow::clear(const sdlColor &color/*=Colors::BLACK*/){

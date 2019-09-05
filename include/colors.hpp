@@ -27,6 +27,42 @@ public:
 	  */
 	bool operator != (const sdlColor &rhs) const { return (r!=rhs.r || g!=rhs.g || b!=rhs.b); }
 
+	/** Add a color to this color and return the result
+	  */
+	sdlColor operator + (const sdlColor &rhs) const ;
+
+	/** Subtract a color from this color and return the result
+	  */
+	sdlColor operator - (const sdlColor &rhs) const ;
+
+	/** Multiply this color by a constant scaling factor and return the result
+	  */
+	sdlColor operator * (const float &rhs) const ;
+
+	/** Divide this color by a constant scaling factor and return the restul
+	  */
+	sdlColor operator / (const float &rhs) const ;
+
+	/** Add a color to this color
+	  */
+	sdlColor& operator += (const sdlColor &rhs);
+
+	/** Subtract a color from this color
+	  */
+	sdlColor& operator -= (const sdlColor &rhs);
+
+	/** Multiply this color by a constant scaling factor
+	  */
+	sdlColor& operator *= (const float &rhs);
+	
+	/** Divide this color by a constant scaling factor
+	  */
+	sdlColor& operator /= (const float &rhs);
+
+	/** Get the RGB inverse of this color
+	  */
+	sdlColor invert() const ;
+
 	/** Conver the color to grayscale using RGB coefficients based on the sRGB convention
 	  */
 	void toGrayscale();
@@ -37,7 +73,11 @@ public:
 	
 	/** Convert a floating point value in the range [0, 1] to an unsigned char between 0 and 255
 	  */
-	static unsigned char convertToUChar(const float &val){ return ((unsigned char)(val*255)); }
+	static unsigned char toUChar(const float &val){ return ((unsigned char)(val*255)); }
+	
+	/** Convert an unsigned char to a floating point value in the range [0, 1]
+	  */
+	static float toFloat(const unsigned char &val){ return (float(val)/255); }
 };
 
 namespace Colors{

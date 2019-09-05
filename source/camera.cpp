@@ -76,13 +76,7 @@ void camera::draw(const vector3 &offset, const triangle &tri, const drawMode &mo
 		drawTriangle(pixelX, pixelY, Colors::BLACK);
 	}
 	else if(mode == RENDER){
-		// Compute the dot-product between the triangle normal and the light direction
-		// When the normal is close to anti-parallel with the light direction, the triangle 
-		//  will receive close to the maximum light level. When the angle between the two
-		//  vectors approaches 90 degrees (and above), the triangle will receive almost no light.
-		dp = -(light * tri.norm);
-		if(dp < 0) dp = 0;
-		sdlColor col(dp);
+		sdlColor col = light.getColor(&tri);
 		drawFilledTriangle(pixelX, pixelY, col);
 	}
 	
@@ -118,7 +112,7 @@ void camera::dump() const {
 	std::cout << " Height: " << H << " m\n";
 	std::cout << " PixelX: " << pX << " m\n";
 	std::cout << " PixelY: " << pY << " m\n";
-	std::cout << " Light = (" << light.x << ", " << light.y << ", " << light.z << ")\n";
+	std::cout << " Light = (" << light.dir.x << ", " << light.dir.y << ", " << light.dir.z << ")\n";
 	std::cout << " unitX = (" << uX.x << ", " << uX.y << ", " << uX.z << ")\n";
 	std::cout << " unitY = (" << uY.x << ", " << uY.y << ", " << uY.z << ")\n";
 	std::cout << " unitZ = (" << uZ.x << ", " << uZ.y << ", " << uZ.z << ")\n";
@@ -138,7 +132,6 @@ void camera::initialize(){
 	uX = vector3(1, 0, 0);
 	uY = vector3(0, 1, 0);
 	uZ = vector3(0, 0, 1);
-	light = vector3(0, 0, 1);
 
 	// Setup the viewing plane (looking down the Z-axis)
 	vPlane = plane(pos + uZ*L, uZ);
