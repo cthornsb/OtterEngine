@@ -9,10 +9,14 @@
 #include "camera.hpp"
 #include "cube.hpp"
 #include "colors.hpp"
+#include "scene.hpp"
 
 int main(){
 	// Define a new cube
 	cube myCube(vector3(), 1, 1, 1);
+
+	// Set the render mode for our cube
+	myCube.setDrawingMode(scene::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 	
 	// Setup the camera at z=-5 m
 	camera cam(vector3(0, 0, -5));
@@ -20,22 +24,22 @@ int main(){
 	// Show some info about the camera
 	cam.dump();
 	
+	// Setup the scene with our camera
+	scene myScene(&cam);
+
 	// Set the camera to draw surface normal vectors
-	//cam.setDrawNormals();
+	//myScene.setDrawNormals();
+
+	// Add the cube to the scene
+	myScene.addObject(&myCube);
 
 	// Variable to track the "time"
 	float dummyTime = 0;
 
 	// "Animate" the cube by rotating it and moving the camera
-	while(cam.getStatus()){
-		// Clear the screen with a color
-		cam.clear(Colors::BLACK);
-		
-		// Draw the cube mesh
-		cam.draw(&myCube, camera::RENDER); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
-		
-		// Update the screen
-		cam.update();
+	while(myScene.getStatus()){
+		// Update the screen by drawing the geometry
+		myScene.update(); // 
 		
 		// Move the camera forward
 		cam.moveCam(0.002);
