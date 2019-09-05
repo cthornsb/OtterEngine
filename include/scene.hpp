@@ -10,6 +10,13 @@ class sdlWindow;
 class object;
 class camera;
 class lightSource;
+class triangle;
+
+/** @class scene
+  * @brief 
+  * @author Cory R. Thornsberry
+  * @date September 5, 2019
+  */
 
 class scene{
 public:
@@ -19,6 +26,27 @@ public:
 	               MESH,      ///< Draw outlines of triangles with backface culling
 	               SOLID,     ///< Draw filled triangles with wireframe outline overlayed
 	               RENDER     ///< Draw filled triangles with light shading
+	};
+
+	/** @class pixelTriplet
+	  * @brief Simple holder for the pixel coordinates of a 2d projection of a 3d triangle
+	  * @author Cory R. Thornsberry
+	  * @date September 5, 2019
+	  */
+	class pixelTriplet{
+	public:
+		triangle *tri; ///< Pointer to the real triangle
+
+		int pX[3]; ///< The horizontal pixel coordinates for the three vertices
+		int pY[3]; ///< The vertical pixel coordinates for the three vertices
+
+		/** Default constructor
+		  */
+		pixelTriplet() { }
+		
+		/** Constructor taking a pointer to a 3d triangle
+		  */
+		pixelTriplet(triangle *t) : tri(t) { }
 	};
 
 	/** Default constructor
@@ -119,6 +147,8 @@ private:
 	
 	std::vector<lightSource> lights;
 
+	std::vector<pixelTriplet> polygonsToDraw;
+
 	/** 
 	  */
 	void processObject(object *obj);
@@ -132,6 +162,15 @@ private:
 	  * @param py The vertical pixel corresponding to the input y-coordinate
 	  */
 	void convertToPixelSpace(const double &x, const double &y, int &px, int &py);
+
+	/** Convert screen-space coordinates [-1, 1] to pixel-space
+	  * @note The origin of pixel-space is the upper-left corner of the screen with the positive x-direction
+	  *       being toward the right side of the screen and the positive y-direction being toward the bottom
+	  * @param x Array of horizontal components of the screen-space coordinates (must contain at least 3 elements)
+	  * @param y Array of vertical components of the screen-space coordinates (must contain at least 3 elements)
+	  * @param coords The pixel coordinate holder for the three vertex projections
+	  */
+	void convertToPixelSpace(const double *x, const double *y, pixelTriplet &coords);
 
 	/** Draw a vector to the screen
 	  * @param start The start point of the vector to draw
@@ -147,20 +186,18 @@ private:
 	void drawRay(const ray &proj, const sdlColor &color, const double &length=1);
 	
 	/** Draw the outline of a triangle to the screen
-	  * @param x Array of X pixel coordinates
-	  * @param y Array of Y pixel coordinates
+	  * @param coords The pixel coordinate holder for the three vertex projections
 	  * @param color The line color of the triangle
 	  * @note There must be AT LEAST three elements in each array
 	  */
-	void drawTriangle(const int *x, const int *y, const sdlColor &color);
+	void drawTriangle(const pixelTriplet &coords, const sdlColor &color);
 	
 	/** Draw a filled triangle to the screen
-	  * @param x Array of X pixel coordinates
-	  * @param y Array of Y pixel coordinates
+	  * @param coords The pixel coordinate holder for the three vertex projections
 	  * @param color The fill color of the triangle
 	  * @note There must be AT LEAST three elements in each array
 	  */
-	void drawFilledTriangle(const int *x, const int *y, const sdlColor &color);
+	void drawFilledTriangle(const pixelTriplet &coords, const sdlColor &color);
 };
 
 #endif

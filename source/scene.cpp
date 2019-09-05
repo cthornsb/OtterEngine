@@ -29,12 +29,23 @@ void scene::clear(const sdlColor &color/*=Colors::BLACK*/){
 }
 
 void scene::update(){
+	// Clear the vector of triangles to draw
+	polygonsToDraw.clear();
+
 	// Clear the screen with a color
 	clear(Colors::BLACK);
 	
 	// Draw the 3d geometry
 	for(auto obj : objects)
 		processObject(obj);
+	
+	// Draw rendered polygons
+	if(!polygonsToDraw.empty()){
+		for(auto triplet : polygonsToDraw){
+			sdlColor col = worldLight.getColor(triplet.tri);
+			drawFilledTriangle(triplet, col);
+		}
+	}
 	
 	// Update the screen
 	if(!window->status()){ // Check if the window has been closed
@@ -67,24 +78,25 @@ void scene::processObject(object *obj){
 		
 		// Convert to pixel coordinates
 		// (0, 0) is at the top-left of the screen
-		int pX[3], pY[3];
-		for(size_t i = 0; i < 3; i++)
-			convertToPixelSpace(sX[i], sY[i], pX[i], pY[i]);
+		pixelTriplet pixels(&(*iter));
+		convertToPixelSpace(sX, sY, pixels);
 		
 		// Draw the triangle to the screen
 		if(mode == WIREFRAME || mode == MESH){
-			drawTriangle(pX, pY, Colors::WHITE);
+			drawTriangle(pixels, Colors::WHITE);
 		}
 		else if(mode == SOLID){
 			// Draw the triangle face and the outline of the triangle
-			drawFilledTriangle(pX, pY, Colors::WHITE);
+			drawFilledTriangle(pixels, Colors::WHITE);
 		
 			// Draw the edges of the triangles
-			drawTriangle(pX, pY, Colors::BLACK);
+			drawTriangle(pixels, Colors::BLACK);
 		}
 		else if(mode == RENDER){
-			sdlColor col = worldLight.getColor(&(*iter));
-			drawFilledTriangle(pX, pY, col);
+			// Do nothing for now. Rendering is more complex than wireframe or solid mesh drawing
+			//  because we need to take lighting into account. Add the projected triangle to the
+			//  vector of good vertices for future drawing.
+			polygonsToDraw.push_back(pixels);
 		}
 		
 		if(drawNorm) // Draw the surface normal vector
@@ -95,6 +107,13 @@ void scene::processObject(object *obj){
 void scene::convertToPixelSpace(const double &x, const double &y, int &px, int &py){
 	px = (int)(screenWidthPixels*((x + 1)/2));
 	py = (int)(screenHeightPixels*(1 - (y + 1)/2));
+}
+
+void scene::convertToPixelSpace(const double *x, const double *y, pixelTriplet &coords){
+	for(size_t i = 0; i < 3; i++){
+		coords.pX[i] = (int)(screenWidthPixels*((x[i] + 1)/2));
+		coords.pY[i] = (int)(screenHeightPixels*(1 - (y[i] + 1)/2));
+	}
 }
 
 void scene::drawVector(const vector3 &start, const vector3 &direction, const sdlColor &color, const double &length/*=1*/){
@@ -122,21 +141,21 @@ void scene::drawRay(const ray &proj, const sdlColor &color, const double &length
 	drawVector(proj.pos, proj.dir, color, length);
 }
 
-void scene::drawTriangle(const int *x, const int *y, const sdlColor &color){
+void scene::drawTriangle(const pixelTriplet &coords, const sdlColor &color){
 	window->setDrawColor(color);
 	for(size_t i = 0; i < 2; i++)
-		window->drawLine(x[i], y[i], x[i+1], y[i+1]);
-	window->drawLine(x[2], y[2], x[0], y[0]);
+		window->drawLine(coords.pX[i], coords.pY[i], coords.pX[i+1], coords.pY[i+1]);
+	window->drawLine(coords.pX[2], coords.pY[2], coords.pX[0], coords.pY[0]);
 }
 	
-void scene::drawFilledTriangle(const int *x, const int *y, const sdlColor &color){
+void scene::drawFilledTriangle(const pixelTriplet &coords, const sdlColor &color){
 	int x0, y0;
 	int x1, y1;
 	int x2, y2;
 	
-	x0 = x[0]; y0 = y[0];
-	x1 = x[1]; y1 = y[1];
-	x2 = x[2]; y2 = y[2];
+	x0 = coords.pX[0]; y0 = coords.pY[0];
+	x1 = coords.pX[1]; y1 = coords.pY[1];
+	x2 = coords.pX[2]; y2 = coords.pY[2];
 
 	// Sort points by ascending Y
 	// Insertion sort

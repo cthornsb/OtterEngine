@@ -16,7 +16,7 @@ int main(){
 	cube myCube(vector3(), 1, 1, 1);
 
 	// Set the render mode for our cube
-	myCube.setDrawingMode(scene::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
+	myCube.setDrawingMode(scene::RENDER); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 	
 	// Setup the camera at z=-5 m
 	camera cam(vector3(0, 0, -5));
