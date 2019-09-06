@@ -172,16 +172,24 @@ private:
 	  */
 	void convertToPixelSpace(const double *x, const double *y, pixelTriplet &coords);
 
+	/** Draw a point to the screen
+	  * @param point The point in 3d space to draw
+	  * @param color The color of the point
+	  */
+	void drawPoint(const vector3 &point, const sdlColor &color);
+
 	/** Draw a vector to the screen
 	  * @param start The start point of the vector to draw
 	  * @param direction The direction of the vector to draw
-	  * @param proj The total length to draw
+	  * @param color The color of the vector
+	  * @param length The total length to draw
 	  */	
 	void drawVector(const vector3 &start, const vector3 &direction, const sdlColor &color, const double &length=1);
 	
 	/** Draw a ray to the screen
-	  * @param proj The 3d ray to draw (in real-space)
-	  * @param proj The total length to draw
+	  * @param proj The 3d ray to draw
+	  * @param color The color of the ray
+	  * @param length The total length to draw
 	  */
 	void drawRay(const ray &proj, const sdlColor &color, const double &length=1);
 	

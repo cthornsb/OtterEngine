@@ -116,6 +116,20 @@ void scene::convertToPixelSpace(const double *x, const double *y, pixelTriplet &
 	}
 }
 
+void scene::drawPoint(const vector3 &point, const sdlColor &color){
+	double cmX, cmY;
+	if(cam->projectPoint(point, cmX, cmY)){
+		int cmpX, cmpY;
+	
+		// Convert the screen-space coordinates to pixel-space
+		convertToPixelSpace(cmX, cmY, cmpX, cmpY);
+		
+		// Draw the normal vector
+		window->setDrawColor(color);
+		window->drawPixel(cmpX, cmpY);
+	}
+}
+
 void scene::drawVector(const vector3 &start, const vector3 &direction, const sdlColor &color, const double &length/*=1*/){
 	// Compute the normal vector from the center of the triangle
 	vector3 P = start + direction;
