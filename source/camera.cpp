@@ -43,9 +43,23 @@ void camera::setAspectRatio(const double &ratio){
 	computeViewingPlane();
 }
 
-void camera::move(const double &dist){
-	pos = pos + uZ*dist;
+/////////////////////////////////////////////////
+// Movement methods
+/////////////////////////////////////////////////
+
+void camera::moveForward(const double &dist){
+	pos += uZ*dist;
 	updateViewingPlane();
+}
+
+void camera::moveRight(const double &dist){
+	pos += uX*dist;
+	updateViewingPlane();
+}
+
+void camera::moveUp(const double &dist){
+	pos += uY*dist;
+	updateViewingPlane();	
 }
 
 void camera::move(const vector3 &displacement){
@@ -53,10 +67,24 @@ void camera::move(const vector3 &displacement){
 	updateViewingPlane();
 }
 
+void camera::move(const double &x, const double &y, const double &z){
+	pos += vector3(x, y, z);
+	updateViewingPlane();
+}
+
 void camera::moveTo(const vector3 &position){ 
 	pos = position; 
 	updateViewingPlane();
 }
+
+void camera::moveTo(const double &x, const double &y, const double &z){
+	pos = vector3(x, y, z);
+	updateViewingPlane();
+}
+
+/////////////////////////////////////////////////
+// Rotation methods
+/////////////////////////////////////////////////
 
 void camera::rotate(const double &theta, const double &phi, const double &psi){
 	// Get the rotation matrix
@@ -100,6 +128,10 @@ void camera::resetRotation(){
 	uY = vector3(0, 1, 0);
 	uZ = vector3(0, 0, 1);
 }
+
+/////////////////////////////////////////////////
+// Rendering methods
+/////////////////////////////////////////////////
 
 void camera::render(const vector3 &offset, const triangle &tri, double *sX, double *sY){
 	projectPoint(*tri.p0+offset, sX[0], sY[0]);
@@ -157,7 +189,7 @@ void camera::initialize(){
 void camera::computeViewingPlane(){
 	W = 2*L*std::tan(fov/2); // m
 	H = W/A; // m
-};
+}
 
 void camera::updateViewingPlane(){
 	vPlane.p = pos + uZ*L;

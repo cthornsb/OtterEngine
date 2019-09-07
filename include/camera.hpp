@@ -51,18 +51,53 @@ public:
 	  */
 	void setAspectRatio(const double &ratio);
 
+/////////////////////////////////////////////////
+// Movement methods
+/////////////////////////////////////////////////
+
 	/** Move the camera in the direction that it is currently pointed
-	  * @param dist The distance to move along the direction the camera is currently pointed
 	  */
-	void move(const double &dist);
+	void moveForward(const double &dist);
+
+	/** Move the camera in the direction that it is currently pointed
+	  */
+	void moveBackward(const double &dist){ moveForward(-dist); }
+
+	/** Move the camera horizontally along the axis perpendicular to the direction it is facing
+	  */
+	void moveRight(const double &dist);
+
+	/** Move the camera horizontally along the axis perpendicular to the direction it is facing
+	  */
+	void moveLeft(const double &dist){ moveRight(-dist); }
+
+	/** Move the camera vertically along the axis perpendicular to the direction it is facing
+	  */	
+	void moveUp(const double &dist);
 	
-	/** Move the camera along a vector
+	/** Move the camera vertically along the axis perpendicular to the direction it is facing
+	  */
+	void moveDown(const double &dist){ moveUp(-dist); }
+	
+	/** Move the camera along a vector from its current position
 	  */
 	void move(const vector3 &displacement);
+	
+	/** Move the camera along the X, Y, and Z axes from its current position
+	  */
+	void move(const double &x, const double &y, const double &z);
 	
 	/** Move the camera to a position in 3d space
 	  */
 	void moveTo(const vector3 &position);
+	
+	/** Move the camera to a position in 3d space
+	  */
+	void moveTo(const double &x, const double &y, const double &z);
+
+/////////////////////////////////////////////////
+// Rotation methods
+/////////////////////////////////////////////////
 
 	/** Rotate the object by a given amount using the pitch-roll-yaw convention (all in radians)
 	  * @note This method will rotate vertices from their current position. Use setRotation() to specify the rotation explicitly
@@ -80,6 +115,10 @@ public:
 	/** Reset the orientation of the camera to its default rotation
 	  */
 	void resetRotation();
+
+/////////////////////////////////////////////////
+// Rendering methods
+/////////////////////////////////////////////////
 
 	/** Render a single triangle by computing its projection onto the viewing plane
 	  * @param offset The offset of the object from the world origin
