@@ -93,9 +93,9 @@ public:
 	  */
 	void setScreenHeight(const int &height){ screenHeightPixels = height; }
 	
-	/** Set the main camera for rendering
+	/** Set the main camera for rendering and update its aspect ratio
 	  */
-	void setCamera(camera *cam_){ cam = cam_; }
+	void setCamera(camera *cam_);
 
 	/** Enable or disable the drawing of triangle normals
 	  */

@@ -39,6 +39,18 @@ public:
 	  */
 	~camera();
 
+	/** Set the field-of-view of the camera (in degrees)
+	  */
+	void setFOV(const double &fov_);
+	
+	/** Set the focal-length of the camera (in mm)
+	  */
+	void setFocalLength(const double &length);
+	
+	/** Set the aspect ratio of the screen
+	  */
+	void setAspectRatio(const double &ratio);
+
 	/** Move the camera in the direction that it is currently pointed
 	  * @param dist The distance to move along the direction the camera is currently pointed
 	  */
@@ -114,6 +126,11 @@ private:
 	/** Initialize the camera by setting initial values and computing all geometric parameters
 	  */
 	void initialize();
+	
+	/** Compute the dimensions of the viewing plane based on the field-of-view, the focal-length,
+	  * and the aspect-ratio
+	  */
+	void computeViewingPlane();
 	
 	/** Update the central point and normal vector of the viewing plane
 	  */

@@ -28,6 +28,21 @@ camera::camera(const vector3 &pos_, const vector3 &dir_){
 camera::~camera(){
 }
 
+void camera::setFOV(const double &fov_){ 
+	fov = fov_*deg2rad; 
+	computeViewingPlane();
+}
+
+void camera::setFocalLength(const double &length){
+	L = length*1E-3;
+	computeViewingPlane();
+}
+
+void camera::setAspectRatio(const double &ratio){
+	A = ratio;
+	computeViewingPlane();
+}
+
 void camera::move(const double &dist){
 	pos = pos + uZ*dist;
 	updateViewingPlane();
@@ -135,10 +150,14 @@ void camera::initialize(){
 	// Setup the viewing plane (looking down the Z-axis)
 	updateViewingPlane();
 
-	// Compute additional parameters
+	// Compute the dimensions of the viewing plane
+	computeViewingPlane();
+}
+
+void camera::computeViewingPlane(){
 	W = 2*L*std::tan(fov/2); // m
 	H = W/A; // m
-}
+};
 
 void camera::updateViewingPlane(){
 	vPlane.p = pos + uZ*L;

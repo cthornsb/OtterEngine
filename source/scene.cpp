@@ -11,6 +11,7 @@ scene::scene() : timeElapsed(0), drawNorm(false), drawOrigin(false), isRunning(t
 
 scene::scene(camera *cam_) : timeElapsed(0), drawNorm(false), drawOrigin(false), isRunning(true), screenWidthPixels(640), screenHeightPixels(480), cam(cam_) { 
 	initialize();
+	setCamera(cam_);
 }
 
 scene::~scene(){
@@ -67,6 +68,11 @@ void scene::loop(){
 			break;
 		usleep(16700); // ~60 Hz
 	}
+}
+
+void scene::setCamera(camera *cam_){ 
+	cam = cam_; 
+	cam->setAspectRatio(double(screenWidthPixels)/screenHeightPixels);
 }
 
 void scene::processObject(object *obj){
