@@ -5,11 +5,15 @@
 #include "object.hpp"
 #include "sdlWindow.hpp"
 
-scene::scene() : timeElapsed(0), drawNorm(false), drawOrigin(false), isRunning(true), screenWidthPixels(640), screenHeightPixels(480), cam(NULL) { 
+scene::scene() : timeElapsed(0), totalRenderTime(0), renderTime(0), framerate(0), framerateCap(60), updateCount(0), 
+                 drawNorm(false), drawOrigin(false), isRunning(true), 
+                 screenWidthPixels(640), screenHeightPixels(480), cam(NULL) { 
 	initialize();
 }
 
-scene::scene(camera *cam_) : timeElapsed(0), drawNorm(false), drawOrigin(false), isRunning(true), screenWidthPixels(640), screenHeightPixels(480), cam(cam_) { 
+scene::scene(camera *cam_) : timeElapsed(0), totalRenderTime(0), renderTime(0), framerate(0), framerateCap(60), updateCount(0),
+                             drawNorm(false), drawOrigin(false), isRunning(true), 
+                             screenWidthPixels(640), screenHeightPixels(480), cam(cam_) { 
 	initialize();
 	setCamera(cam_);
 }
@@ -20,6 +24,10 @@ scene::~scene(){
 }
 
 void scene::initialize(){
+	// Initialize the high resolution time
+	timeOfInitialization = sclock::now();
+	timeOfLastUpdate = sclock::now();
+
 	// Setup the window
 	window = new sdlWindow(screenWidthPixels, screenHeightPixels);
 	window->initialize();
@@ -29,7 +37,13 @@ void scene::clear(const sdlColor &color/*=Colors::BLACK*/){
 	window->clear(color);
 }
 
-void scene::update(){
+bool scene::update(){
+	// Update the timer
+	timeOfLastUpdate = sclock::now();
+
+	// Start the render timer
+	sclock::time_point startOfRenderScene = sclock::now();
+	
 	// Clear the vector of triangles to draw
 	polygonsToDraw.clear();
 
@@ -53,16 +67,39 @@ void scene::update(){
 		drawVector(vector3(0, 0, 0), vector3(0, 1, 0), Colors::GREEN);
 		drawVector(vector3(0, 0, 0), vector3(0, 0, 1), Colors::BLUE);
 	}
-	
+
 	// Update the screen
 	if(!window->status()){ // Check if the window has been closed
 		isRunning = false;
-		return;
+		return false;
 	}
 	window->render();
+	
+	updateCount++;
+
+	// Stop the render timer
+	renderTime = std::chrono::duration_cast<std::chrono::duration<double>>(sclock::now() - startOfRenderScene).count();
+
+	// Update the total render time and the instantaneous framerate
+	totalRenderTime += renderTime;
+	framerate = 1/renderTime;
+
+	// Cap the framerate by sleeping	
+	if(framerateCap > 0){
+		int timeToSleep((1.0/framerateCap - renderTime)*1E6); // in microseconds
+		if(timeToSleep > 0){
+			usleep(timeToSleep);
+			framerate = 1/(renderTime + timeToSleep*1E-6);
+		}
+	}
+
+	// Get the time since the scene was initialized
+	timeElapsed = std::chrono::duration_cast<std::chrono::duration<double>>(sclock::now() - timeOfInitialization).count();
+	
+	return true;
 }
 
-void scene::loop(){
+void scene::wait(){
 	while(true){
 		if(!window->status()) // Check if the window has been closed
 			break;

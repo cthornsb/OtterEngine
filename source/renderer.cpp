@@ -2,7 +2,6 @@
 #include <string>
 #include <cmath>
 #include <vector>
-#include <unistd.h>
 
 #include "vector3.hpp"
 #include "triangle.hpp"
@@ -29,36 +28,26 @@ int main(){
 
 	// Set the camera to draw surface normal vectors
 	//myScene.setDrawNormals();
-	//myScene.setDrawOrigin();
+	myScene.setDrawOrigin();
 
 	// Add the cube to the scene
 	myScene.addObject(&myCube);
 
-	// Variable to track the "time"
-	float dummyTime = 0;
-
 	// "Animate" the cube by rotating it and moving the camera
-	while(myScene.getStatus()){
-		// Update the screen by drawing the geometry
-		myScene.update(); // 
-		
+	while(myScene.update()){
+		double t = myScene.getTimeElapsed();
+	
 		// Move the camera forward
-		//cam.move(0.002);
+		//cam.moveForward(0.0005*t);
 		
 		// Rotate the cube
-		myCube.rotate(0.12*deg2rad, 0.07*deg2rad, 0.17*deg2rad);
+		myCube.rotate(0.24*deg2rad, 0.14*deg2rad, 0.34*deg2rad);
 		
 		// Move the cube along the x-axis
-		myCube.setPosition(vector3(2*std::sin(0.02*dummyTime), 2*std::cos(0.02*dummyTime), 0));
+		myCube.setPosition(vector3(2*std::sin(0.25*t), 2*std::cos(0.25*t), 0));
 
 		// Point the camera at the cube
 		cam.lookAt(myCube.getPosition());
-		
-		// Sleep for a short time (16.7 ms ~= 60 fps) to avoid rendering too fast
-		usleep(16700);
-		
-		// Update the "time"
-		dummyTime += 1;
 	}
 	
 	return 0;

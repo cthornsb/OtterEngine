@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstddef>
+#include <chrono>
 
 #include "lightSource.hpp"
 
@@ -11,6 +12,9 @@ class object;
 class camera;
 class lightSource;
 class triangle;
+
+// Make a typedef for clarity when working with chrono.
+typedef std::chrono::system_clock sclock;
 
 /** @class scene
   * @brief 
@@ -85,6 +89,26 @@ public:
 	  */
 	lightSource *getWorldLight(){ return &worldLight; }
 
+	/** Get the total time elapsed since the scene was initialized (in seconds)
+	  */
+	double getTimeElapsed() const { return timeElapsed; }
+
+	/** Get the time taken for the most recent render (in seconds)
+	  */
+	double getRenderTime() const { return renderTime; }
+	
+	/** Get the average amount of time for each render (in seconds)
+	  */
+	double getAverageRenderTime() const { return (totalRenderTime/updateCount); }
+
+	/** Get the instantaneous framerate of the most recent render (in Hz)
+	  */
+	double getFramerate() const { return framerate; }
+	
+	/** Get the average framerate (in Hz)
+	  */	
+	double getAverageFramerate() const { return (updateCount/timeElapsed); }
+
 	/** Set the width of the screen (in pixels)
 	  */
 	void setScreenWidth(const int &width){ screenWidthPixels = width; }
@@ -105,6 +129,10 @@ public:
 	  */
 	void setDrawOrigin(const bool &enable=true){ drawOrigin = enable; }
 
+	/** Set the target maximum framerate for rendering (in Hz)
+	  */
+	void setFramerateCap(const double &cap){ framerateCap = cap; }
+
 	/** Add an object to the list of objects to be rendered
 	  */
 	void addObject(object *obj){ objects.push_back(obj); }
@@ -123,17 +151,25 @@ public:
 	void clear(const sdlColor &color=Colors::BLACK);
 	
 	/** Update the screen
-	  * @note This method will check whether or not the user has closed the window. If so,
-	  *       this method will set the @a isRunning flag to false and return
+	  * @note This method should be called once per iteration of the main loop
+	  * @return True if the update was successful and return false if the user closed the window
 	  */
-	void update();
+	bool update();
 
 	/** Wait until the user closes the screen, and then return
+	  * @note Only useful for testing
 	  */
-	void loop();
+	void wait();
 
 private:
-	double timeElapsed;
+	double timeElapsed; ///< The time since the program was started
+	double totalRenderTime; ///< The running total time of all render events
+	double renderTime; ///< The time taken to perform the last render
+	double framerate; ///< The instantaneous framerate of the last render
+
+	unsigned short framerateCap; ///< The target render framerate (in Hz)
+	
+	unsigned long long updateCount; ///< The number of times the user has called update()
 
 	bool drawNorm; ///< Flag indicating that normal vectors will be drawn on each triangle
 	bool drawOrigin; ///< Flag indicating that the X, Y, and Z axes will be drawn at the origin
@@ -141,6 +177,9 @@ private:
 
 	int screenWidthPixels; ///< Width of the viewing window (in pixels)
 	int screenHeightPixels; ///< Height of the viewing window (in pixels)
+
+	sclock::time_point timeOfInitialization; ///< The time that the scene was initialized
+	sclock::time_point timeOfLastUpdate; ///< The last time that update() was called by the user
 
 	camera *cam;
 	
