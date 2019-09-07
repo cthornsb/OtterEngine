@@ -3,6 +3,11 @@
 
 #include "vector3.hpp"
 
+const vector3 zeroVector(0, 0, 0);
+const vector3 unitVectorX(1, 0, 0);
+const vector3 unitVectorY(0, 1, 0);
+const vector3 unitVectorZ(0, 0, 1);
+
 vector3& vector3::operator = (const vector3 &rhs){
 	x = rhs.x;
 	y = rhs.y;

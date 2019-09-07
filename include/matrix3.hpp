@@ -103,6 +103,12 @@ public:
 	  */
 	void setRotation(const double &theta, const double &phi, const double &psi);
 
+	static matrix3 getPitchMatrix(const double &angle);
+	
+	static matrix3 getRollMatrix(const double &angle);
+	
+	static matrix3 getYawMatrix(const double &angle);
+
 	/** Operate on an input vector by multiplying it with this matrix
 	  */
 	void transform(vector3 &vec) const ;
@@ -123,5 +129,7 @@ public:
 	  */
 	void identity();
 };
+
+extern const matrix3 identityMatrix;
 
 #endif

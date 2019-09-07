@@ -4,6 +4,10 @@
 
 #include "matrix3.hpp"
 
+const matrix3 identityMatrix(1, 0, 0,
+                             0, 1, 0,
+                             0, 0, 1);
+
 matrix3::matrix3(){ 
 	zero(); 
 }
@@ -175,28 +179,46 @@ void matrix3::setRotation(const vector3 &vec){
 }
 
 void matrix3::setRotation(const double &theta, const double &phi, const double &psi){
-	double sin_theta = std::sin(theta), cos_theta = std::cos(theta);
-	double sin_phi = std::sin(phi), cos_phi = std::cos(phi);
-	double sin_psi = std::sin(psi), cos_psi = std::cos(psi);
-	
 	// Pitch-Roll-Yaw convention
-	// Rotate by angle theta about the y-axis
-	//  angle phi about the z-axis
-	//  angle psi about the x-axis	
-	matrix3 thetaM( cos_theta,          0, -sin_theta,
-	                        0,          1,          0,
-	                sin_theta,          0,  cos_theta);
-	                
-	matrix3   phiM(   cos_phi,    sin_phi,          0,
-	                 -sin_phi,    cos_phi,          0,
-	                        0,          0,          1);
-	                        
-	matrix3   psiM(         1,          0,          0,
-	                        0,    cos_psi,    sin_psi,
-	                        0,   -sin_psi,    cos_psi);
+	matrix3 thetaM = getPitchMatrix(theta);
+	matrix3 phiM   = getRollMatrix(phi);
+	matrix3 psiM   = getYawMatrix(psi);
 	
 	// Multiply the three individual rotation matrices into the full rotation matrix
 	(*this) = psiM*(phiM*thetaM);
+}
+
+matrix3 matrix3::getPitchMatrix(const double &angle){
+	if(angle == 0)
+		return identityMatrix;
+	double sin_theta = std::sin(angle);
+	double cos_theta = std::cos(angle);
+	matrix3 mat(cos_theta, 0, -sin_theta,
+	                    0, 1,          0,
+	            sin_theta, 0,  cos_theta);
+	return mat;
+}
+
+matrix3 matrix3::getRollMatrix(const double &angle){
+	if(angle == 0)
+		return identityMatrix;
+	double sin_phi = std::sin(angle);
+	double cos_phi = std::cos(angle);
+	matrix3 mat( cos_phi, sin_phi, 0,
+	            -sin_phi, cos_phi, 0,
+	                   0,       0, 1);
+	return mat;
+}
+
+matrix3 matrix3::getYawMatrix(const double &angle){
+	if(angle == 0)
+		return identityMatrix;
+	double sin_psi = std::sin(angle);
+	double cos_psi = std::cos(angle);
+	matrix3 mat(1,        0,       0,
+	            0,  cos_psi, sin_psi,
+	            0, -sin_psi, cos_psi);
+	return mat;
 }
 
 // transform an input vector by this matrix

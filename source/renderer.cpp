@@ -16,7 +16,7 @@ int main(){
 	cube myCube(vector3(), 1, 1, 1);
 
 	// Set the render mode for our cube
-	myCube.setDrawingMode(scene::RENDER); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
+	myCube.setDrawingMode(scene::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 	
 	// Setup the camera at z=-5 m
 	camera cam(vector3(0, 0, -5));
@@ -29,6 +29,7 @@ int main(){
 
 	// Set the camera to draw surface normal vectors
 	//myScene.setDrawNormals();
+	//myScene.setDrawOrigin();
 
 	// Add the cube to the scene
 	myScene.addObject(&myCube);
@@ -42,13 +43,16 @@ int main(){
 		myScene.update(); // 
 		
 		// Move the camera forward
-		cam.moveCam(0.002);
+		//cam.move(0.002);
 		
 		// Rotate the cube
 		myCube.rotate(0.12*deg2rad, 0.07*deg2rad, 0.17*deg2rad);
 		
 		// Move the cube along the x-axis
-		myCube.setPosition(vector3(std::sin(0.02*dummyTime), 0, 0));
+		myCube.setPosition(vector3(2*std::sin(0.02*dummyTime), 2*std::cos(0.02*dummyTime), 0));
+
+		// Point the camera at the cube
+		cam.lookAt(myCube.getPosition());
 		
 		// Sleep for a short time (16.7 ms ~= 60 fps) to avoid rendering too fast
 		usleep(16700);

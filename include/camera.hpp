@@ -21,7 +21,7 @@ class object;
   * @date September 4, 2019
   */
 
-class camera : public ray {
+class camera {
 public:
 	/** Default constructor
 	  */
@@ -42,7 +42,32 @@ public:
 	/** Move the camera in the direction that it is currently pointed
 	  * @param dist The distance to move along the direction the camera is currently pointed
 	  */
-	void moveCam(const double &dist);
+	void move(const double &dist);
+	
+	/** Move the camera along a vector
+	  */
+	void move(const vector3 &displacement);
+	
+	/** Move the camera to a position in 3d space
+	  */
+	void moveTo(const vector3 &position);
+
+	/** Rotate the object by a given amount using the pitch-roll-yaw convention (all in radians)
+	  * @note This method will rotate vertices from their current position. Use setRotation() to specify the rotation explicitly
+	  */
+	void rotate(const double &theta, const double &phi, const double &psi);
+
+	/** Rotate the object to specified angles using the pitch-roll-yaw convention (all in radians)
+	  */
+	void setRotation(const double &theta, const double &phi, const double &psi);
+
+	/** Point the camera at a location in 3d space
+	  */
+	void lookAt(const vector3 &position);
+
+	/** Reset the orientation of the camera to its default rotation
+	  */
+	void resetRotation();
 
 	/** Render a single triangle by computing its projection onto the viewing plane
 	  * @param offset The offset of the object from the world origin
@@ -80,6 +105,8 @@ private:
 
 	plane vPlane; ///< The viewing plane of the camera
 	
+	vector3 pos; ///< The focal point of the camera (its position)
+	
 	vector3 uX; ///< Unit vector for the x-axis
 	vector3 uY; ///< Unit vector for the y-axis
 	vector3 uZ; ///< Unit vector for the z-axis
@@ -87,6 +114,10 @@ private:
 	/** Initialize the camera by setting initial values and computing all geometric parameters
 	  */
 	void initialize();
+	
+	/** Update the central point and normal vector of the viewing plane
+	  */
+	void updateViewingPlane();
 	
 	/** Convert a real-space position on the viewing plane to a position in screen-space [-1, 1]
 	  * @note The origin of screen-space is the center of the screen with the positive x-direction

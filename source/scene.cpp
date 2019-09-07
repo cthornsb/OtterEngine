@@ -5,11 +5,11 @@
 #include "object.hpp"
 #include "sdlWindow.hpp"
 
-scene::scene() : timeElapsed(0), drawNorm(false), isRunning(true), screenWidthPixels(640), screenHeightPixels(480), cam(NULL) { 
+scene::scene() : timeElapsed(0), drawNorm(false), drawOrigin(false), isRunning(true), screenWidthPixels(640), screenHeightPixels(480), cam(NULL) { 
 	initialize();
 }
 
-scene::scene(camera *cam_) : timeElapsed(0), drawNorm(false), isRunning(true), screenWidthPixels(640), screenHeightPixels(480), cam(cam_) { 
+scene::scene(camera *cam_) : timeElapsed(0), drawNorm(false), drawOrigin(false), isRunning(true), screenWidthPixels(640), screenHeightPixels(480), cam(cam_) { 
 	initialize();
 }
 
@@ -45,6 +45,12 @@ void scene::update(){
 			sdlColor col = worldLight.getColor(triplet.tri);
 			drawFilledTriangle(triplet, col);
 		}
+	}
+
+	if(drawOrigin){ // Draw the origin
+		drawVector(vector3(0, 0, 0), vector3(1, 0, 0), Colors::RED);
+		drawVector(vector3(0, 0, 0), vector3(0, 1, 0), Colors::GREEN);
+		drawVector(vector3(0, 0, 0), vector3(0, 0, 1), Colors::BLUE);
 	}
 	
 	// Update the screen

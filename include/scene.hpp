@@ -101,6 +101,10 @@ public:
 	  */
 	void setDrawNormals(const bool &enable=true){ drawNorm = enable; }
 
+	/** Enable or disable the drawing of the X, Y, and Z axes at the origin
+	  */
+	void setDrawOrigin(const bool &enable=true){ drawOrigin = enable; }
+
 	/** Add an object to the list of objects to be rendered
 	  */
 	void addObject(object *obj){ objects.push_back(obj); }
@@ -132,6 +136,7 @@ private:
 	double timeElapsed;
 
 	bool drawNorm; ///< Flag indicating that normal vectors will be drawn on each triangle
+	bool drawOrigin; ///< Flag indicating that the X, Y, and Z axes will be drawn at the origin
 	bool isRunning; ///< Flag indicating that the window is still open and active
 
 	int screenWidthPixels; ///< Width of the viewing window (in pixels)

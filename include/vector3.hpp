@@ -149,4 +149,9 @@ public:
 	void dump() const ;
 };
 
+extern const vector3 zeroVector;
+extern const vector3 unitVectorX;
+extern const vector3 unitVectorY;
+extern const vector3 unitVectorZ;
+
 #endif
