@@ -8,6 +8,8 @@
 #include "lightSource.hpp"
 
 class sdlWindow;
+class sdlKeypress;
+
 class object;
 class camera;
 class lightSource;
@@ -109,6 +111,10 @@ public:
 	  */	
 	double getAverageFramerate() const { return (updateCount/timeElapsed); }
 
+	/** Get a pointer to the last user keypress object
+	  */
+	sdlKeypress* getKeypress();
+
 	/** Set the width of the screen (in pixels)
 	  */
 	void setScreenWidth(const int &width){ screenWidthPixels = width; }
@@ -155,7 +161,7 @@ public:
 	  * @return True if the update was successful and return false if the user closed the window
 	  */
 	bool update();
-
+	
 	/** Wait until the user closes the screen, and then return
 	  * @note Only useful for testing
 	  */

@@ -3,6 +3,7 @@
 #include <cmath>
 #include <vector>
 
+#include "sdlWindow.hpp"
 #include "vector3.hpp"
 #include "triangle.hpp"
 #include "camera.hpp"
@@ -18,7 +19,7 @@ int main(){
 	myCube.setDrawingMode(scene::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 	
 	// Setup the camera at z=-5 m
-	camera cam(vector3(0, 0, -5));
+	camera cam(vector3(0, 0, -1));
 	
 	// Show some info about the camera
 	cam.dump();
@@ -34,11 +35,49 @@ int main(){
 	myScene.addObject(&myCube);
 
 	// "Animate" the cube by rotating it and moving the camera
-	while(myScene.update()){
+	int count = 0;
+	bool isDone = false;
+	while(!isDone && myScene.update()){
 		double t = myScene.getTimeElapsed();
+
+		// Check if a key was pressed
+		if(myScene.getKeypress()->keyDown){
+			//std::cout << " key pressed: " << myScene.getKeypress()->key << std::endl;
+			switch(myScene.getKeypress()->key){
+				case 0x1B: 
+					// Escape key
+					isDone = true;
+					break;
+				case 'w':
+					// Move the camera forward
+					cam.moveForward(0.001*t);
+					break;
+				case 'a':
+					// Move the camera left
+					cam.moveLeft(0.001*t);
+					break;
+				case 's':
+					// Move the camera backwards
+					cam.moveBackward(0.001*t);
+					break;
+				case 'd':
+					// Move the camera right
+					cam.moveRight(0.001*t);
+					break;
+				case 'z':
+					// Move the camera down
+					cam.moveDown(0.001*t);
+					break;
+				case 'x':
+					// Move the camera up
+					cam.moveUp(0.001*t);
+				default:
+					break;
+			}
+		}
 	
-		// Move the camera forward
-		//cam.moveForward(0.0005*t);
+		if(count++ % 100 == 0)
+			std::cout << myScene.getFramerate() << " fps\r" << std::flush;
 		
 		// Rotate the cube
 		myCube.rotate(0.24*deg2rad, 0.14*deg2rad, 0.34*deg2rad);
@@ -47,7 +86,7 @@ int main(){
 		myCube.setPosition(vector3(2*std::sin(0.25*t), 2*std::cos(0.25*t), 0));
 
 		// Point the camera at the cube
-		cam.lookAt(myCube.getPosition());
+		//cam.lookAt(myCube.getPosition());
 	}
 	
 	return 0;

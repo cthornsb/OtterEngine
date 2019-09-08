@@ -6,6 +6,23 @@
 
 #include "sdlWindow.hpp"
 
+void sdlKeypress::decode(const SDL_Keysym* sym, const bool &isDown){
+	key = sym->sym;
+	none   = sym->mod & KMOD_NONE;
+	lshift = sym->mod & KMOD_LSHIFT;
+	rshift = sym->mod & KMOD_RSHIFT;
+	lctrl  = sym->mod & KMOD_LCTRL;
+	rctrl  = sym->mod & KMOD_RCTRL;
+	lalt   = sym->mod & KMOD_LALT;
+	ralt   = sym->mod & KMOD_RALT;	
+	lgui   = sym->mod & KMOD_LGUI;
+	rgui   = sym->mod & KMOD_RGUI;
+	num    = sym->mod & KMOD_NUM;
+	caps   = sym->mod & KMOD_CAPS;
+	mode   = sym->mod & KMOD_MODE;
+	keyDown = isDown;
+}
+
 sdlWindow::~sdlWindow(){
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
@@ -47,8 +64,20 @@ void sdlWindow::render(){
 
 bool sdlWindow::status(){
 	static SDL_Event event;
-	if(SDL_PollEvent(&event) && event.type == SDL_QUIT) // Window is closed
-		return false;
+	if(SDL_PollEvent(&event)){
+		switch(event.type){
+			case SDL_KEYDOWN:
+				lastKey.decode(&event.key.keysym, true);
+				break;
+			case SDL_KEYUP:
+				lastKey.decode(&event.key.keysym, false);
+				break;
+			case SDL_QUIT:
+				return false;
+			default:
+				break;
+		}
+	}
 	return true;
 }
 

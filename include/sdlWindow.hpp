@@ -5,9 +5,39 @@
 
 class SDL_Renderer;
 class SDL_Window;
+class SDL_Keysym;
 
 const int DEFAULT_WINDOW_WIDTH = 640;
 const int DEFAULT_WINDOW_HEIGHT = 480;
+
+class sdlKeypress{
+public:
+	unsigned char key;
+
+	bool keyDown;
+	bool none;
+	bool lshift;
+	bool rshift;
+	bool lctrl;
+	bool rctrl;
+	bool lalt;
+	bool ralt;
+	bool lgui;
+	bool rgui;
+	bool num;
+	bool caps;
+	bool mode;
+
+	sdlKeypress() : key(0x0), 
+	                keyDown(false), none(true), 
+	                lshift(false), rshift(false), 
+	                lctrl(false), rctrl(false), 
+	                lalt(false), ralt(false), 
+	                lgui(false), rgui(false), 
+	                num(false), caps(false), mode(false) { }
+	
+	void decode(const SDL_Keysym* sym, const bool &isDown);
+};
 
 class sdlWindow{
 public:
@@ -30,6 +60,10 @@ public:
 	/** Get the height of the window (in pixels)
 	  */
 	int getHeight() const { return H; }
+
+	/** Get a pointer to the last user keypress object
+	  */
+	sdlKeypress* getKeypress(){ return &lastKey; }
 
 	/** Set the width of the window (in pixels)
 	  */
@@ -90,6 +124,8 @@ private:
 	int H; ///< Height of the window (in pixels)
 
 	bool init; ///< Flag indicating that the window has been initialized
+
+	sdlKeypress lastKey; ///< The last key which was pressed by the user
 };
 
 #endif

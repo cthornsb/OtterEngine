@@ -1,3 +1,4 @@
+#include <iostream>
 #include <unistd.h>
 
 #include "scene.hpp"
@@ -69,7 +70,7 @@ bool scene::update(){
 	}
 
 	// Update the screen
-	if(!window->status()){ // Check if the window has been closed
+	if(!window->status()){ // Check for events
 		isRunning = false;
 		return false;
 	}
@@ -100,11 +101,15 @@ bool scene::update(){
 }
 
 void scene::wait(){
-	while(true){
+	/*while(true){
 		if(!window->status()) // Check if the window has been closed
 			break;
 		usleep(16700); // ~60 Hz
-	}
+	}*/
+}
+
+sdlKeypress* scene::getKeypress(){
+	return window->getKeypress();
 }
 
 void scene::setCamera(camera *cam_){ 
