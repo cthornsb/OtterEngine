@@ -8,7 +8,8 @@
 #include "lightSource.hpp"
 
 class sdlWindow;
-class sdlKeypress;
+class sdlKeyEvent;
+class sdlMouseEvent;
 
 class object;
 class camera;
@@ -111,9 +112,13 @@ public:
 	  */	
 	double getAverageFramerate() const { return (updateCount/timeElapsed); }
 
-	/** Get a pointer to the last user keypress object
+	/** Get a pointer to the last user keypress event
 	  */
-	sdlKeypress* getKeypress();
+	sdlKeyEvent* getKeypress();
+	
+	/** Get a pointer to the last user mouse event
+	  */
+	sdlMouseEvent* getMouse();
 
 	/** Set the width of the screen (in pixels)
 	  */

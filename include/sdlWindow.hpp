@@ -5,16 +5,19 @@
 
 class SDL_Renderer;
 class SDL_Window;
-class SDL_Keysym;
+
+class SDL_KeyboardEvent;
+class SDL_MouseButtonEvent;
+class SDL_MouseMotionEvent;
 
 const int DEFAULT_WINDOW_WIDTH = 640;
 const int DEFAULT_WINDOW_HEIGHT = 480;
 
-class sdlKeypress{
+class sdlKeyEvent{
 public:
 	unsigned char key;
 
-	bool keyDown;
+	bool down;
 	bool none;
 	bool lshift;
 	bool rshift;
@@ -28,15 +31,41 @@ public:
 	bool caps;
 	bool mode;
 
-	sdlKeypress() : key(0x0), 
-	                keyDown(false), none(true), 
+	sdlKeyEvent() : key(0x0), 
+	                down(false), none(true), 
 	                lshift(false), rshift(false), 
 	                lctrl(false), rctrl(false), 
 	                lalt(false), ralt(false), 
 	                lgui(false), rgui(false), 
 	                num(false), caps(false), mode(false) { }
 	
-	void decode(const SDL_Keysym* sym, const bool &isDown);
+	void decode(const SDL_KeyboardEvent* evt, const bool &isDown);
+};
+
+class sdlMouseEvent{
+public:
+	unsigned char clicks;
+	
+	int x;
+	int y;
+	int xrel;
+	int yrel;
+	
+	bool down;
+	bool lclick;
+	bool mclick;
+	bool rclick;
+	bool x1;
+	bool x2;
+	
+	sdlMouseEvent() : clicks(0x0),
+	                  x(0), y(0), xrel(0), yrel(0),
+	                  down(false), lclick(false), mclick(false), rclick(false),
+	                  x1(false), x2(false) { }
+	                  
+	void decode(const SDL_MouseButtonEvent* evt, const bool &isDown);
+	
+	void decode(const SDL_MouseMotionEvent* evt);
 };
 
 class sdlWindow{
@@ -61,9 +90,13 @@ public:
 	  */
 	int getHeight() const { return H; }
 
-	/** Get a pointer to the last user keypress object
+	/** Get a pointer to the last user keypress event
 	  */
-	sdlKeypress* getKeypress(){ return &lastKey; }
+	sdlKeyEvent* getKeypress(){ return &lastKey; }
+	
+	/** Get a pointer to the last user mouse event
+	  */
+	sdlMouseEvent* getMouse(){ return &lastMouse; }
 
 	/** Set the width of the window (in pixels)
 	  */
@@ -125,7 +158,8 @@ private:
 
 	bool init; ///< Flag indicating that the window has been initialized
 
-	sdlKeypress lastKey; ///< The last key which was pressed by the user
+	sdlKeyEvent lastKey; ///< The last key which was pressed by the user
+	sdlMouseEvent lastMouse; ///< The last mouse event which was performed by the user
 };
 
 #endif

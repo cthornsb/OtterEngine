@@ -6,21 +6,44 @@
 
 #include "sdlWindow.hpp"
 
-void sdlKeypress::decode(const SDL_Keysym* sym, const bool &isDown){
-	key = sym->sym;
-	none   = sym->mod & KMOD_NONE;
-	lshift = sym->mod & KMOD_LSHIFT;
-	rshift = sym->mod & KMOD_RSHIFT;
-	lctrl  = sym->mod & KMOD_LCTRL;
-	rctrl  = sym->mod & KMOD_RCTRL;
-	lalt   = sym->mod & KMOD_LALT;
-	ralt   = sym->mod & KMOD_RALT;	
-	lgui   = sym->mod & KMOD_LGUI;
-	rgui   = sym->mod & KMOD_RGUI;
-	num    = sym->mod & KMOD_NUM;
-	caps   = sym->mod & KMOD_CAPS;
-	mode   = sym->mod & KMOD_MODE;
-	keyDown = isDown;
+void sdlKeyEvent::decode(const SDL_KeyboardEvent* evt, const bool &isDown){
+	key = evt->keysym.sym;
+	unsigned short modifier = evt->keysym.mod;
+	none   = modifier & KMOD_NONE;
+	lshift = modifier & KMOD_LSHIFT;
+	rshift = modifier & KMOD_RSHIFT;
+	lctrl  = modifier & KMOD_LCTRL;
+	rctrl  = modifier & KMOD_RCTRL;
+	lalt   = modifier & KMOD_LALT;
+	ralt   = modifier & KMOD_RALT;	
+	lgui   = modifier & KMOD_LGUI;
+	rgui   = modifier & KMOD_RGUI;
+	num    = modifier & KMOD_NUM;
+	caps   = modifier & KMOD_CAPS;
+	mode   = modifier & KMOD_MODE;
+	down = isDown;
+}
+
+void sdlMouseEvent::decode(const SDL_MouseButtonEvent* evt, const bool &isDown){
+	lclick = evt->button & SDL_BUTTON_LMASK;
+	mclick = evt->button & SDL_BUTTON_MMASK;
+	rclick = evt->button & SDL_BUTTON_RMASK;
+	x1     = evt->button & SDL_BUTTON_X1MASK;
+	x2     = evt->button & SDL_BUTTON_X2MASK;
+	clicks = evt->clicks;
+	down = isDown;
+}
+
+void sdlMouseEvent::decode(const SDL_MouseMotionEvent* evt){
+	lclick = evt->state & SDL_BUTTON_LMASK;
+	mclick = evt->state & SDL_BUTTON_MMASK;
+	rclick = evt->state & SDL_BUTTON_RMASK;
+	x1     = evt->state & SDL_BUTTON_X1MASK;
+	x2     = evt->state & SDL_BUTTON_X2MASK;
+	x = evt->x;
+	y = evt->y;
+	xrel = evt->xrel;
+	yrel = evt->yrel;
 }
 
 sdlWindow::~sdlWindow(){
@@ -67,10 +90,19 @@ bool sdlWindow::status(){
 	if(SDL_PollEvent(&event)){
 		switch(event.type){
 			case SDL_KEYDOWN:
-				lastKey.decode(&event.key.keysym, true);
+				lastKey.decode(&event.key, true);
 				break;
 			case SDL_KEYUP:
-				lastKey.decode(&event.key.keysym, false);
+				lastKey.decode(&event.key, false);
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				lastMouse.decode(&event.button, true);
+				break;
+			case SDL_MOUSEBUTTONUP:
+				lastMouse.decode(&event.button, false);
+				break;
+			case SDL_MOUSEMOTION:
+				lastMouse.decode(&event.motion);
 				break;
 			case SDL_QUIT:
 				return false;

@@ -41,7 +41,7 @@ int main(){
 		double t = myScene.getTimeElapsed();
 
 		// Check if a key was pressed
-		if(myScene.getKeypress()->keyDown){
+		if(myScene.getKeypress()->down){
 			//std::cout << " key pressed: " << myScene.getKeypress()->key << std::endl;
 			switch(myScene.getKeypress()->key){
 				case 0x1B: 
@@ -74,6 +74,10 @@ int main(){
 				default:
 					break;
 			}
+		}
+	
+		// Check the mouse
+		if(myScene.getMouse()->down){
 		}
 	
 		if(count++ % 100 == 0)

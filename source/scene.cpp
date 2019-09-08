@@ -108,8 +108,12 @@ void scene::wait(){
 	}*/
 }
 
-sdlKeypress* scene::getKeypress(){
+sdlKeyEvent* scene::getKeypress(){
 	return window->getKeypress();
+}
+
+sdlMouseEvent* scene::getMouse(){
+	return window->getMouse();
 }
 
 void scene::setCamera(camera *cam_){ 
