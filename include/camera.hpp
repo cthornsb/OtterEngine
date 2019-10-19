@@ -125,8 +125,9 @@ public:
 	  * @param tri The triangles to render
 	  * @param pixelX Array of horizontal coordinates for the three vertices (must contain at least 3 elements)
 	  * @param pixelY Array of vertical coordinates for the three vertices (must contain at least 3 elements)
+	  * @param valid Array of boolean flags which indicates that each of the three vertices are in front of the ray (must contain at least 3 elements)
 	  */
-	void render(const vector3 &offset, const triangle &tri, double *sX, double *sY);
+	void render(const vector3 &offset, const triangle &tri, double *sX, double *sY, bool *valid);
 
 	/** Check whether or not a triangle is facing towards the camera
 	  * @param offset The offset of the object from the world origin

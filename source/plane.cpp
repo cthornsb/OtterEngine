@@ -17,8 +17,12 @@ bool plane::intersects(const ray &r) const {
 }
 
 bool plane::intersects(const ray &r, double &t) const {
-	t = ((p * norm) - (r.pos * norm)) / (r.dir * norm);
-	return (t > 0);
+	double numer = (p - r.pos) * norm;
+	double denom = r.dir * norm;
+	if(denom == 0)
+		return false;
+	t = numer/denom;
+	return (numer < 0 && denom < 0);
 }
 
 void plane::dump() const {

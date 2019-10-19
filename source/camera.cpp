@@ -133,10 +133,10 @@ void camera::resetRotation(){
 // Rendering methods
 /////////////////////////////////////////////////
 
-void camera::render(const vector3 &offset, const triangle &tri, double *sX, double *sY){
-	projectPoint(*tri.p0+offset, sX[0], sY[0]);
-	projectPoint(*tri.p1+offset, sX[1], sY[1]);
-	projectPoint(*tri.p2+offset, sX[2], sY[2]);
+void camera::render(const vector3 &offset, const triangle &tri, double *sX, double *sY, bool *valid){
+	valid[0] = projectPoint(*tri.p0+offset, sX[0], sY[0]);
+	valid[1] = projectPoint(*tri.p1+offset, sX[1], sY[1]);
+	valid[2] = projectPoint(*tri.p2+offset, sX[2], sY[2]);
 }
 
 bool camera::checkCulling(const vector3 &offset, const triangle &tri){

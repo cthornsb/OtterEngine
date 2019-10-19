@@ -6,15 +6,24 @@
 #include "object.hpp"
 #include "sdlWindow.hpp"
 
+#define SCREEN_XLIMIT 1.0 ///< Set the horizontal clipping border as a fraction of the total screen width
+#define SCREEN_YLIMIT 1.0 ///< Set the vertical clipping border as a fraction of the total screen height
+
 scene::scene() : timeElapsed(0), totalRenderTime(0), renderTime(0), framerate(0), framerateCap(60), updateCount(0), 
                  drawNorm(false), drawOrigin(false), isRunning(true), 
-                 screenWidthPixels(640), screenHeightPixels(480), cam(NULL) { 
+                 screenWidthPixels(640), screenHeightPixels(480), 
+                 minPixelsX(0), minPixelsY(0),
+                 maxPixelsX(640), maxPixelsY(480),
+                 cam(NULL) { 
 	initialize();
 }
 
 scene::scene(camera *cam_) : timeElapsed(0), totalRenderTime(0), renderTime(0), framerate(0), framerateCap(60), updateCount(0),
                              drawNorm(false), drawOrigin(false), isRunning(true), 
-                             screenWidthPixels(640), screenHeightPixels(480), cam(cam_) { 
+                             screenWidthPixels(640), screenHeightPixels(480), 
+                             minPixelsX(0), minPixelsY(0),
+                             maxPixelsX(640), maxPixelsY(480),
+                             cam(cam_) { 
 	initialize();
 	setCamera(cam_);
 }
@@ -32,6 +41,12 @@ void scene::initialize(){
 	// Setup the window
 	window = new sdlWindow(screenWidthPixels, screenHeightPixels);
 	window->initialize();
+	
+	// Set the pixel coordinate bounds
+	minPixelsX = (int)(screenWidthPixels*(1-SCREEN_YLIMIT)/2);
+	maxPixelsX = (int)(screenWidthPixels-minPixelsX);
+	minPixelsY = (int)(screenHeightPixels*(1-SCREEN_YLIMIT)/2);
+	maxPixelsY = (int)(screenHeightPixels-minPixelsX);
 }
 
 void scene::clear(const sdlColor &color/*=Colors::BLACK*/){
@@ -132,12 +147,19 @@ void scene::processObject(object *obj){
 		
 		// Render the triangle by converting its projection on the camera's viewing plane into pixel coordinates
 		double sX[3], sY[3];
-		cam->render(offset, (*iter), sX, sY);
+		bool valid[3];
+		cam->render(offset, (*iter), sX, sY, valid);
+		
+		// Check that all vertices are in front of the camera
+		// Relatively crude for now because one or more vertices may still be in front of us
+		if(!valid[0] || !valid[1] || !valid[2])
+			continue;
 		
 		// Convert to pixel coordinates
 		// (0, 0) is at the top-left of the screen
 		pixelTriplet pixels(&(*iter));
-		convertToPixelSpace(sX, sY, pixels);
+		if(!convertToPixelSpace(sX, sY, pixels)) // Check if the triangle is on the screen
+			continue;
 		
 		// Draw the triangle to the screen
 		if(mode == WIREFRAME || mode == MESH){
@@ -162,16 +184,21 @@ void scene::processObject(object *obj){
 	}
 }
 
-void scene::convertToPixelSpace(const double &x, const double &y, int &px, int &py){
-	px = (int)(screenWidthPixels*((x + 1)/2));
-	py = (int)(screenHeightPixels*(1 - (y + 1)/2));
+bool scene::checkScreenSpace(const double &x, const double &y){
+	return ((x >= -SCREEN_XLIMIT && x <= SCREEN_XLIMIT) || (y >= -SCREEN_YLIMIT && y <= SCREEN_YLIMIT));
 }
 
-void scene::convertToPixelSpace(const double *x, const double *y, pixelTriplet &coords){
-	for(size_t i = 0; i < 3; i++){
-		coords.pX[i] = (int)(screenWidthPixels*((x[i] + 1)/2));
-		coords.pY[i] = (int)(screenHeightPixels*(1 - (y[i] + 1)/2));
-	}
+bool scene::convertToPixelSpace(const double &x, const double &y, int &px, int &py){
+	px = (int)(screenWidthPixels*((x + 1)/2));
+	py = (int)(screenHeightPixels*(1 - (y + 1)/2));
+	return checkScreenSpace(x, y);
+}
+
+bool scene::convertToPixelSpace(const double *x, const double *y, pixelTriplet &coords){
+	bool retval = false;
+	for(size_t i = 0; i < 3; i++)
+		retval |= convertToPixelSpace(x[i], y[i], coords.pX[i], coords.pY[i]);
+	return retval;
 }
 
 void scene::drawPoint(const vector3 &point, const sdlColor &color){
@@ -180,7 +207,8 @@ void scene::drawPoint(const vector3 &point, const sdlColor &color){
 		int cmpX, cmpY;
 	
 		// Convert the screen-space coordinates to pixel-space
-		convertToPixelSpace(cmX, cmY, cmpX, cmpY);
+		if(!convertToPixelSpace(cmX, cmY, cmpX, cmpY)) // Check if the point is on the screen
+			return;
 		
 		// Draw the normal vector
 		window->setDrawColor(color);
@@ -199,6 +227,49 @@ void scene::drawVector(const vector3 &start, const vector3 &direction, const sdl
 		int cmpX0, cmpY0;
 		int cmpX1, cmpY1;
 		
+		bool os1 = checkScreenSpace(cmX0, cmY0);
+		bool os2 = checkScreenSpace(cmX1, cmY1);
+		
+		// Check if the line is on the screen
+		if(!os1 && !os2) // The line is completely off the screen
+			return;
+		/*else if(!os1){ // (cmX0, cmY0) is off screen
+			vector3 p(cmX0-cmX1, cmY0-cmY1);
+			double xcross, ycross;
+			double slope = 0;//p.y/p.x;
+			if(p.x >= 0) // Positive X
+				ycross = cmY0+(1-cmX0)*slope;
+			else // Negative X
+				ycross = cmY0-(1+cmX0)*slope;
+			if(p.y >= 0) // Positive Y
+				xcross = (1-cmY0)/slope + cmX0;
+			else // Negative Y
+				xcross = -(1+cmY0)/slope + cmX0;
+			
+			if(xcross >= -1 && xcross <= 1) // Top and bottom
+				cmX0 = xcross;
+			else if(ycross >= -1 && ycross <= 1) // Left and right
+				cmY0 = ycross;
+		}*/
+		/*else if(!os2){ // (cmX1, cmY1) is off screen
+			vector3 p(cmX1-cmX0, cmY1-cmY0);
+			double xcross, ycross;
+			double slope = -(cmY1-cmY0)/(cmX1-cmX0);
+			if(p.x >= 0) // Positive X
+				ycross = cmY0+(1-cmX0)*slope;
+			else // Negative X
+				ycross = cmY0-(1+cmX0)*slope;
+			if(p.y >= 0) // Positive Y
+				xcross = (1-cmY0)/slope + cmX0;
+			else // Negative Y
+				xcross = -(1+cmY0)/slope + cmX0;
+			
+			if(xcross >= -1 && xcross <= 1) // Top and bottom
+				cmX1 = xcross;
+			else if(ycross >= -1 && ycross <= 1) // Left and right
+				cmY1 = ycross;
+		}*/
+
 		// Convert the screen-space coordinates to pixel-space
 		convertToPixelSpace(cmX0, cmY0, cmpX0, cmpY0);
 		convertToPixelSpace(cmX1, cmY1, cmpX1, cmpY1);
@@ -243,12 +314,20 @@ void scene::drawFilledTriangle(const pixelTriplet &coords, const sdlColor &color
 			std::swap(x1, x0);
 		}
 	}
+
+	// Check if the triangle is on the screen
+	if(y2 < minPixelsY || y0 >= maxPixelsY) // Entire triangle is off the top or bottom of the screen
+		return;
 	
 	// Set the fill color
 	window->setDrawColor(color);
+
+	// Check vertical pixel bounds	
+	int lineStart = (y0 >= minPixelsY ? y0 : minPixelsY);
+	int lineStop = (y2 < maxPixelsY ? y2 : maxPixelsY-1);
 	
 	float xA, xB;
-	for(int scanline = y0; scanline <= y2; scanline++){
+	for(int scanline = lineStart; scanline <= lineStop; scanline++){
 		if(y0 == y1){ // y10 is a horizontal line
 				xA = (scanline-y1)*(float(x2-x1))/(y2-y1) + x1;
 				xB = (scanline-y2)*(float(x0-x2))/(y0-y2) + x2;				
@@ -268,7 +347,11 @@ void scene::drawFilledTriangle(const pixelTriplet &coords, const sdlColor &color
 		if(xB < xA) // Sort xA and xB
 			std::swap(xA, xB);
 
+		// Check if the line is on the screen
+		if(xB < minPixelsX || xA >= maxPixelsX) // Entire line is off the left or right of the screen
+			continue;
+
 		// Draw the scanline
-		window->drawLine((int)xA, scanline, (int)xB, scanline);
+		window->drawLine((int)(xA >= minPixelsX ? xA : minPixelsX), scanline, (int)(xB < maxPixelsX ? xB : maxPixelsX-1), scanline);
 	}
 }

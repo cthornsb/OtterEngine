@@ -47,6 +47,8 @@ public:
 		int pX[3]; ///< The horizontal pixel coordinates for the three vertices
 		int pY[3]; ///< The vertical pixel coordinates for the three vertices
 
+		bool draw[3]; ///< Flag for each vertex indicating that it is on the screen
+
 		/** Default constructor
 		  */
 		pixelTriplet() { }
@@ -54,6 +56,10 @@ public:
 		/** Constructor taking a pointer to a 3d triangle
 		  */
 		pixelTriplet(triangle *t) : tri(t) { }
+
+		/** Return true if at least one of the vertices is on the screen and return false otherwise
+		  */
+		bool goodToDraw() const { return (draw[0] || draw[1] || draw[2]); }
 	};
 
 	/** Default constructor
@@ -189,6 +195,12 @@ private:
 	int screenWidthPixels; ///< Width of the viewing window (in pixels)
 	int screenHeightPixels; ///< Height of the viewing window (in pixels)
 
+	int minPixelsX;
+	int minPixelsY;
+	
+	int maxPixelsX;
+	int maxPixelsY;
+
 	sclock::time_point timeOfInitialization; ///< The time that the scene was initialized
 	sclock::time_point timeOfLastUpdate; ///< The last time that update() was called by the user
 
@@ -208,6 +220,10 @@ private:
 	  */
 	void processObject(object *obj);
 
+	/**
+	  */
+	bool checkScreenSpace(const double &x, const double &y);
+
 	/** Convert screen-space coordinates [-1, 1] to pixel-space
 	  * @note The origin of pixel-space is the upper-left corner of the screen with the positive x-direction
 	  *       being toward the right side of the screen and the positive y-direction being toward the bottom
@@ -215,8 +231,9 @@ private:
 	  * @param y The vertical component of the screen-space coordinate
 	  * @param px The horizontal pixel corresponding to the input x-coordinate
 	  * @param py The vertical pixel corresponding to the input y-coordinate
+	  * @return True if the point is on the screen and return false otherwise
 	  */
-	void convertToPixelSpace(const double &x, const double &y, int &px, int &py);
+	bool convertToPixelSpace(const double &x, const double &y, int &px, int &py);
 
 	/** Convert screen-space coordinates [-1, 1] to pixel-space
 	  * @note The origin of pixel-space is the upper-left corner of the screen with the positive x-direction
@@ -224,8 +241,9 @@ private:
 	  * @param x Array of horizontal components of the screen-space coordinates (must contain at least 3 elements)
 	  * @param y Array of vertical components of the screen-space coordinates (must contain at least 3 elements)
 	  * @param coords The pixel coordinate holder for the three vertex projections
+	  * @return True if at least one of the vertices is on the screen and return false otherwise
 	  */
-	void convertToPixelSpace(const double *x, const double *y, pixelTriplet &coords);
+	bool convertToPixelSpace(const double *x, const double *y, pixelTriplet &coords);
 
 	/** Draw a point to the screen
 	  * @param point The point in 3d space to draw
