@@ -49,7 +49,7 @@ int main(){
 	
 	// Add the cube to the scene
 	myScene.addObject(&myCube);
-	
+
 	// "Animate the cube by rotating it and moving the camera
 	int count = 0;
 	int dX, dY;
@@ -82,9 +82,9 @@ int main(){
 				
 			// Rotation about the vertical axis
 			if (keys->check(KEYBOARD_Q)) // Rotate the camera ccw
-				cam.rotate(0, 0, -15 * timeElapsed);
+				cam.rotate(0, 0, -15*timeElapsed);
 			if (keys->check(KEYBOARD_E)) // Rotate the camera cw
-				cam.rotate(0, 0, 15 * timeElapsed);
+				cam.rotate(0, 0, 15*timeElapsed);
 			
 			// Vertical movement
 			if (keys->check(KEYBOARD_Z)) // Move the camera down
@@ -106,7 +106,7 @@ int main(){
 		// Check mouse movement
 		if(mouse->delta(dX, dY)){
 			cam.rotate(dY * 0.0125, dX * 0.0125);
-			//myCube.rotate(dY * 0.005, 0, dX * 0.005);
+			//myCube.setRotation(pitchAngle.get(), 0, yawAngle.get());
 		}
 		
 		if(count++ % 120 == 0) // Frame count (every 2 seconds by default)

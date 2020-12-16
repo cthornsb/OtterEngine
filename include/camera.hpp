@@ -9,6 +9,49 @@ extern const double pi;
 extern const double deg2rad;
 extern const double rad2deg;
 
+class WrappedValue {
+public:
+	WrappedValue() :
+		value(0),
+		minVal(0),
+		maxVal(0),
+		delta(0),
+		lock(false)
+	{
+	}
+
+	WrappedValue(const double& initial, const double& min_, const double& max_, bool lockValue = false) :
+		value(initial),
+		minVal(min_),
+		maxVal(max_),
+		delta(max_-min_),
+		lock(lockValue)
+	{
+	}
+
+	double operator = (const double& rhs) { return (value = rhs); }
+
+	double operator += (const double& rhs) { return (value = wrap(rhs)); }
+
+	double operator -= (const double& rhs) { return (value = wrap(-rhs)); }
+
+	double operator + (const double& rhs) const { return wrap(rhs); }
+
+	double operator - (const double& rhs) const { return wrap(-rhs); }
+
+	double get() const { return value; }
+
+private:
+	double value;
+	double minVal;
+	double maxVal;
+	double delta;
+
+	bool lock;
+
+	double wrap(const double& delta) const;
+};
+
 /** @class camera
   * @brief Handles all projections of 3d geometry onto the screen
   * @author Cory R. Thornsberry
@@ -95,7 +138,7 @@ public:
 
 	/** Rotate the camera by a given amount using the pitch-yaw-roll convention (all in radians)
 	  * @note This method rotates the camera relative to its current rotation. Use setRotation() to specify the rotation explicitly
-	  * @param pitch Angle to tilt the camera up or down (i.e. about the horizontal)
+	  * @param pitch Angle to tilt the camera up or down (i.e. about the horizontal axis)
 	  * @param yaw Angle to turn the camera left or right (i.e. about the vertical axis)
 	  * @param roll Angle to roll the camera (i.e. about the axis into the screen)
 	  */
@@ -159,10 +202,10 @@ private:
 	vector3 uX; ///< Unit vector for the x-axis
 	vector3 uY; ///< Unit vector for the y-axis
 	vector3 uZ; ///< Unit vector for the z-axis
-	
-	double pitchAngle;
-	double rollAngle;
-	double yawAngle;
+
+	WrappedValue pitchAngle; ///< Angle of camera tilt up or down (i.e. about the horizontal axis)
+	WrappedValue rollAngle; ///< Angle of camera roll cw or ccw (i.e. about the depth axis)
+	WrappedValue yawAngle; ///< Angle of camera turn left or right (i.e. about the vertical axis
 
 	/** Initialize the camera by setting initial values and computing all geometric parameters
 	  */

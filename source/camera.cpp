@@ -12,6 +12,25 @@ const double rad2deg = 180/pi;
 
 const vector3 upVector(0, 1, 0);
 
+double WrappedValue::wrap(const double& d) const {
+	double retval = value + d;
+	if (!lock) {
+		retval = fmod((value + d) - minVal, delta);
+		if (retval < 0) {
+			if (!lock)
+				retval += delta;
+			else
+				retval = 0;
+		}
+		return retval + minVal;
+	}
+	else if (retval < minVal)
+		return minVal;
+	else if (retval > maxVal)
+		return maxVal;
+	return retval;
+}
+
 camera::camera() :
 	fov(pi/2), // radians
 	L(50E-3), // m
@@ -23,9 +42,9 @@ camera::camera() :
 	uX(1,0,0),
 	uY(0,1,0),
 	uZ(0,0,1),
-	pitchAngle(0),
-	rollAngle(0),
-	yawAngle(0)
+	pitchAngle(0, -pi/2, pi/2, true),
+	rollAngle(0, -pi/2, pi/2, true),
+	yawAngle(0, -pi, pi)
 { 
 	initialize();
 }
@@ -109,13 +128,9 @@ void camera::rotate(const double &pitch, const double &yaw, const double& roll/*
 	// Reset the camera to its original orientation
 	resetUnitVectors();
 	pitchAngle += pitch;
-	if (pitchAngle > pi)
-		pitchAngle = pi;
-	else if (pitchAngle < -pi)
-		pitchAngle = -pi;
 	yawAngle += yaw;
 	rollAngle += roll;
-	setRotation(pitchAngle, rollAngle, yawAngle);
+	setRotation(pitchAngle.get(), rollAngle.get(), yawAngle.get());
 }
 
 void camera::setRotation(const double &theta, const double &phi, const double &psi){
