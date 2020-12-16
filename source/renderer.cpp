@@ -120,6 +120,9 @@ int main(){
 		
 		// Point the camera at the cube
 		//cam.lookAt(myCube.getPosition());
+
+		// Cap the framerate
+		myScene.sync();
 	}
 	
 	return 0;

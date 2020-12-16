@@ -118,11 +118,11 @@ public:
 
 	/** Get the time taken for the most recent render (in seconds)
 	  */
-	double getRenderTime() const { return renderTime/1E6; }
+	double getRenderTime() const { return renderTime; }
 	
 	/** Get the average amount of time for each render (in microseconds)
 	  */
-	double getAverageRenderTime() const { return (totalRenderTime/frameCount); }
+	double getAverageRenderTime() const { return ((double)totalRenderTime/frameCount); }
 
 	/** Get the instantaneous framerate of the most recent render (in Hz)
 	  */
@@ -187,19 +187,19 @@ public:
 	  */
 	bool update();
 	
-	/** Wait until the user closes the screen, and then return
-	  * @note Only useful for testing
+	/** Sync the frame timer to the requested framerate
 	  */
-	void wait();
+	void sync();
 
 private:
-	double totalRenderTime; ///< The running total time of all render events
 	double renderTime; ///< The time taken to perform the last render
 	double framerate; ///< The instantaneous framerate of the last render
 
 	unsigned short framerateCap; ///< The target render framerate (in Hz)
-	
-	unsigned long long frameCount; ///< The number of frames which have been rendered
+
+	long long totalRenderTime; ///< The running total time of all render events
+	long long framePeriod; ///< Target frame period (microseconds)
+	long long frameCount; ///< The number of frames which have been rendered
 
 	bool drawNorm; ///< Flag indicating that normal vectors will be drawn on each triangle
 	bool drawOrigin; ///< Flag indicating that the X, Y, and Z axes will be drawn at the origin

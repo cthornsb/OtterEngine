@@ -13,10 +13,12 @@
 #define SCREEN_XLIMIT 1.0 ///< Set the horizontal clipping border as a fraction of the total screen width
 #define SCREEN_YLIMIT 1.0 ///< Set the vertical clipping border as a fraction of the total screen height
 
-scene::scene() : totalRenderTime(0), 
+scene::scene() : 
                  renderTime(0), 
                  framerate(0), 
-                 framerateCap(60), 
+                 framerateCap(60),
+	             totalRenderTime(0),
+	             framePeriod(16667),
 	             frameCount(0),
                  drawNorm(false), 
                  drawOrigin(false), 
@@ -69,9 +71,6 @@ void scene::clear(const ColorRGB &color/*=Colors::BLACK*/){
 bool scene::update(){
 	// Update the timer
 	timeOfLastUpdate = hclock::now();
-
-	// Start the render timer
-	hclock::time_point startOfRenderScene = hclock::now();
 	
 	// Clear the vector of triangles to draw
 	polygonsToDraw.clear();
@@ -104,42 +103,40 @@ bool scene::update(){
 	}
 	window->render();
 
-	// Update the frame counter
-	frameCount++;
-
 	// Stop the render timer
-	renderTime = std::chrono::duration<double, std::micro>(hclock::now() - startOfRenderScene).count(); // in microseconds
+	renderTime = std::chrono::duration<double>(hclock::now() - timeOfLastUpdate).count(); // in microseconds
+
+	return true;
+}
+
+/** Sync the frame timer to the requested framerate
+  */
+void scene::sync() {
+	// Get the time since the frame started
+	long long frameTime = std::chrono::duration_cast<std::chrono::microseconds>(hclock::now() - timeOfLastUpdate).count(); // in microseconds
+	totalRenderTime += frameTime;
 
 	// Update the total render time and the instantaneous framerate
-	if ((totalRenderTime += renderTime) >= 2E6) { // Compute framerate (2 second updates)
-		framerate = frameCount / (totalRenderTime * 1E-6);
+	if (++frameCount >= (long long)framerateCap) { // Compute framerate (every second)
+		framerate = frameCount / (totalRenderTime * 1.0E-6);
 		totalRenderTime = 0;
 		frameCount = 0;
 	}
 
 	// Cap the framerate by sleeping
-	if(framerateCap > 0){
-		double timeToSleep = 1E6/framerateCap - renderTime;
-		if(timeToSleep > 0){
-			std::this_thread::sleep_for(std::chrono::microseconds((long long)timeToSleep));
+	if (framerateCap > 0) {
+		long long timeToSleep = framePeriod - frameTime; // microseconds
+		if (timeToSleep > 0) {
+			std::this_thread::sleep_for(std::chrono::microseconds(timeToSleep));
+			totalRenderTime += timeToSleep;
 		}
 	}
-
-	return true;
 }
 
 /** Get the total time elapsed since the scene was initialized (in seconds)
   */
 double scene::getTimeElapsed() const { 
 	return std::chrono::duration_cast<std::chrono::duration<double>>(hclock::now() - timeOfInitialization).count();
-}
-
-void scene::wait(){
-	/*while(true){
-		if(!window->status()) // Check if the window has been closed
-			break;
-		usleep(16700); // ~60 Hz
-	}*/
 }
 
 KeyStates* scene::getKeypress(){
