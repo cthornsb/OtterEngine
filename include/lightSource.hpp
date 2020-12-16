@@ -67,7 +67,7 @@ class coneLight : public lightSource {
 public:
 	/** Default constructor
 	  */
-	coneLight() : lightSource(), openingAngle(0.5236) { }
+	coneLight() : lightSource(), openingAngle(0.5236f) { }
 	
 protected:
 	float openingAngle; ///< The opening angle of the light cone (in radians)

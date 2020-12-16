@@ -3,10 +3,57 @@
 
 #include <vector>
 #include <queue>
+#include <string>
 
 #include "colors.hpp"
 
-class GPU;
+class MouseState {
+public:
+	MouseState();
+
+	void setLockPointer(bool state = true) { lockPointer = state; }
+
+	void setX(const int& x) { posX = x; }
+
+	void setY(const int& y) { posY = y; }
+
+	void setPosition(const int& x, const int& y);
+
+	int getX() const { return posX; }
+
+	int getY() const { return posY; }
+
+	int getDeltaX() const { return dX; }
+
+	int getDeltaY() const { return dY; }
+
+	bool empty() const { return (count == 0); }
+
+	bool delta();
+
+	bool delta(int& dx, int& dy);
+
+	bool poll(const int& button);
+
+	void down(const int& button);
+
+	void up(const int& button);
+
+	void reset();
+
+private:
+	unsigned short count; ///< Number of standard keyboard keys which are currently pressed
+
+	int posX; ///< Current mouse position X on the screen
+	int posY; ///< Current mouse position Y on the screen
+
+	int dX; ///< Delta X position of mouse
+	int dY; ///< Delta Y position of mouse
+
+	bool lockPointer; ///< "Locks" the pointer to the middle of the window
+
+	bool states[3]; ///< Mouse button states for left, middle, and right buttons (true indicates button is down) 
+};
 
 class KeyStates{
 public:
@@ -53,7 +100,9 @@ public:
 		aspect(1),
 		nMult(1), 
 		winID(0), 
-		init(false)
+		init(false),
+		keys(),
+		mouse()
 	{ 
 	}
 	
@@ -67,7 +116,10 @@ public:
 		height(h),
 		aspect(float(w)/h),
 		nMult(scale), 
-		init(false)
+		winID(0),
+		init(false),
+		keys(),
+		mouse()
 	{
 	}
 
@@ -78,8 +130,6 @@ public:
 	void close();
 
 	bool processEvents();
-
-	GPU *getGPU(){ return gpu; }
 
 	/** Get the width of the window (in pixels)
 	  */
@@ -113,13 +163,13 @@ public:
 	  */
 	int getWindowID() const { return winID; }
 
-	/** Get a pointer to the last user keypress event
+	/** Get a pointer to the keyboard handler
 	  */
 	KeyStates* getKeypress(){ return &keys; }
 
-	/** Set pointer to the pixel processor
+	/** Get a pointer to the mouse handler
 	  */
-	void setGPU(GPU *ptr){ gpu = ptr; }
+	MouseState* getMouse() { return &mouse; }
 
 	/** Set the width of the window (in pixels)
 	  */
@@ -190,13 +240,15 @@ public:
 
 	/** Initialize OpenGL and open the window
 	  */
-	void initialize();
+	void initialize(const std::string& name="OpenGL");
 
 	void setKeyboardStreamMode();
 
 	void setKeyboardToggleMode();
 
 	void setupKeyboardHandler();
+
+	void setupMouseHandler();
 
 	virtual void paintGL();
 	
@@ -218,8 +270,8 @@ private:
 
 	bool init; ///< Flag indicating that the window has been initialized
 
-	GPU *gpu; ///< Pointer to the graphics processor
-
 	KeyStates keys; ///< The last key which was pressed by the user
+
+	MouseState mouse;
 };
 #endif

@@ -6,21 +6,40 @@
 #include "object.hpp"
 
 const double pi = 3.14159265359;
+const double pi2 = 2 * pi;
 const double deg2rad = pi/180;
 const double rad2deg = 180/pi;
 
 const vector3 upVector(0, 1, 0);
 
-camera::camera(){ 
+camera::camera() :
+	fov(pi/2), // radians
+	L(50E-3), // m
+	A(640.0/480), 
+	W(0),
+	H(0),
+	vPlane(),
+	pos(),
+	uX(1,0,0),
+	uY(0,1,0),
+	uZ(0,0,1),
+	pitchAngle(0),
+	rollAngle(0),
+	yawAngle(0)
+{ 
 	initialize();
 }
 
-camera::camera(const vector3 &pos_){ 
+camera::camera(const vector3 &pos_) :
+	camera()
+{ 
 	pos = pos_;
 	initialize();
 }
 
-camera::camera(const vector3 &pos_, const vector3 &dir_){ 
+camera::camera(const vector3 &pos_, const vector3 &dir_) :
+	camera() 
+{
 	// Fix this! uZ is not correct since we set dir manually
 	initialize();
 }
@@ -86,25 +105,33 @@ void camera::moveTo(const double &x, const double &y, const double &z){
 // Rotation methods
 /////////////////////////////////////////////////
 
-void camera::rotate(const double &theta, const double &phi, const double &psi){
-	// Get the rotation matrix
-	matrix3 rot(theta, phi, psi);
-	
-	// Update the rotation of the three unit vectors
-	rot.transform(uX);
-	rot.transform(uY);
-	rot.transform(uZ);
-	
-	// Update the viewing plane
-	updateViewingPlane();
+void camera::rotate(const double &pitch, const double &yaw, const double& roll/*=0*/){
+	// Reset the camera to its original orientation
+	resetUnitVectors();
+	pitchAngle += pitch;
+	if (pitchAngle > pi)
+		pitchAngle = pi;
+	else if (pitchAngle < -pi)
+		pitchAngle = -pi;
+	yawAngle += yaw;
+	rollAngle += roll;
+	setRotation(pitchAngle, rollAngle, yawAngle);
 }
 
 void camera::setRotation(const double &theta, const double &phi, const double &psi){
 	// Reset the camera to its original orientation
-	resetRotation();
+	resetUnitVectors();
 	
-	// Set the new rotation
-	rotate(theta, phi, psi);
+	// Get the rotation matrix
+	matrix3 rot(theta, phi, psi);
+
+	// Update the rotation of the three unit vectors
+	rot.transform(uX);
+	rot.transform(uY);
+	rot.transform(uZ);
+
+	// Update the viewing plane
+	updateViewingPlane();
 }
 
 void camera::lookAt(const vector3 &position){
@@ -123,10 +150,12 @@ void camera::lookAt(const vector3 &position){
 	updateViewingPlane();
 }
 
-void camera::resetRotation(){
-	uX = vector3(1, 0, 0);
-	uY = vector3(0, 1, 0);
-	uZ = vector3(0, 0, 1);
+void camera::resetOrientation(){
+	resetUnitVectors();
+	updateViewingPlane();
+	pitchAngle = 0;
+	rollAngle = 0;
+	yawAngle = 0;
 }
 
 /////////////////////////////////////////////////
@@ -174,10 +203,7 @@ void camera::dump() const {
 
 void camera::initialize(){
 	// Set initial parameters
-	fov = pi/2; // radians
-	L = 50E-3; // m
-	A = 640.0/480; // unitless
-	resetRotation();
+	resetUnitVectors();
 
 	// Setup the viewing plane (looking down the Z-axis)
 	updateViewingPlane();
@@ -194,6 +220,12 @@ void camera::computeViewingPlane(){
 void camera::updateViewingPlane(){
 	vPlane.p = pos + uZ*L;
 	vPlane.norm = uZ;
+}
+
+void camera::resetUnitVectors() {
+	uX = vector3(1, 0, 0);
+	uY = vector3(0, 1, 0);
+	uZ = vector3(0, 0, 1);
 }
 
 void camera::convertToScreenSpace(const vector3 &vec, double &x, double &y){

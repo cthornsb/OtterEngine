@@ -1,19 +1,13 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
-#include <vector>
-
 #include "ray.hpp"
 #include "plane.hpp"
 #include "triangle.hpp"
-#include "colors.hpp"
-#include "lightSource.hpp"
 
 extern const double pi;
 extern const double deg2rad;
 extern const double rad2deg;
-
-class object;
 
 /** @class camera
   * @brief Handles all projections of 3d geometry onto the screen
@@ -99,10 +93,13 @@ public:
 // Rotation methods
 /////////////////////////////////////////////////
 
-	/** Rotate the object by a given amount using the pitch-roll-yaw convention (all in radians)
-	  * @note This method will rotate vertices from their current position. Use setRotation() to specify the rotation explicitly
+	/** Rotate the camera by a given amount using the pitch-yaw-roll convention (all in radians)
+	  * @note This method rotates the camera relative to its current rotation. Use setRotation() to specify the rotation explicitly
+	  * @param pitch Angle to tilt the camera up or down (i.e. about the horizontal)
+	  * @param yaw Angle to turn the camera left or right (i.e. about the vertical axis)
+	  * @param roll Angle to roll the camera (i.e. about the axis into the screen)
 	  */
-	void rotate(const double &theta, const double &phi, const double &psi);
+	void rotate(const double &pitch, const double &yaw, const double &roll=0);
 
 	/** Rotate the object to specified angles using the pitch-roll-yaw convention (all in radians)
 	  */
@@ -114,7 +111,7 @@ public:
 
 	/** Reset the orientation of the camera to its default rotation
 	  */
-	void resetRotation();
+	void resetOrientation();
 
 /////////////////////////////////////////////////
 // Rendering methods
@@ -158,11 +155,15 @@ private:
 	plane vPlane; ///< The viewing plane of the camera
 	
 	vector3 pos; ///< The focal point of the camera (its position)
-	
+
 	vector3 uX; ///< Unit vector for the x-axis
 	vector3 uY; ///< Unit vector for the y-axis
 	vector3 uZ; ///< Unit vector for the z-axis
 	
+	double pitchAngle;
+	double rollAngle;
+	double yawAngle;
+
 	/** Initialize the camera by setting initial values and computing all geometric parameters
 	  */
 	void initialize();
@@ -175,6 +176,10 @@ private:
 	/** Update the central point and normal vector of the viewing plane
 	  */
 	void updateViewingPlane();
+
+	/** Reset unit vectors to the identity matrix
+	  */
+	void resetUnitVectors();
 	
 	/** Convert a real-space position on the viewing plane to a position in screen-space [-1, 1]
 	  * @note The origin of screen-space is the center of the screen with the positive x-direction

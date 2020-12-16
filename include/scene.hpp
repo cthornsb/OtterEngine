@@ -15,7 +15,16 @@ class lightSource;
 class triangle;
 
 // Make a typedef for clarity when working with chrono.
-typedef std::chrono::system_clock sclock;
+typedef std::chrono::high_resolution_clock hclock;
+
+/** Supported drawing modes
+  */
+enum class drawMode {
+	WIREFRAME, ///< Draw outlines of triangles with no backface culling
+	MESH,      ///< Draw outlines of triangles with backface culling
+	SOLID,     ///< Draw filled triangles with wireframe outline overlayed
+	RENDER     ///< Draw filled triangles with light shading
+};
 
 /** @class scene
   * @brief 
@@ -25,14 +34,6 @@ typedef std::chrono::system_clock sclock;
 
 class scene{
 public:
-	/** Supported drawing modes
-	  */
-	enum drawMode {WIREFRAME, ///< Draw outlines of triangles with no backface culling
-	               MESH,      ///< Draw outlines of triangles with backface culling
-	               SOLID,     ///< Draw filled triangles with wireframe outline overlayed
-	               RENDER     ///< Draw filled triangles with light shading
-	};
-
 	/** @class pixelTriplet
 	  * @brief Simple holder for the pixel coordinates of a 2d projection of a 3d triangle
 	  * @author Cory R. Thornsberry
@@ -49,11 +50,23 @@ public:
 
 		/** Default constructor
 		  */
-		pixelTriplet() { }
+		pixelTriplet() : 
+			tri(0x0),
+			pX(),
+			pY(),
+			draw()
+		{ 
+		}
 		
 		/** Constructor taking a pointer to a 3d triangle
 		  */
-		pixelTriplet(triangle *t) : tri(t) { }
+		pixelTriplet(triangle *t) : 
+			tri(t),
+			pX(),
+			pY(),
+			draw()
+		{ 
+		}
 
 		/** Return true if at least one of the vertices is on the screen and return false otherwise
 		  */
@@ -92,21 +105,24 @@ public:
 	  */
 	camera *getCamera(){ return cam; }
 
+	/* Get a pointer to the main rendering window */
+	Window* getWindow() { return window.get(); }
+
 	/** Get a pointer to the world light source
 	  */
 	lightSource *getWorldLight(){ return &worldLight; }
 
 	/** Get the total time elapsed since the scene was initialized (in seconds)
 	  */
-	double getTimeElapsed() const { return timeElapsed; }
+	double getTimeElapsed() const;
 
 	/** Get the time taken for the most recent render (in seconds)
 	  */
-	double getRenderTime() const { return renderTime; }
+	double getRenderTime() const { return renderTime/1E6; }
 	
-	/** Get the average amount of time for each render (in seconds)
+	/** Get the average amount of time for each render (in microseconds)
 	  */
-	double getAverageRenderTime() const { return (totalRenderTime/updateCount); }
+	double getAverageRenderTime() const { return (totalRenderTime/frameCount); }
 
 	/** Get the instantaneous framerate of the most recent render (in Hz)
 	  */
@@ -114,7 +130,7 @@ public:
 	
 	/** Get the average framerate (in Hz)
 	  */	
-	double getAverageFramerate() const { return (updateCount/timeElapsed); }
+	double getAverageFramerate() const { return (frameCount/getTimeElapsed()); }
 
 	/** Get a pointer to the last user keypress event
 	  */
@@ -146,7 +162,7 @@ public:
 
 	/** Set the target maximum framerate for rendering (in Hz)
 	  */
-	void setFramerateCap(const double &cap){ framerateCap = cap; }
+	void setFramerateCap(const unsigned short &cap){ framerateCap = cap; }
 
 	/** Add an object to the list of objects to be rendered
 	  */
@@ -177,14 +193,13 @@ public:
 	void wait();
 
 private:
-	double timeElapsed; ///< The time since the program was started
 	double totalRenderTime; ///< The running total time of all render events
 	double renderTime; ///< The time taken to perform the last render
 	double framerate; ///< The instantaneous framerate of the last render
 
 	unsigned short framerateCap; ///< The target render framerate (in Hz)
 	
-	unsigned long long updateCount; ///< The number of times the user has called update()
+	unsigned long long frameCount; ///< The number of frames which have been rendered
 
 	bool drawNorm; ///< Flag indicating that normal vectors will be drawn on each triangle
 	bool drawOrigin; ///< Flag indicating that the X, Y, and Z axes will be drawn at the origin
@@ -199,8 +214,8 @@ private:
 	int maxPixelsX;
 	int maxPixelsY;
 
-	sclock::time_point timeOfInitialization; ///< The time that the scene was initialized
-	sclock::time_point timeOfLastUpdate; ///< The last time that update() was called by the user
+	hclock::time_point timeOfInitialization; ///< The time that the scene was initialized
+	hclock::time_point timeOfLastUpdate; ///< The last time that update() was called by the user
 
 	camera *cam;
 	

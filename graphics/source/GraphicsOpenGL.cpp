@@ -10,6 +10,25 @@ Window *getCurrentWindow(){
 	return listOfWindows[glutGetWindow()];
 }
 
+void handleMouse(int button, int state, int x, int y) {
+	// Handle mouse clicks
+	Window* currentWindow = getCurrentWindow();
+	if(state == GLUT_UP)
+		currentWindow->getMouse()->up(button);
+	else if(state == GLUT_DOWN)
+		currentWindow->getMouse()->down(button);
+}
+
+void handleMouseMovement(int x, int y) {
+	// Handle active mouse movement (i.e. movement while holding a mouse button)
+	//getCurrentWindow()->getMouse()->setPosition(x, y);
+}
+
+void handleMouseMovementPassive(int x, int y) {
+	// Handle passive mouse movement (i.e. movement without holding a mouse button)
+	getCurrentWindow()->getMouse()->setPosition(x, y);
+}
+
 /** Handle OpenGL keyboard presses.
   * @param key The keyboard character which was pressed.
   * @param x X coordinate of the mouse when the key was pressed (not used).
@@ -133,6 +152,81 @@ void reshapeScene(GLint width, GLint height){
 
 void displayFunction() {
 	// This callback does nothing, but is required on Windows
+}
+
+/////////////////////////////////////////////////////////////////////
+// class MouseState
+/////////////////////////////////////////////////////////////////////
+
+MouseState::MouseState() :
+	count(0),
+	posX(0),
+	posY(0),
+	dX(0),
+	dY(0),
+	lockPointer(false),
+	states()
+{
+	reset();
+}
+
+bool MouseState::delta() {
+	return (dX != 0 || dY != 0);
+}
+
+void MouseState::setPosition(const int& x, const int& y) { 
+	static bool firstPosition = true;
+	if (firstPosition) {
+		firstPosition = false;
+		glutWarpPointer(320, 240);
+	}
+	if (!lockPointer) {
+		dX = x - posX;
+		dY = y - posY;
+		posX = x;
+		posY = y;
+	}
+	else{
+		dX = x - 320;
+		dY = y - 240;
+		glutWarpPointer(320, 240);
+	}
+}
+
+bool MouseState::delta(int& deltaX, int& deltaY) {
+	deltaX = dX;
+	deltaY = dY;
+	dX = 0;
+	dY = 0;
+	return (deltaX != 0 || deltaY != 0);
+}
+
+bool MouseState::poll(const int& button) {
+	if (states[button]) {
+		states[button] = false;
+		return true;
+	}
+	return false;
+}
+
+void MouseState::down(const int& button) {
+	if (!states[button]) {
+		states[button] = true;
+		count++;
+	}
+}
+
+void MouseState::up(const int& button) {
+	if (states[button]) {
+		states[button] = false;
+		count--;
+	}
+}
+
+void MouseState::reset() {
+	for (int i = 0; i < 3; i++)
+		states[i] = false;
+	count = 0;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -285,7 +379,7 @@ bool Window::status(){
 	return init;
 }
 
-void Window::initialize(){
+void Window::initialize(const std::string& name/*="OpenGL"*/){
 	if(init) return;
 
 	// Dummy command line arguments
@@ -300,7 +394,7 @@ void Window::initialize(){
 	glutInitDisplayMode(GLUT_SINGLE);
 	glutInitWindowSize(W*nMult, H*nMult);
 	glutInitWindowPosition(100, 100);
-	winID = glutCreateWindow("gbc");
+	winID = glutCreateWindow(name.c_str());
 	listOfWindows[winID] = this;
 
 	// Set window size handler
@@ -308,6 +402,9 @@ void Window::initialize(){
 
 	// Set the display function callback (required for Windows)
 	glutDisplayFunc(displayFunction);
+
+	// Set window size handler
+	glutReshapeFunc(reshapeScene);
 
 	init = true;
 }
@@ -333,11 +430,19 @@ void Window::setupKeyboardHandler(){
 	glutKeyboardUpFunc(handleKeysUp);
 	glutSpecialUpFunc(handleSpecialKeysUp);
 
-	// Set window size handler
-	glutReshapeFunc(reshapeScene);
-
 	// Set keyboard keys to behave as button toggles
 	setKeyboardToggleMode();
+}
+
+void Window::setupMouseHandler() {
+	// Set mouse handler
+	glutMouseFunc(handleMouse);
+
+	// Set active movement handler
+	glutMotionFunc(handleMouseMovement);
+
+	// Set passive movement handler
+	glutPassiveMotionFunc(handleMouseMovementPassive);
 }
 
 void Window::paintGL(){

@@ -1,5 +1,9 @@
 #include <iostream>
+#include <thread>
+
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #include "scene.hpp"
 #include "camera.hpp"
@@ -9,12 +13,11 @@
 #define SCREEN_XLIMIT 1.0 ///< Set the horizontal clipping border as a fraction of the total screen width
 #define SCREEN_YLIMIT 1.0 ///< Set the vertical clipping border as a fraction of the total screen height
 
-scene::scene() : timeElapsed(0), 
-                 totalRenderTime(0), 
+scene::scene() : totalRenderTime(0), 
                  renderTime(0), 
                  framerate(0), 
                  framerateCap(60), 
-                 updateCount(0), 
+	             frameCount(0),
                  drawNorm(false), 
                  drawOrigin(false), 
                  isRunning(true), 
@@ -24,7 +27,14 @@ scene::scene() : timeElapsed(0),
                  minPixelsY(0),
                  maxPixelsX(640), 
                  maxPixelsY(480),
-                 cam(NULL) 
+	             timeOfInitialization(hclock::now()),
+	             timeOfLastUpdate(hclock::now()),
+                 cam(0x0),
+	             window(new Window(screenWidthPixels, screenHeightPixels, 1)),
+	             worldLight(),
+	             objects(),
+	             lights(),
+	             polygonsToDraw()
 { 
 	initialize();
 }
@@ -39,14 +49,11 @@ scene::~scene(){
 }
 
 void scene::initialize(){
-	// Initialize the high resolution time
-	timeOfInitialization = sclock::now();
-	timeOfLastUpdate = sclock::now();
-
 	// Setup the window
-	window = std::unique_ptr<Window>(new Window(screenWidthPixels, screenHeightPixels));
-	window->initialize();
-	window->setupKeyboardHandler();
+	window->initialize("Render3d");
+	window->setupMouseHandler(); // Set mouse support
+	window->setupKeyboardHandler(); // Set keyboard support
+	window->getMouse()->setLockPointer();
 	
 	// Set the pixel coordinate bounds
 	minPixelsX = (int)(screenWidthPixels*(1-SCREEN_YLIMIT)/2);
@@ -61,10 +68,10 @@ void scene::clear(const ColorRGB &color/*=Colors::BLACK*/){
 
 bool scene::update(){
 	// Update the timer
-	timeOfLastUpdate = sclock::now();
+	timeOfLastUpdate = hclock::now();
 
 	// Start the render timer
-	sclock::time_point startOfRenderScene = sclock::now();
+	hclock::time_point startOfRenderScene = hclock::now();
 	
 	// Clear the vector of triangles to draw
 	polygonsToDraw.clear();
@@ -73,14 +80,14 @@ bool scene::update(){
 	clear(Colors::BLACK);
 	
 	// Draw the 3d geometry
-	for(auto obj : objects)
-		processObject(obj);
+	for(auto obj = objects.cbegin(); obj != objects.cend(); obj++)
+		processObject(*obj);
 	
 	// Draw rendered polygons
 	if(!polygonsToDraw.empty()){
-		for(auto triplet : polygonsToDraw){
-			ColorRGB col = worldLight.getColor(triplet.tri);
-			drawFilledTriangle(triplet, col);
+		for (auto triplet = polygonsToDraw.cbegin(); triplet != polygonsToDraw.cend(); triplet++) {
+			ColorRGB col = worldLight.getColor(triplet->tri);
+			drawFilledTriangle(*triplet, col);
 		}
 	}
 
@@ -96,29 +103,35 @@ bool scene::update(){
 		return false;
 	}
 	window->render();
-	
-	updateCount++;
+
+	// Update the frame counter
+	frameCount++;
 
 	// Stop the render timer
-	renderTime = std::chrono::duration_cast<std::chrono::duration<double>>(sclock::now() - startOfRenderScene).count();
+	renderTime = std::chrono::duration<double, std::micro>(hclock::now() - startOfRenderScene).count(); // in microseconds
 
 	// Update the total render time and the instantaneous framerate
-	totalRenderTime += renderTime;
-	framerate = 1/renderTime;
+	if ((totalRenderTime += renderTime) >= 2E6) { // Compute framerate (2 second updates)
+		framerate = frameCount / (totalRenderTime * 1E-6);
+		totalRenderTime = 0;
+		frameCount = 0;
+	}
 
-	// Cap the framerate by sleeping	
+	// Cap the framerate by sleeping
 	if(framerateCap > 0){
-		int timeToSleep((1.0/framerateCap - renderTime)*1E6); // in microseconds
+		double timeToSleep = 1E6/framerateCap - renderTime;
 		if(timeToSleep > 0){
-			usleep(timeToSleep);
-			framerate = 1/(renderTime + timeToSleep*1E-6);
+			std::this_thread::sleep_for(std::chrono::microseconds((long long)timeToSleep));
 		}
 	}
 
-	// Get the time since the scene was initialized
-	timeElapsed = std::chrono::duration_cast<std::chrono::duration<double>>(sclock::now() - timeOfInitialization).count();
-	
 	return true;
+}
+
+/** Get the total time elapsed since the scene was initialized (in seconds)
+  */
+double scene::getTimeElapsed() const { 
+	return std::chrono::duration_cast<std::chrono::duration<double>>(hclock::now() - timeOfInitialization).count();
 }
 
 void scene::wait(){
@@ -148,7 +161,7 @@ void scene::processObject(object *obj){
 	drawMode mode = obj->getDrawingMode();
 	for(std::vector<triangle>::iterator iter = polys->begin(); iter != polys->end(); iter++){
 		// Do backface culling
-		if(mode != WIREFRAME && !cam->checkCulling(offset, (*iter))) // The triangle is facing away from the camera
+		if(mode != drawMode::WIREFRAME && !cam->checkCulling(offset, (*iter))) // The triangle is facing away from the camera
 			continue;
 		
 		// Render the triangle by converting its projection on the camera's viewing plane into pixel coordinates
@@ -168,17 +181,17 @@ void scene::processObject(object *obj){
 			continue;
 		
 		// Draw the triangle to the screen
-		if(mode == WIREFRAME || mode == MESH){
+		if(mode == drawMode::WIREFRAME || mode == drawMode::MESH){
 			drawTriangle(pixels, Colors::WHITE);
 		}
-		else if(mode == SOLID){
+		else if(mode == drawMode::SOLID){
 			// Draw the triangle face and the outline of the triangle
 			drawFilledTriangle(pixels, Colors::WHITE);
 		
 			// Draw the edges of the triangles
 			drawTriangle(pixels, Colors::BLACK);
 		}
-		else if(mode == RENDER){
+		else if(mode == drawMode::RENDER){
 			// Do nothing for now. Rendering is more complex than wireframe or solid mesh drawing
 			//  because we need to take lighting into account. Add the projected triangle to the
 			//  vector of good vertices for future drawing.

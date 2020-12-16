@@ -11,11 +11,11 @@ class object{
 public:
 	/** Default constructor
 	  */
-	object() : pos(), pos0(), rot(), dmode(scene::WIREFRAME) { }
+	object() : pos(), pos0(), rot(), dmode(drawMode::WIREFRAME) { }
 
 	/** Object position constructor
 	  */	
-	object(const vector3 &pos_) : pos(pos_), pos0(pos_), rot(), dmode(scene::WIREFRAME) { }
+	object(const vector3 &pos_) : pos(pos_), pos0(pos_), rot(), dmode(drawMode::WIREFRAME) { }
 	
 	/** Get a pointer to the vector of polygons which comprise this 3d object
 	  */
@@ -35,7 +35,7 @@ public:
 
 	/** Get the drawing mode to use when drawing the object to the screen
 	  */
-	scene::drawMode getDrawingMode() const { return dmode; }
+	drawMode getDrawingMode() const { return dmode; }
 
 	/** Rotate the object by a given amount about the X, Y, and Z, axes (all in radians)
 	  * @note This method will rotate vertices from their current position. Use setRotation() to specify the rotation explicitly
@@ -57,7 +57,7 @@ public:
 
 	/** Set the drawing mode to use when drawing the object to the screen
 	  */
-	void setDrawingMode(const scene::drawMode &mode){ dmode = mode; }
+	void setDrawingMode(const drawMode &mode){ dmode = mode; }
 
 	/** Reset the coordinates of all vertices to their original values
 	  */
@@ -77,7 +77,7 @@ protected:
 	
 	matrix3 rot; ///< The rotation of the object about the offset position
 	
-	scene::drawMode dmode; ///< The drawing mode to use when drawing the object to the screen
+	drawMode dmode; ///< The drawing mode to use when drawing the object to the screen
 	
 	std::vector<vector3> vertices; ///< Vector of all unique vertices
 	std::vector<vector3> vertices0; ///< Vector of all unique vertices with their original coordinates

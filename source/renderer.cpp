@@ -30,7 +30,7 @@ int main(){
 	cube myCube(vector3(), 1, 1, 1);
 	
 	// Set the render mode for our cube
-	myCube.setDrawingMode(scene::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
+	myCube.setDrawingMode(drawMode::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 	
 	// Setup the camera at z=-1.5 m (facing the cube)
 	camera cam(vector3(0, 0, -1.5));
@@ -40,6 +40,7 @@ int main(){
 	
 	// Setup the scene with our camera
 	scene myScene(&cam);
+
 	//myScene.getWorldLight()->setColor(Colors::RED);
 	
 	// Set the camera to draw surface normal vectors
@@ -51,9 +52,11 @@ int main(){
 	
 	// "Animate the cube by rotating it and moving the camera
 	int count = 0;
+	int dX, dY;
 	double timeElapsed;
 	bool isDone = false;
-	KeyStates *keys = myScene.getKeypress();	
+	KeyStates *keys = myScene.getKeypress();
+	MouseState* mouse = myScene.getWindow()->getMouse();
 	while(!isDone && myScene.update()){
 		// Get time since the last frame
 		timeElapsed = myScene.getRenderTime();
@@ -64,35 +67,47 @@ int main(){
 			/*if (keys->poll(0xF1))      // F1  
 				dummyFunc();*/
 			
+			if(keys->poll('p'))
+				cam.resetOrientation();
+
 			// Movement in the horizontal plane
 			if (keys->check(KEYBOARD_W)) // Move the camera forward
-				cam.moveForward(5*timeElapsed);
+				cam.moveForward(10 * timeElapsed);
 			if (keys->check(KEYBOARD_A)) // Move the camera left
-				cam.moveLeft(5*timeElapsed);
+				cam.moveLeft(10 * timeElapsed);
 			if (keys->check(KEYBOARD_S)) // Move the camera backwards
-				cam.moveBackward(5*timeElapsed);
+				cam.moveBackward(10 * timeElapsed);
 			if (keys->check(KEYBOARD_D)) // Move the camera right
-				cam.moveRight(5*timeElapsed);
+				cam.moveRight(10 * timeElapsed);
 				
 			// Rotation about the vertical axis
 			if (keys->check(KEYBOARD_Q)) // Rotate the camera ccw
-				cam.rotate(-2.5*timeElapsed, 0, 0);
+				cam.rotate(0, 0, -15 * timeElapsed);
 			if (keys->check(KEYBOARD_E)) // Rotate the camera cw
-				cam.rotate(2.5*timeElapsed, 0, 0);
+				cam.rotate(0, 0, 15 * timeElapsed);
 			
 			// Vertical movement
 			if (keys->check(KEYBOARD_Z)) // Move the camera down
-				cam.moveDown(5*timeElapsed);
+				cam.moveDown(10 * timeElapsed);
 			if (keys->check(KEYBOARD_X)) // Move the camera up
-				cam.moveUp(5*timeElapsed);
+				cam.moveUp(10 * timeElapsed);
 		}
 		
-		// Check the mouse
-		/*if(myScene.getMouse()->down){
-			cam.rotate(myScene.getMouse()->xrel*0.01, 0, -myScene.getMouse()->yrel*0.01);
-			myScene.getMouse()->xrel = 0;
-			myScene.getMouse()->yrel = 0;
+		// Check mouse buttons
+		/*if (!mouse->empty()) {
+			if (mouse->poll(0)) // left button
+				std::cout << " left button\n";
+			if (mouse->poll(1)) // middle button
+				std::cout << " middle button\n";
+			if (mouse->poll(2)) // right button
+				std::cout << " right button\n";
 		}*/
+
+		// Check mouse movement
+		if(mouse->delta(dX, dY)){
+			cam.rotate(dY * 0.0125, dX * 0.0125);
+			//myCube.rotate(dY * 0.005, 0, dX * 0.005);
+		}
 		
 		if(count++ % 120 == 0) // Frame count (every 2 seconds by default)
 			std::cout << myScene.getFramerate() << " fps\r" << std::flush;

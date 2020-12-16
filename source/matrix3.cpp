@@ -188,7 +188,7 @@ void matrix3::setRotation(const double &theta, const double &phi, const double &
 	(*this) = psiM*(phiM*thetaM);
 }
 
-matrix3 matrix3::getPitchMatrix(const double &angle){
+matrix3 matrix3::getYawMatrix(const double &angle){
 	if(angle == 0)
 		return identityMatrix;
 	double sin_theta = std::sin(angle);
@@ -210,7 +210,7 @@ matrix3 matrix3::getRollMatrix(const double &angle){
 	return mat;
 }
 
-matrix3 matrix3::getYawMatrix(const double &angle){
+matrix3 matrix3::getPitchMatrix(const double &angle){
 	if(angle == 0)
 		return identityMatrix;
 	double sin_psi = std::sin(angle);

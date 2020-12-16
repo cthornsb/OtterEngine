@@ -1,2 +1,7 @@
 install/
 build/
+
+# Visual Studio
+.vs/
+out/
+*.json
