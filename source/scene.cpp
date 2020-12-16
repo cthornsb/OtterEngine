@@ -4,33 +4,38 @@
 #include "scene.hpp"
 #include "camera.hpp"
 #include "object.hpp"
-#include "sdlWindow.hpp"
+#include "Graphics.hpp"
 
 #define SCREEN_XLIMIT 1.0 ///< Set the horizontal clipping border as a fraction of the total screen width
 #define SCREEN_YLIMIT 1.0 ///< Set the vertical clipping border as a fraction of the total screen height
 
-scene::scene() : timeElapsed(0), totalRenderTime(0), renderTime(0), framerate(0), framerateCap(60), updateCount(0), 
-                 drawNorm(false), drawOrigin(false), isRunning(true), 
-                 screenWidthPixels(640), screenHeightPixels(480), 
-                 minPixelsX(0), minPixelsY(0),
-                 maxPixelsX(640), maxPixelsY(480),
-                 cam(NULL) { 
+scene::scene() : timeElapsed(0), 
+                 totalRenderTime(0), 
+                 renderTime(0), 
+                 framerate(0), 
+                 framerateCap(60), 
+                 updateCount(0), 
+                 drawNorm(false), 
+                 drawOrigin(false), 
+                 isRunning(true), 
+                 screenWidthPixels(640), 
+                 screenHeightPixels(480), 
+                 minPixelsX(0), 
+                 minPixelsY(0),
+                 maxPixelsX(640), 
+                 maxPixelsY(480),
+                 cam(NULL) 
+{ 
 	initialize();
 }
 
-scene::scene(camera *cam_) : timeElapsed(0), totalRenderTime(0), renderTime(0), framerate(0), framerateCap(60), updateCount(0),
-                             drawNorm(false), drawOrigin(false), isRunning(true), 
-                             screenWidthPixels(640), screenHeightPixels(480), 
-                             minPixelsX(0), minPixelsY(0),
-                             maxPixelsX(640), maxPixelsY(480),
-                             cam(cam_) { 
+scene::scene(camera *cam_) : scene()
+{ 
 	initialize();
 	setCamera(cam_);
 }
 
 scene::~scene(){
-	// The SDL window's destructor will automatically handle its own clean-up
-	delete window;
 }
 
 void scene::initialize(){
@@ -39,8 +44,9 @@ void scene::initialize(){
 	timeOfLastUpdate = sclock::now();
 
 	// Setup the window
-	window = new sdlWindow(screenWidthPixels, screenHeightPixels);
+	window = std::unique_ptr<Window>(new Window(screenWidthPixels, screenHeightPixels));
 	window->initialize();
+	window->setupKeyboardHandler();
 	
 	// Set the pixel coordinate bounds
 	minPixelsX = (int)(screenWidthPixels*(1-SCREEN_YLIMIT)/2);
@@ -49,7 +55,7 @@ void scene::initialize(){
 	maxPixelsY = (int)(screenHeightPixels-minPixelsX);
 }
 
-void scene::clear(const sdlColor &color/*=Colors::BLACK*/){
+void scene::clear(const ColorRGB &color/*=Colors::BLACK*/){
 	window->clear(color);
 }
 
@@ -73,7 +79,7 @@ bool scene::update(){
 	// Draw rendered polygons
 	if(!polygonsToDraw.empty()){
 		for(auto triplet : polygonsToDraw){
-			sdlColor col = worldLight.getColor(triplet.tri);
+			ColorRGB col = worldLight.getColor(triplet.tri);
 			drawFilledTriangle(triplet, col);
 		}
 	}
@@ -85,7 +91,7 @@ bool scene::update(){
 	}
 
 	// Update the screen
-	if(!window->status()){ // Check for events
+	if(!window->processEvents()){ // Check for events
 		isRunning = false;
 		return false;
 	}
@@ -123,13 +129,13 @@ void scene::wait(){
 	}*/
 }
 
-sdlKeyEvent* scene::getKeypress(){
+KeyStates* scene::getKeypress(){
 	return window->getKeypress();
 }
 
-sdlMouseEvent* scene::getMouse(){
+/*sdlMouseEvent* scene::getMouse(){
 	return window->getMouse();
-}
+}*/
 
 void scene::setCamera(camera *cam_){ 
 	cam = cam_; 
@@ -201,7 +207,7 @@ bool scene::convertToPixelSpace(const double *x, const double *y, pixelTriplet &
 	return retval;
 }
 
-void scene::drawPoint(const vector3 &point, const sdlColor &color){
+void scene::drawPoint(const vector3 &point, const ColorRGB &color){
 	double cmX, cmY;
 	if(cam->projectPoint(point, cmX, cmY)){
 		int cmpX, cmpY;
@@ -216,7 +222,7 @@ void scene::drawPoint(const vector3 &point, const sdlColor &color){
 	}
 }
 
-void scene::drawVector(const vector3 &start, const vector3 &direction, const sdlColor &color, const double &length/*=1*/){
+void scene::drawVector(const vector3 &start, const vector3 &direction, const ColorRGB &color, const double &length/*=1*/){
 	// Compute the normal vector from the center of the triangle
 	vector3 P = start + direction;
 
@@ -280,18 +286,18 @@ void scene::drawVector(const vector3 &start, const vector3 &direction, const sdl
 	}
 }
 
-void scene::drawRay(const ray &proj, const sdlColor &color, const double &length/*=1*/){
+void scene::drawRay(const ray &proj, const ColorRGB &color, const double &length/*=1*/){
 	drawVector(proj.pos, proj.dir, color, length);
 }
 
-void scene::drawTriangle(const pixelTriplet &coords, const sdlColor &color){
+void scene::drawTriangle(const pixelTriplet &coords, const ColorRGB &color){
 	window->setDrawColor(color);
 	for(size_t i = 0; i < 2; i++)
 		window->drawLine(coords.pX[i], coords.pY[i], coords.pX[i+1], coords.pY[i+1]);
 	window->drawLine(coords.pX[2], coords.pY[2], coords.pX[0], coords.pY[0]);
 }
 	
-void scene::drawFilledTriangle(const pixelTriplet &coords, const sdlColor &color){
+void scene::drawFilledTriangle(const pixelTriplet &coords, const ColorRGB &color){
 	int x0, y0;
 	int x1, y1;
 	int x2, y2;

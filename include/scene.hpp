@@ -4,12 +4,10 @@
 #include <vector>
 #include <cstddef>
 #include <chrono>
+#include <memory>
 
 #include "lightSource.hpp"
-
-class sdlWindow;
-class sdlKeyEvent;
-class sdlMouseEvent;
+#include "Graphics.hpp"
 
 class object;
 class camera;
@@ -74,7 +72,7 @@ public:
 	  */
 	~scene();
 
-	/** Opening the SDL window
+	/** Opening the graphics window
 	  */
 	void initialize();
 
@@ -120,11 +118,11 @@ public:
 
 	/** Get a pointer to the last user keypress event
 	  */
-	sdlKeyEvent* getKeypress();
+	KeyStates* getKeypress();
 	
 	/** Get a pointer to the last user mouse event
 	  */
-	sdlMouseEvent* getMouse();
+	//sdlMouseEvent* getMouse();
 
 	/** Set the width of the screen (in pixels)
 	  */
@@ -165,7 +163,7 @@ public:
 
 	/** Clear the screen by filling it with a color (black by default)
 	  */
-	void clear(const sdlColor &color=Colors::BLACK);
+	void clear(const ColorRGB &color=Colors::BLACK);
 	
 	/** Update the screen
 	  * @note This method should be called once per iteration of the main loop
@@ -206,7 +204,7 @@ private:
 
 	camera *cam;
 	
-	sdlWindow *window; ///< Pointer to the main renderer window
+	std::unique_ptr<Window> window; ///< Pointer to the main renderer window
 	
 	directionalLight worldLight; ///< Global light source
 	
@@ -249,7 +247,7 @@ private:
 	  * @param point The point in 3d space to draw
 	  * @param color The color of the point
 	  */
-	void drawPoint(const vector3 &point, const sdlColor &color);
+	void drawPoint(const vector3 &point, const ColorRGB &color);
 
 	/** Draw a vector to the screen
 	  * @param start The start point of the vector to draw
@@ -257,28 +255,28 @@ private:
 	  * @param color The color of the vector
 	  * @param length The total length to draw
 	  */	
-	void drawVector(const vector3 &start, const vector3 &direction, const sdlColor &color, const double &length=1);
+	void drawVector(const vector3 &start, const vector3 &direction, const ColorRGB &color, const double &length=1);
 	
 	/** Draw a ray to the screen
 	  * @param proj The 3d ray to draw
 	  * @param color The color of the ray
 	  * @param length The total length to draw
 	  */
-	void drawRay(const ray &proj, const sdlColor &color, const double &length=1);
+	void drawRay(const ray &proj, const ColorRGB &color, const double &length=1);
 	
 	/** Draw the outline of a triangle to the screen
 	  * @param coords The pixel coordinate holder for the three vertex projections
 	  * @param color The line color of the triangle
 	  * @note There must be AT LEAST three elements in each array
 	  */
-	void drawTriangle(const pixelTriplet &coords, const sdlColor &color);
+	void drawTriangle(const pixelTriplet &coords, const ColorRGB &color);
 	
 	/** Draw a filled triangle to the screen
 	  * @param coords The pixel coordinate holder for the three vertex projections
 	  * @param color The fill color of the triangle
 	  * @note There must be AT LEAST three elements in each array
 	  */
-	void drawFilledTriangle(const pixelTriplet &coords, const sdlColor &color);
+	void drawFilledTriangle(const pixelTriplet &coords, const ColorRGB &color);
 };
 
 #endif

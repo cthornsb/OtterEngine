@@ -16,12 +16,12 @@ public:
 	
 	/** Get the color of the light source
 	  */
-	sdlColor getColor() const { return color; }
+	ColorRGB getColor() const { return color; }
 	
 	/** Get the scaled color of the light source based on the angle between the direction of the
 	  * light source and the normal to a surface
 	  */
-	sdlColor getColor(const plane *surface) const { return (color * getIntensity(surface)); }
+	ColorRGB getColor(const plane *surface) const { return (color * getIntensity(surface)); }
 
 	/** Set the brightness of the light source
 	  */
@@ -29,12 +29,12 @@ public:
 
 	/** Set the color of the light source
 	  */
-	void setColor(const sdlColor &color_){ color = color_; }
+	void setColor(const ColorRGB &color_){ color = color_; }
 
 protected:
 	float brightness; ///< The brightness of the light source
 
-	sdlColor color; ///< The color of the light source
+	ColorRGB color; ///< The color of the light source
 	
 	/** Get the intensity scaling factor based on the angle between the direction of the
 	  * light source and the normal to a surface
