@@ -33,6 +33,13 @@ void object::resetPosition(){
 	pos = pos0;
 }
 
+void object::build() {
+	if (built)
+		return;
+	this->userBuild();
+	built = true;
+}
+
 void object::transform(){
 	// Transform all object vertices
 	for(std::vector<vector3>::iterator vert = vertices.begin(); vert != vertices.end(); vert++)
@@ -45,9 +52,15 @@ void object::transform(){
 
 void object::addVertex(const double &x, const double &y, const double &z){ 
 	vertices0.push_back(vector3(x, y, z)); 
-	vertices.push_back(vertices0.back());
+	vertices.push_back(vector3(x, y, z));
 }
 
-void object::addPolygon(const size_t &i0, const size_t &i1, const size_t &i2){
+void object::addTriangle(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2){
 	polys.push_back(triangle(vertices[i0], vertices[i1], vertices[i2]));
+}
+
+void object::addQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3) {
+	// Eventually this will use a quad face, but for now we get two triangles
+	polys.push_back(triangle(vertices[i0], vertices[i1], vertices[i2]));
+	polys.push_back(triangle(vertices[i2], vertices[i3], vertices[i0]));
 }

@@ -11,11 +11,31 @@ class object{
 public:
 	/** Default constructor
 	  */
-	object() : pos(), pos0(), rot(), dmode(drawMode::WIREFRAME) { }
+	object() : 
+		built(false),
+		pos(), 
+		pos0(), 
+		rot(), 
+		dmode(drawMode::WIREFRAME),
+		vertices(),
+		vertices0(),
+		polys()
+	{ 
+	}
 
 	/** Object position constructor
 	  */	
-	object(const vector3 &pos_) : pos(pos_), pos0(pos_), rot(), dmode(drawMode::WIREFRAME) { }
+	object(const vector3 &pos_) :
+		built(false),
+		pos(pos_),
+		pos0(pos_),
+		rot(),
+		dmode(drawMode::WIREFRAME),
+		vertices(),
+		vertices0(),
+		polys()
+	{
+	}
 	
 	/** Get a pointer to the vector of polygons which comprise this 3d object
 	  */
@@ -67,11 +87,17 @@ public:
 	  */
 	void resetPosition();
 
+	/** Call the child build function for this class
+	  */
+	void build();
+
 	/** Build this object by adding polygons to the vector of polygons
 	  */
-	virtual void build() = 0;
+	virtual void userBuild() = 0;
 	
 protected:
+	bool built; ///< Flag indicating that the geometry has been constructed
+
 	vector3 pos; ///< The position offset of the object (not necessarily the center)
 	vector3 pos0; ///< The original position offset of the object
 	
@@ -94,7 +120,11 @@ protected:
 	
 	/** Add a unique polygon to the vector of polygons
 	  */
-	void addPolygon(const size_t &i0, const size_t &i1, const size_t &i2);
+	void addTriangle(const unsigned int &i0, const unsigned int &i1, const unsigned int &i2);
+
+	/** Add two unique polygons (representing a quadrilateral) to the vector of polygons
+	  */
+	void addQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3);
 };
 
 #endif

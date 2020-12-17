@@ -1,13 +1,13 @@
-set(CORE_SOURCES matrix3.cpp 
-                 vector3.cpp 
-                 plane.cpp 
-                 triangle.cpp 
+set(CORE_SOURCES camera.cpp 
+                 lightSource.cpp
+                 matrix3.cpp 
+                 object.cpp                 
+                 plane.cpp
+                 Primitives.cpp
                  ray.cpp 
-                 object.cpp
-                 cube.cpp 
-                 lightSource.cpp 
-                 camera.cpp 
-                 scene.cpp)
+                 scene.cpp
+                 triangle.cpp 
+                 vector3.cpp)
 
 #Add the sources to the library.
 add_library(CORE_OBJECTS OBJECT ${CORE_SOURCES})

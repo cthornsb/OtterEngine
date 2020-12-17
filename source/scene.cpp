@@ -13,8 +13,7 @@
 #define SCREEN_XLIMIT 1.0 ///< Set the horizontal clipping border as a fraction of the total screen width
 #define SCREEN_YLIMIT 1.0 ///< Set the vertical clipping border as a fraction of the total screen height
 
-scene::scene() : 
-                 renderTime(0), 
+scene::scene() : renderTime(0), 
                  framerate(0), 
                  framerateCap(60),
 	             totalRenderTime(0),
@@ -62,6 +61,11 @@ void scene::initialize(){
 	maxPixelsX = (int)(screenWidthPixels-minPixelsX);
 	minPixelsY = (int)(screenHeightPixels*(1-SCREEN_YLIMIT)/2);
 	maxPixelsY = (int)(screenHeightPixels-minPixelsX);
+}
+
+void scene::addObject(object* obj) { 
+	obj->build(); // Construct the object
+	objects.push_back(obj); // Add it to the list of objects to draw
 }
 
 void scene::clear(const ColorRGB &color/*=Colors::BLACK*/){

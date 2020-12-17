@@ -12,7 +12,13 @@ public:
 
 	/** Default constructor
 	  */
-	triangle() : plane(), p0(), p1(), p2() { }
+	triangle() : 
+		plane(), 
+		p0(0x0), 
+		p1(0x0),
+		p2(0x0) 
+	{ 
+	}
 	
 	/** Vertex constructor
 	  */

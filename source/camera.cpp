@@ -4,11 +4,7 @@
 
 #include "camera.hpp"
 #include "object.hpp"
-
-const double pi = 3.14159265359;
-const double pi2 = 2 * pi;
-const double deg2rad = pi/180;
-const double rad2deg = 180/pi;
+#include "Globals.hpp"
 
 const vector3 upVector(0, 1, 0);
 

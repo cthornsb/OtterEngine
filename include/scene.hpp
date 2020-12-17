@@ -166,16 +166,11 @@ public:
 
 	/** Add an object to the list of objects to be rendered
 	  */
-	void addObject(object *obj){ objects.push_back(obj); }
+	void addObject(object* obj);
 	
 	/** Add a light to the list of lights to be rendered
 	  */
 	void addLight(const lightSource &light){ lights.push_back(light); }
-
-	/** Render a 3d object
-	  * @param obj Pointer to the object to draw
-	  */
-	void render(object* obj);
 
 	/** Clear the screen by filling it with a color (black by default)
 	  */

@@ -7,7 +7,7 @@
 #include "vector3.hpp"
 #include "triangle.hpp"
 #include "camera.hpp"
-#include "cube.hpp"
+#include "Primitives.hpp"
 #include "colors.hpp"
 #include "scene.hpp"
 
@@ -26,11 +26,15 @@ void dummyFunc(){
 }
 
 int main(){
-	// Define a new cube
-	cube myCube(vector3(), 1, 1, 1);
-	
+	// Define a new primitive
+	//Primitives::Plane myShape(vector3(), 1, 1);
+	Primitives::Cube myShape(vector3(), 1, 1, 1);
+	//Primitives::Circle myShape(vector3(), 1, 12);
+	//Primitives::Cylinder myShape(vector3(), 1, 1, 12);
+	//Primitives::Cone myShape(vector3(), 1, 1, 12);
+
 	// Set the render mode for our cube
-	myCube.setDrawingMode(drawMode::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
+	myShape.setDrawingMode(drawMode::RENDER); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 	
 	// Setup the camera at z=-1.5 m (facing the cube)
 	camera cam(vector3(0, 0, -1.5));
@@ -48,7 +52,10 @@ int main(){
 	myScene.setDrawOrigin();
 	
 	// Add the cube to the scene
-	myScene.addObject(&myCube);
+	myScene.addObject(&myShape);
+
+	WrappedValue pitch(0, -pi, pi);
+	WrappedValue yaw(0, -pi, pi);
 
 	// "Animate the cube by rotating it and moving the camera
 	int count = 0;
@@ -105,21 +112,23 @@ int main(){
 
 		// Check mouse movement
 		if(mouse->delta(dX, dY)){
-			cam.rotate(dY * 0.0125, dX * 0.0125);
-			//myCube.setRotation(pitchAngle.get(), 0, yawAngle.get());
+			//cam.rotate(dY * 0.0125, dX * 0.0125);
+			pitch += (dY * 0.00625);
+			yaw += (dX * 0.00625);
+			myShape.setRotation(pitch.get(), 0, yaw.get());
 		}
 		
 		if(count++ % 120 == 0) // Frame count (every 2 seconds by default)
 			std::cout << myScene.getFramerate() << " fps\r" << std::flush;
 			
 		// Rotate the cube
-		myCube.rotate(0.24*deg2rad, 0.14*deg2rad, 0.34*deg2rad);
+		//myShape.rotate(0.24*deg2rad, 0.14*deg2rad, 0.34*deg2rad);
 		
 		// Move the cube along the x-axis
-		//myCube.setPosition(vector3(2*std::sin(0.25*timeElapsed), 2*std::cos(0.25*timeElapsed), 0));
+		//myShape.setPosition(vector3(2*std::sin(0.25*timeElapsed), 2*std::cos(0.25*timeElapsed), 0));
 		
 		// Point the camera at the cube
-		//cam.lookAt(myCube.getPosition());
+		//cam.lookAt(myShape.getPosition());
 
 		// Cap the framerate
 		myScene.sync();
