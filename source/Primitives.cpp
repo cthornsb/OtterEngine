@@ -114,6 +114,9 @@ void Primitives::Cylinder::userBuild() {
 	for (int i = 0; i <= nVertices-2; i++) {
 		addQuad(i+2, i+1, 2*nVertices+1-i, 2*nVertices-i);
 	}
+
+	// Update the size along the z-axis because the vertices were moved manually
+	setSizeZ(-dZ, dZ);
 }
 
 void Primitives::Cone::userBuild() {
@@ -143,4 +146,7 @@ void Primitives::Cone::userBuild() {
 	}
 	// Add the final triangle
 	addTriangle(1, nVertices, nVertices+1);
+
+	// Update the size along the z-axis because the vertices were moved manually
+	setSizeZ(-dZ, dZ);
 }

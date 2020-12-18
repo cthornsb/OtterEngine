@@ -1,6 +1,49 @@
 #include <iostream>
+#include <float.h>
 
 #include "object.hpp"
+
+object::object() :
+	built(false),
+	reservedVertices(0),
+	reservedPolygons(0),
+	pos(),
+	pos0(),
+	rot(),
+	center(),
+	maxSize(),
+	minSize(),
+	vertices(),
+	vertices0(),
+	polys()
+{
+	for (int i = 0; i < 3; i++) {
+		maxSize[i] = -FLT_MAX;
+		minSize[i] = +FLT_MAX;
+	}
+}
+
+/** Object position constructor
+  */
+object::object(const vector3 & pos_) :
+	built(false),
+	reservedVertices(0),
+	reservedPolygons(0),
+	pos(pos_),
+	pos0(pos_),
+	rot(),
+	center(),
+	maxSize(),
+	minSize(),
+	vertices(),
+	vertices0(),
+	polys()
+{
+	for (int i = 0; i < 3; i++) {
+		maxSize[i] = -FLT_MAX;
+		minSize[i] = +FLT_MAX;
+	}
+}
 
 void object::rotate(const float& theta, const float& phi, const float& psi){
 	rot.setRotation(theta, phi, psi);
@@ -42,6 +85,21 @@ void object::build() {
 	built = true;
 }
 
+void object::setSizeX(const float& min_, const float& max_) {
+	minSize[0] = min_;
+	maxSize[0] = max_;
+}
+
+void object::setSizeY(const float& min_, const float& max_) {
+	minSize[1] = min_;
+	maxSize[1] = max_;
+}
+
+void object::setSizeZ(const float& min_, const float& max_) {
+	minSize[2] = min_;
+	maxSize[2] = max_;
+}
+
 void object::reserve(const size_t& nVert, const size_t& nPoly/*=0*/) {
 	reservedVertices = nVert;
 	vertices.reserve(nVert);
@@ -77,6 +135,12 @@ vector3* object::addVertex(const vector3& vec) {
 	}
 	vertices0.push_back(vec);
 	vertices.push_back(vec);
+	for (int i = 0; i < 3; i++) { // Update the size of the bounding box
+		if (vec[i] > maxSize[i])
+			maxSize[i] = vec[i];
+		if (vec[i] < minSize[i])
+			minSize[i] = vec[i];
+	}
 	return &vertices.back();
 }
 

@@ -23,6 +23,12 @@ public:
 	  */
 	vector3(const vector3 &other) : x(other.x), y(other.y), z(other.z) { }
 
+	/** Element access operator
+	  * @param index The coordinate index (0=x, 1=y, 2=z)
+	  * @return The specified coordinate (0, 1, or 2) or NAN if the index is outside the valid range
+	  */
+	float operator [] (const unsigned int& index) const;
+
 	/** Assignment operator
 	  */
 	vector3& operator = (const vector3 &rhs);

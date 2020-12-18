@@ -25,8 +25,7 @@ vector3 scene::pixelTriplet::getCenterPoint() const {
 	return (tri->p + *offset); 
 }
 
-scene::scene() : renderTime(0), 
-                 framerate(0), 
+scene::scene() : framerate(0), 
                  framerateCap(60),
 	             totalRenderTime(0),
 	             framePeriod(16667),
@@ -42,7 +41,7 @@ scene::scene() : renderTime(0),
                  maxPixelsY(480),
 	             mode(drawMode::WIREFRAME),
 	             timeOfInitialization(hclock::now()),
-	             timeOfLastUpdate(hclock::now()),
+	             timeOfLastUpdate(),
                  cam(0x0),
 	             window(new Window(screenWidthPixels, screenHeightPixels, 1)),
 	             worldLight(),
@@ -139,15 +138,12 @@ bool scene::update(){
 	}
 	window->render();
 
-	// Stop the render timer
-	renderTime = std::chrono::duration<double>(hclock::now() - timeOfLastUpdate).count(); // in microseconds
-
 	return true;
 }
 
 /** Sync the frame timer to the requested framerate
   */
-void scene::sync() {
+float scene::sync() {
 	// Get the time since the frame started
 	long long frameTime = std::chrono::duration_cast<std::chrono::microseconds>(hclock::now() - timeOfLastUpdate).count(); // in microseconds
 	totalRenderTime += frameTime;
@@ -165,8 +161,12 @@ void scene::sync() {
 		if (timeToSleep > 0) {
 			std::this_thread::sleep_for(std::chrono::microseconds(timeToSleep));
 			totalRenderTime += timeToSleep;
+			//renderTime += timeToSleep/1E6;
 		}
 	}
+
+	// Return the time elapsed since last call to sync()
+	return std::chrono::duration<float>(hclock::now() - timeOfLastUpdate).count(); // in seconds
 }
 
 /** Get the total time elapsed since the scene was initialized (in seconds)
@@ -179,9 +179,9 @@ KeyStates* scene::getKeypress(){
 	return window->getKeypress();
 }
 
-/*sdlMouseEvent* scene::getMouse(){
+MouseState* scene::getMouse(){
 	return window->getMouse();
-}*/
+}
 
 void scene::setCamera(camera *cam_){ 
 	cam = cam_; 

@@ -56,21 +56,27 @@ int main(){
 	// Add the cube to the scene
 	myScene.addObject(&myShape);
 
+	// Print the size of the object. This is undefined until calling addObject()
+	std::cout << " Object size (x=" << myShape.getSizeX() << ", y=" << myShape.getSizeY() << ", z=" << myShape.getSizeZ() << ")" << std::endl;
+
 	WrappedValue pitch(0, -pi, pi);
 	WrappedValue yaw(0, -pi, pi);
 	WrappedValue theta(0, 0, pi * 2);
 
+	// Set the camera movement speed multiplier
+	const float cameraMoveRate = 3.f;
+
+	// Camera sensitivity
+	const float cameraSensitivity = 0.01f;
+
 	// "Animate" the object by rotating it and moving the camera
 	int count = 0;
 	int dX, dY;
-	float timeElapsed;
+	float timeElapsed = 0;
 	bool isDone = false;
 	KeyStates *keys = myScene.getKeypress();
 	MouseState* mouse = myScene.getWindow()->getMouse();
 	while(!isDone && myScene.update()){
-		// Get time since the last frame
-		timeElapsed = (float)myScene.getRenderTime();
-
 		// Check for keypresses 
 		if(!keys->empty()){
 			// Function keys (0xF1 to 0xFC)
@@ -82,25 +88,25 @@ int main(){
 
 			// Movement in the horizontal plane
 			if (keys->check(KEYBOARD_W)) // Move the camera forward
-				cam.moveForward(10.f * timeElapsed);
+				cam.moveForward(cameraMoveRate * timeElapsed);
 			if (keys->check(KEYBOARD_A)) // Move the camera left
-				cam.moveLeft(10.f * timeElapsed);
+				cam.moveLeft(cameraMoveRate * timeElapsed);
 			if (keys->check(KEYBOARD_S)) // Move the camera backwards
-				cam.moveBackward(10.f * timeElapsed);
+				cam.moveBackward(cameraMoveRate * timeElapsed);
 			if (keys->check(KEYBOARD_D)) // Move the camera right
-				cam.moveRight(10.f * timeElapsed);
+				cam.moveRight(cameraMoveRate * timeElapsed);
 				
 			// Rotation about the vertical axis
 			if (keys->check(KEYBOARD_Q)) // Rotate the camera ccw
-				cam.rotate(0, 0, -15.f * timeElapsed);
+				cam.rotate(0, 0, -cameraMoveRate * timeElapsed);
 			if (keys->check(KEYBOARD_E)) // Rotate the camera cw
-				cam.rotate(0, 0, 15.f * timeElapsed);
+				cam.rotate(0, 0, cameraMoveRate * timeElapsed);
 			
 			// Vertical movement
 			if (keys->check(KEYBOARD_Z)) // Move the camera down
-				cam.moveDown(10.f * timeElapsed);
+				cam.moveDown(cameraMoveRate * timeElapsed);
 			if (keys->check(KEYBOARD_X)) // Move the camera up
-				cam.moveUp(10.f * timeElapsed);
+				cam.moveUp(cameraMoveRate * timeElapsed);
 		}
 		
 		// Check mouse buttons
@@ -115,9 +121,9 @@ int main(){
 
 		// Check mouse movement
 		if(mouse->delta(dX, dY)){
-			cam.rotate(dY * 0.0125f, dX * 0.0125f);
-			/*pitch += (dY * 0.00625f);
-			yaw += (dX * 0.00625f);
+			cam.rotate(dY * cameraSensitivity, dX * cameraSensitivity);
+			/*pitch += (dY * cameraSensitivity/2);
+			yaw += (dX * cameraSensitivity/2);
 			myShape.setRotation(pitch.get(), 0, yaw.get());*/
 		}
 		
@@ -125,18 +131,18 @@ int main(){
 			std::cout << myScene.getFramerate() << " fps\r" << std::flush;
 			
 		// Move the object along the x-axis
-		theta += 0.0125; // *timeElapsed;
+		theta += cameraSensitivity;
 		myShape.setPosition(vector3(2*std::sin(theta.get()), 0, 2*std::cos(theta.get())));
 		
 		// Rotate the object
 		//myShape.rotate(0.3*deg2rad, 0.2*deg2rad, 0.4*deg2rad); // Relative rotation
-		myShape.setRotation(-pi/2, 0, theta.get()+pi/2);
+		myShape.setRotation(-pi/2, 0, theta.get()+pi/2); // Absolute rotation
 
 		// Point the camera at the cube
 		//cam.lookAt(myShape.getPosition());
 
 		// Cap the framerate
-		myScene.sync();
+		timeElapsed = myScene.sync();
 	}
 	
 	return 0;

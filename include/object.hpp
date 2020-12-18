@@ -11,33 +11,11 @@ class object{
 public:
 	/** Default constructor
 	  */
-	object() : 
-		built(false),
-		reservedVertices(0),
-		reservedPolygons(0),
-		pos(), 
-		pos0(), 
-		rot(), 
-		vertices(),
-		vertices0(),
-		polys()
-	{ 
-	}
+	object();
 
 	/** Object position constructor
 	  */	
-	object(const vector3 &pos_) :
-		built(false),
-		reservedVertices(0),
-		reservedPolygons(0),
-		pos(pos_),
-		pos0(pos_),
-		rot(),
-		vertices(),
-		vertices0(),
-		polys()
-	{
-	}
+	object(const vector3& pos_);
 	
 	/** Get a pointer to the vector of polygons which comprise this 3d object
 	  */
@@ -46,6 +24,22 @@ public:
 	/** Get the position offset of the object
 	  */
 	vector3 getPosition() const { return pos; }
+
+	/** Get the position of the center of the object
+	  */
+	vector3 getCenter() const { return (center + pos); }
+
+	/** Get the size of the object along the x-axis
+	  */
+	float getSizeX() const { return (maxSize[0] - minSize[0]); }
+
+	/** Get the size of the object along the y-axis
+	  */
+	float getSizeY() const { return (maxSize[1] - minSize[1]); }
+
+	/** Get the size of the object along the z-axis
+	  */
+	float getSizeZ() const { return (maxSize[2] - minSize[2]); }
 
 	/** Get a const pointer to the position vector
 	  */
@@ -111,12 +105,32 @@ protected:
 	vector3 pos0; ///< The original position offset of the object
 	
 	matrix3 rot; ///< The rotation of the object about the offset position
-	
+
+	vector3 center; ///< Center of the box which bounds the model
+
+	float maxSize[3]; ///< Maximum extent along the x, y, and z-axes
+	float minSize[3]; ///< Minimum extent along the x, y, and z-axes
+
 	std::vector<vector3> vertices; ///< Vector of all unique vertices
 	std::vector<vector3> vertices0; ///< Vector of all unique vertices with their original coordinates
 	
 	std::vector<triangle> polys; ///< Vector of all unique polygons which make up this 3d object
 	
+	/** Update the physical size of the object along the x-axis
+	  * @note The size is only for informational purposes and does not change the scale of the object
+	  */
+	void setSizeX(const float& min_, const float& max_);
+
+	/** Update the physical size of the object along the x-axis
+	  * @note The size is only for informational purposes and does not change the scale of the object
+	  */
+	void setSizeY(const float& min_, const float& max_);
+
+	/** Update the physical size of the object along the x-axis
+	  * @note The size is only for informational purposes and does not change the scale of the object
+	  */
+	void setSizeZ(const float& min_, const float& max_);
+
 	/** Reserve space in the geometry vectors so that they will not resize when being filled
 	  * @param nVert Number of expected vertices
 	  * @param nPoly Number of expected polygons. If equal to zero, use the number of vertices

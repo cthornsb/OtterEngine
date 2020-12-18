@@ -8,6 +8,16 @@ const vector3 unitVectorX(1, 0, 0);
 const vector3 unitVectorY(0, 1, 0);
 const vector3 unitVectorZ(0, 0, 1);
 
+float vector3::operator [] (const unsigned int& index) const {
+	if (index == 0)
+		return x;
+	else if (index == 1)
+		return y;
+	else if (index == 2)
+		return z;
+	return NAN;
+}
+
 vector3& vector3::operator = (const vector3 &rhs){
 	x = rhs.x;
 	y = rhs.y;

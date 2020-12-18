@@ -128,10 +128,6 @@ public:
 	  */
 	double getTimeElapsed() const;
 
-	/** Get the time taken for the most recent render (in seconds)
-	  */
-	double getRenderTime() const { return renderTime; }
-	
 	/** Get the average amount of time for each render (in microseconds)
 	  */
 	double getAverageRenderTime() const { return ((double)totalRenderTime/frameCount); }
@@ -140,17 +136,13 @@ public:
 	  */
 	double getFramerate() const { return framerate; }
 	
-	/** Get the average framerate (in Hz)
-	  */	
-	double getAverageFramerate() const { return (frameCount/getTimeElapsed()); }
-
 	/** Get a pointer to the last user keypress event
 	  */
 	KeyStates* getKeypress();
 	
 	/** Get a pointer to the last user mouse event
 	  */
-	//sdlMouseEvent* getMouse();
+	MouseState* getMouse();
 
 	/** Get the drawing mode to use when drawing the object to the screen
 	  */
@@ -203,11 +195,11 @@ public:
 	bool update();
 	
 	/** Sync the frame timer to the requested framerate
+	  * @return The time elapsed since last update() was called (in seconds)
 	  */
-	void sync();
+	float sync();
 
 private:
-	double renderTime; ///< The time taken to perform the last render
 	double framerate; ///< The instantaneous framerate of the last render
 
 	unsigned short framerateCap; ///< The target render framerate (in Hz)

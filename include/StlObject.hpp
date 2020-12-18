@@ -11,13 +11,7 @@ enum class UNITS { INCH, FOOT, METER, DECIMETER, CENTIMETER, MILLIMETER, MICROME
 
 class StlObject : public object {
 public:
-	StlObject() :
-		object(),
-		isGood(false),
-		reversed(false),
-		conversion(UNITS::INCH)
-	{
-	}
+	StlObject();
 
 	StlObject(const std::string& fname, const UNITS& unit = UNITS::INCH) :
 		StlObject()
@@ -34,8 +28,6 @@ private:
 	bool reversed;
 
 	UNITS conversion;
-
-	std::string names[3];
 
 	void convertToStandard(vector3& vec);
 

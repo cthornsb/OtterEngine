@@ -4,6 +4,14 @@
 
 #include "StlObject.hpp"
 
+StlObject::StlObject() :
+	object(),
+	isGood(false),
+	reversed(false),
+	conversion(UNITS::INCH)
+{
+}
+
 void StlObject::convertToStandard(vector3& vec) {
 	const float in = 0.0254f;
 	const float ft = 0.3048f;
@@ -101,9 +109,6 @@ unsigned int StlObject::readBinary(std::ifstream* f) {
 	std::cout << " StlObject: [debug] Stl header \"" << header << "\"" << std::endl;
 	std::cout << " StlObject: [debug] N=" << nTriangles << " triangles" << std::endl;
 
-	if (nTriangles > 1000)
-		return 0;
-
 	// Reserve enough space in the geometry vectors to avoid them resizing
 	reserve(nTriangles, nTriangles);
 
@@ -126,9 +131,23 @@ unsigned int StlObject::readBinary(std::ifstream* f) {
 		readStlBlock(vect);
 	}
 
+	// Set the center of the bounding box
+	center.x = getSizeX() / 2 + minSize[0];
+	center.y = getSizeY() / 2 + minSize[1];
+	center.z = getSizeZ() / 2 + minSize[2];
+
+	// Offset all vertices to the center the model
+	std::vector<vector3>::iterator iter1, iter2;
+	for (iter1 = vertices0.begin(), iter2 = vertices.begin(); iter1 != vertices0.end() && iter2 != vertices.end(); iter1++, iter2++) {
+		(*iter1) -= center;
+		(*iter2) -= center;
+	}
+
 	if (!invalidRead) {
 		std::cout << " StlObject: [debug] Read " << nTriangles << " triangles from input .stl files" << std::endl;
 		std::cout << " StlObject: [debug]  Generated " << vertices0.size() << " unique vertices and " << polys.size() << " triangles" << std::endl;
+		std::cout << " StlObject: [debug]  Model has size (x=" << getSizeX() << ", y=" << getSizeY() << ", z=" << getSizeZ() << ")" << std::endl;
+		std::cout << " StlObject: [debug]  x=(" << minSize[0] << ", " << maxSize[0] << ") y=(" << minSize[1] << ", " << maxSize[1] << ") z=(" << minSize[2] << ", " << maxSize[2] << ")" << std::endl;
 	}
 	else{
 		std::cout << " StlObject: [warning] Failed to read all " << nTriangles << " triangles specified in header!" << std::endl;
@@ -146,8 +165,9 @@ void StlObject::readStlBlock(float* array) {
 		auto vec = std::find(vertices.begin(), vertices.end(), vertex);
 		if (vec != vertices.end())
 			vertPtrs[i-1] = &(*vec);
-		else // found unique vertex
-			vertPtrs[i-1] = addVertex(vertex);
+		else { // found unique vertex
+			vertPtrs[i - 1] = addVertex(vertex);
+		}
 	}
 	if (vertPtrs[0] && vertPtrs[1] && vertPtrs[2]) {
 		if (normal != zeroVector) { // Stl file includes the normal vector
