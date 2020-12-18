@@ -35,9 +35,6 @@ int main(){
 	//Primitives::Cylinder myShape(vector3(), 1, 1, 12);
 	Primitives::Cone myShape(vector3(), 1, 1, 12);
 
-	// Set the render mode for our cube
-	myShape.setDrawingMode(drawMode::RENDER); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
-	
 	// Setup the camera at z=-1.5 m (facing the object)
 	camera cam(vector3(0, 0, -1.5));
 	
@@ -46,6 +43,9 @@ int main(){
 	
 	// Setup the scene with our camera
 	scene myScene(&cam);
+
+	// Set the render mode for our cube
+	myScene.setDrawingMode(drawMode::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 
 	//myScene.getWorldLight()->setColor(Colors::RED);
 	
@@ -58,8 +58,9 @@ int main(){
 
 	WrappedValue pitch(0, -pi, pi);
 	WrappedValue yaw(0, -pi, pi);
+	WrappedValue theta(0, 0, pi * 2);
 
-	// "Animate the cube by rotating it and moving the camera
+	// "Animate" the object by rotating it and moving the camera
 	int count = 0;
 	int dX, dY;
 	float timeElapsed;
@@ -114,21 +115,23 @@ int main(){
 
 		// Check mouse movement
 		if(mouse->delta(dX, dY)){
-			//cam.rotate(dY * 0.0125f, dX * 0.0125f);
-			pitch += (dY * 0.00625f);
+			cam.rotate(dY * 0.0125f, dX * 0.0125f);
+			/*pitch += (dY * 0.00625f);
 			yaw += (dX * 0.00625f);
-			myShape.setRotation(pitch.get(), 0, yaw.get());
+			myShape.setRotation(pitch.get(), 0, yaw.get());*/
 		}
 		
 		if(count++ % 120 == 0) // Frame count (every 2 seconds by default)
 			std::cout << myScene.getFramerate() << " fps\r" << std::flush;
 			
-		// Rotate the cube
-		//myShape.rotate(0.3*deg2rad, 0.2*deg2rad, 0.4*deg2rad);
+		// Move the object along the x-axis
+		theta += 0.0125; // *timeElapsed;
+		myShape.setPosition(vector3(2*std::sin(theta.get()), 0, 2*std::cos(theta.get())));
 		
-		// Move the cube along the x-axis
-		//myShape.setPosition(vector3(2*std::sin(0.25*timeElapsed), 2*std::cos(0.25*timeElapsed), 0));
-		
+		// Rotate the object
+		//myShape.rotate(0.3*deg2rad, 0.2*deg2rad, 0.4*deg2rad); // Relative rotation
+		myShape.setRotation(-pi/2, 0, theta.get()+pi/2);
+
 		// Point the camera at the cube
 		//cam.lookAt(myShape.getPosition());
 

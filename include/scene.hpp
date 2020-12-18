@@ -41,7 +41,11 @@ public:
 	  */
 	class pixelTriplet{
 	public:
-		triangle *tri; ///< Pointer to the real triangle
+		const triangle* tri; ///< Pointer to the real triangle
+
+		const vector3* offset; ///< Pointer to the offset vector of the parent object
+
+		float zDepth; ///< The distance from the camera to the center of the triangle
 
 		int pX[3]; ///< The horizontal pixel coordinates for the three vertices
 		int pY[3]; ///< The vertical pixel coordinates for the three vertices
@@ -52,6 +56,8 @@ public:
 		  */
 		pixelTriplet() : 
 			tri(0x0),
+			offset(0x0),
+			zDepth(0),
 			pX(),
 			pY(),
 			draw()
@@ -62,6 +68,8 @@ public:
 		  */
 		pixelTriplet(triangle *t) : 
 			tri(t),
+			offset(0x0),
+			zDepth(0),
 			pX(),
 			pY(),
 			draw()
@@ -71,6 +79,10 @@ public:
 		/** Return true if at least one of the vertices is on the screen and return false otherwise
 		  */
 		bool goodToDraw() const { return (draw[0] || draw[1] || draw[2]); }
+
+		float computeZDepth(camera *cam_);
+
+		vector3 getCenterPoint() const;
 	};
 
 	/** Default constructor
@@ -140,6 +152,10 @@ public:
 	  */
 	//sdlMouseEvent* getMouse();
 
+	/** Get the drawing mode to use when drawing the object to the screen
+	  */
+	drawMode getDrawingMode() const { return mode; }
+
 	/** Set the width of the screen (in pixels)
 	  */
 	void setScreenWidth(const int &width){ screenWidthPixels = width; }
@@ -163,6 +179,10 @@ public:
 	/** Set the target maximum framerate for rendering (in Hz)
 	  */
 	void setFramerateCap(const unsigned short &cap){ framerateCap = cap; }
+
+	/** Set the drawing mode to use when drawing the object to the screen
+	  */
+	void setDrawingMode(const drawMode& dmode) { mode = dmode; }
 
 	/** Add an object to the list of objects to be rendered
 	  */
@@ -208,6 +228,8 @@ private:
 	
 	int maxPixelsX;
 	int maxPixelsY;
+
+	drawMode mode; ///< Current rendering mode
 
 	hclock::time_point timeOfInitialization; ///< The time that the scene was initialized
 	hclock::time_point timeOfLastUpdate; ///< The last time that update() was called by the user
@@ -265,14 +287,14 @@ private:
 	  * @param color The color of the vector
 	  * @param length The total length to draw
 	  */	
-	void drawVector(const vector3 &start, const vector3 &direction, const ColorRGB &color, const double &length=1);
+	void drawVector(const vector3 &start, const vector3 &direction, const ColorRGB &color, const float &length=1);
 	
 	/** Draw a ray to the screen
 	  * @param proj The 3d ray to draw
 	  * @param color The color of the ray
 	  * @param length The total length to draw
 	  */
-	void drawRay(const ray &proj, const ColorRGB &color, const double &length=1);
+	void drawRay(const ray &proj, const ColorRGB &color, const float &length=1);
 	
 	/** Draw the outline of a triangle to the screen
 	  * @param coords The pixel coordinate holder for the three vertex projections

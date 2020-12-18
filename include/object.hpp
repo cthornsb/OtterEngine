@@ -18,7 +18,6 @@ public:
 		pos(), 
 		pos0(), 
 		rot(), 
-		dmode(drawMode::WIREFRAME),
 		vertices(),
 		vertices0(),
 		polys()
@@ -34,7 +33,6 @@ public:
 		pos(pos_),
 		pos0(pos_),
 		rot(),
-		dmode(drawMode::WIREFRAME),
 		vertices(),
 		vertices0(),
 		polys()
@@ -48,6 +46,10 @@ public:
 	/** Get the position offset of the object
 	  */
 	vector3 getPosition() const { return pos; }
+
+	/** Get a const pointer to the position vector
+	  */
+	const vector3* getConstPositionPointer() const { return (const vector3*)&pos; }
 
 	/** Get the number of unique vertices
 	  */
@@ -64,10 +66,6 @@ public:
 	/** Get the number of expected polygons
 	  */
 	size_t getNumberOfReservedPolygons() const { return reservedPolygons; }
-
-	/** Get the drawing mode to use when drawing the object to the screen
-	  */
-	drawMode getDrawingMode() const { return dmode; }
 
 	/** Rotate the object by a given amount about the X, Y, and Z, axes (all in radians)
 	  * @note This method will rotate vertices from their current position. Use setRotation() to specify the rotation explicitly
@@ -86,10 +84,6 @@ public:
 	/** Set the position of the object
 	  */
 	void setPosition(const vector3 &position);
-
-	/** Set the drawing mode to use when drawing the object to the screen
-	  */
-	void setDrawingMode(const drawMode &mode){ dmode = mode; }
 
 	/** Reset the coordinates of all vertices to their original values
 	  */
@@ -117,8 +111,6 @@ protected:
 	vector3 pos0; ///< The original position offset of the object
 	
 	matrix3 rot; ///< The rotation of the object about the offset position
-	
-	drawMode dmode; ///< The drawing mode to use when drawing the object to the screen
 	
 	std::vector<vector3> vertices; ///< Vector of all unique vertices
 	std::vector<vector3> vertices0; ///< Vector of all unique vertices with their original coordinates

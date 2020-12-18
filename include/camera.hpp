@@ -72,6 +72,10 @@ public:
 	  */
 	~camera();
 
+	/** Get the current position of the focal point of the camera
+	  */
+	vector3 getPosition() const { return pos; }
+
 	/** Set the field-of-view of the camera (in degrees)
 	  */
 	void setFOV(const float &fov_);

@@ -13,6 +13,18 @@
 #define SCREEN_XLIMIT 1.0 ///< Set the horizontal clipping border as a fraction of the total screen width
 #define SCREEN_YLIMIT 1.0 ///< Set the vertical clipping border as a fraction of the total screen height
 
+bool compareDepth(const scene::pixelTriplet& t1, const scene::pixelTriplet& t2) {
+	return (t1.zDepth > t2.zDepth);
+}
+
+float scene::pixelTriplet::computeZDepth(camera* cam_){
+	return (zDepth = tri->p.distance(cam_->getPosition()));
+}
+
+vector3 scene::pixelTriplet::getCenterPoint() const { 
+	return (tri->p + *offset); 
+}
+
 scene::scene() : renderTime(0), 
                  framerate(0), 
                  framerateCap(60),
@@ -28,6 +40,7 @@ scene::scene() : renderTime(0),
                  minPixelsY(0),
                  maxPixelsX(640), 
                  maxPixelsY(480),
+	             mode(drawMode::WIREFRAME),
 	             timeOfInitialization(hclock::now()),
 	             timeOfLastUpdate(hclock::now()),
                  cam(0x0),
@@ -86,12 +99,31 @@ bool scene::update(){
 	for(auto obj = objects.cbegin(); obj != objects.cend(); obj++)
 		processObject(*obj);
 	
+	// Sort polygons by z-depth
+	if(mode != drawMode::WIREFRAME && mode != drawMode::MESH)
+		std::sort(polygonsToDraw.begin(), polygonsToDraw.end(), compareDepth);
+
 	// Draw rendered polygons
-	if(!polygonsToDraw.empty()){
-		for (auto triplet = polygonsToDraw.cbegin(); triplet != polygonsToDraw.cend(); triplet++) {
+	for (auto triplet = polygonsToDraw.cbegin(); triplet != polygonsToDraw.cend(); triplet++) {
+		// Draw the triangle to the screen
+		if(mode == drawMode::WIREFRAME || mode == drawMode::MESH){
+			drawTriangle(*triplet, Colors::WHITE);
+		}
+		else if(mode == drawMode::SOLID){
+			// Draw the triangle face and the outline of the triangle
+			drawFilledTriangle(*triplet, Colors::WHITE);
+
+			// Draw the edges of the triangles
+			drawTriangle(*triplet, Colors::BLACK);
+		}
+		else if(mode == drawMode::RENDER){
+			// Rendering is more complex than wireframe or solid mesh drawing because we need to take lighting into account
 			ColorRGB col = worldLight.getColor(triplet->tri);
 			drawFilledTriangle(*triplet, col);
 		}
+
+		if (drawNorm) // Draw the surface normal vector
+			drawVector(triplet->getCenterPoint(), triplet->tri->norm, Colors::RED, 0.25);
 	}
 
 	if(drawOrigin){ // Draw the origin
@@ -158,17 +190,16 @@ void scene::setCamera(camera *cam_){
 
 void scene::processObject(object *obj){
 	std::vector<triangle>* polys = obj->getPolygons();
-	vector3 offset = obj->getPosition();
-	drawMode mode = obj->getDrawingMode();
+	const vector3* offset = obj->getConstPositionPointer();
 	for(std::vector<triangle>::iterator iter = polys->begin(); iter != polys->end(); iter++){
 		// Do backface culling
-		if(mode != drawMode::WIREFRAME && !cam->checkCulling(offset, (*iter))) // The triangle is facing away from the camera
+		if(mode != drawMode::WIREFRAME && !cam->checkCulling(*offset, (*iter))) // The triangle is facing away from the camera
 			continue;
 		
 		// Render the triangle by converting its projection on the camera's viewing plane into pixel coordinates
 		float sX[3], sY[3];
 		bool valid[3];
-		cam->render(offset, (*iter), sX, sY, valid);
+		cam->render(*offset, (*iter), sX, sY, valid);
 		
 		// Check that all vertices are in front of the camera
 		// Relatively crude for now because one or more vertices may still be in front of us
@@ -181,26 +212,14 @@ void scene::processObject(object *obj){
 		if(!convertToPixelSpace(sX, sY, pixels)) // Check if the triangle is on the screen
 			continue;
 		
-		// Draw the triangle to the screen
-		if(mode == drawMode::WIREFRAME || mode == drawMode::MESH){
-			drawTriangle(pixels, Colors::WHITE);
-		}
-		else if(mode == drawMode::SOLID){
-			// Draw the triangle face and the outline of the triangle
-			drawFilledTriangle(pixels, Colors::WHITE);
-		
-			// Draw the edges of the triangles
-			drawTriangle(pixels, Colors::BLACK);
-		}
-		else if(mode == drawMode::RENDER){
-			// Do nothing for now. Rendering is more complex than wireframe or solid mesh drawing
-			//  because we need to take lighting into account. Add the projected triangle to the
-			//  vector of good vertices for future drawing.
-			polygonsToDraw.push_back(pixels);
-		}
-		
-		if(drawNorm) // Draw the surface normal vector
-			drawVector(iter->p+offset, iter->norm, Colors::RED, 0.25);
+		// Compute the z-depth of the polygon
+		pixels.computeZDepth(cam);
+
+		// Set pointer to the offset vector of the parent object
+		pixels.offset = offset;
+
+		// Add the triangle to the drawing list
+		polygonsToDraw.push_back(pixels);
 	}
 }
 
@@ -236,7 +255,7 @@ void scene::drawPoint(const vector3 &point, const ColorRGB &color){
 	}
 }
 
-void scene::drawVector(const vector3 &start, const vector3 &direction, const ColorRGB &color, const double &length/*=1*/){
+void scene::drawVector(const vector3 &start, const vector3 &direction, const ColorRGB &color, const float &length/*=1*/){
 	// Compute the normal vector from the center of the triangle
 	vector3 P = start + (direction * length);
 
@@ -300,7 +319,7 @@ void scene::drawVector(const vector3 &start, const vector3 &direction, const Col
 	}
 }
 
-void scene::drawRay(const ray &proj, const ColorRGB &color, const double &length/*=1*/){
+void scene::drawRay(const ray &proj, const ColorRGB &color, const float &length/*=1*/){
 	drawVector(proj.pos, proj.dir, color, length);
 }
 
