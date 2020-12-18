@@ -153,7 +153,7 @@ KeyStates* scene::getKeypress(){
 
 void scene::setCamera(camera *cam_){ 
 	cam = cam_; 
-	cam->setAspectRatio(double(screenWidthPixels)/screenHeightPixels);
+	cam->setAspectRatio(float(screenWidthPixels)/screenHeightPixels);
 }
 
 void scene::processObject(object *obj){
@@ -166,7 +166,7 @@ void scene::processObject(object *obj){
 			continue;
 		
 		// Render the triangle by converting its projection on the camera's viewing plane into pixel coordinates
-		double sX[3], sY[3];
+		float sX[3], sY[3];
 		bool valid[3];
 		cam->render(offset, (*iter), sX, sY, valid);
 		
@@ -200,21 +200,21 @@ void scene::processObject(object *obj){
 		}
 		
 		if(drawNorm) // Draw the surface normal vector
-			drawVector(iter->p+offset, iter->norm, Colors::RED);
+			drawVector(iter->p+offset, iter->norm, Colors::RED, 0.25);
 	}
 }
 
-bool scene::checkScreenSpace(const double &x, const double &y){
+bool scene::checkScreenSpace(const float& x, const float& y){
 	return ((x >= -SCREEN_XLIMIT && x <= SCREEN_XLIMIT) || (y >= -SCREEN_YLIMIT && y <= SCREEN_YLIMIT));
 }
 
-bool scene::convertToPixelSpace(const double &x, const double &y, int &px, int &py){
+bool scene::convertToPixelSpace(const float& x, const float& y, int &px, int &py){
 	px = (int)(screenWidthPixels*((x + 1)/2));
 	py = (int)(screenHeightPixels*(1 - (y + 1)/2));
 	return checkScreenSpace(x, y);
 }
 
-bool scene::convertToPixelSpace(const double *x, const double *y, pixelTriplet &coords){
+bool scene::convertToPixelSpace(const float* x, const float *y, pixelTriplet &coords){
 	bool retval = false;
 	for(size_t i = 0; i < 3; i++)
 		retval |= convertToPixelSpace(x[i], y[i], coords.pX[i], coords.pY[i]);
@@ -222,7 +222,7 @@ bool scene::convertToPixelSpace(const double *x, const double *y, pixelTriplet &
 }
 
 void scene::drawPoint(const vector3 &point, const ColorRGB &color){
-	double cmX, cmY;
+	float cmX, cmY;
 	if(cam->projectPoint(point, cmX, cmY)){
 		int cmpX, cmpY;
 	
@@ -238,11 +238,11 @@ void scene::drawPoint(const vector3 &point, const ColorRGB &color){
 
 void scene::drawVector(const vector3 &start, const vector3 &direction, const ColorRGB &color, const double &length/*=1*/){
 	// Compute the normal vector from the center of the triangle
-	vector3 P = start + direction;
+	vector3 P = start + (direction * length);
 
 	// Draw the triangle normals
-	double cmX0, cmY0;
-	double cmX1, cmY1;
+	float cmX0, cmY0;
+	float cmX1, cmY1;
 	if(cam->projectPoint(start, cmX0, cmY0) && cam->projectPoint(P, cmX1, cmY1)){
 		int cmpX0, cmpY0;
 		int cmpX1, cmpY1;

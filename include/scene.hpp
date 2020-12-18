@@ -230,7 +230,7 @@ private:
 
 	/**
 	  */
-	bool checkScreenSpace(const double &x, const double &y);
+	bool checkScreenSpace(const float& x, const float& y);
 
 	/** Convert screen-space coordinates [-1, 1] to pixel-space
 	  * @note The origin of pixel-space is the upper-left corner of the screen with the positive x-direction
@@ -241,7 +241,7 @@ private:
 	  * @param py The vertical pixel corresponding to the input y-coordinate
 	  * @return True if the point is on the screen and return false otherwise
 	  */
-	bool convertToPixelSpace(const double &x, const double &y, int &px, int &py);
+	bool convertToPixelSpace(const float& x, const float& y, int &px, int &py);
 
 	/** Convert screen-space coordinates [-1, 1] to pixel-space
 	  * @note The origin of pixel-space is the upper-left corner of the screen with the positive x-direction
@@ -251,7 +251,7 @@ private:
 	  * @param coords The pixel coordinate holder for the three vertex projections
 	  * @return True if at least one of the vertices is on the screen and return false otherwise
 	  */
-	bool convertToPixelSpace(const double *x, const double *y, pixelTriplet &coords);
+	bool convertToPixelSpace(const float* x, const float* y, pixelTriplet &coords);
 
 	/** Draw a point to the screen
 	  * @param point The point in 3d space to draw

@@ -1,10 +1,12 @@
-#include <iostream>
 #include <cmath>
 
 #include "Globals.hpp"
 #include "Primitives.hpp"
 
 void Primitives::Plane::userBuild() {
+	// Reserve memory for geometry
+	reserve(4, 2);
+
 	// Add all vertices
 	addVertex(dX, dY, 0);
 	addVertex(dX, -dY, 0);
@@ -16,6 +18,9 @@ void Primitives::Plane::userBuild() {
 }
 
 void Primitives::Cube::userBuild() {
+	// Reserve memory for geometry
+	reserve(8, 12);
+
 	// Add all vertices
 	addVertex(dX, dY, dZ);
 	addVertex(dX, -dY, dZ);
@@ -36,7 +41,14 @@ void Primitives::Cube::userBuild() {
 }
 
 void Primitives::Circle::userBuild() {
-	approximate(); // Add vertices circumscribed inside a circle of radius dR
+	if (nVertices < 3) // Do not allow polygons with less than 3 sides
+		nVertices = 3;
+
+	// Reserve memory for geometry
+	reserve(nVertices + 1, nVertices);
+
+	// Add vertices circumscribed inside a circle of radius dR
+	approximate(); 
 
 	// Add all polygons (using clockwise winding)
 	for (int i = 1; i < nVertices; i++) { // Add n-1 triangles
@@ -46,14 +58,10 @@ void Primitives::Circle::userBuild() {
 	addTriangle(0, nVertices, 1);
 }
 
-void Primitives::Circle::approximate(const double& zoffset/* = 0*/){
-	if (nVertices < 3) // Do not allow polygons with less than 3 sides
-		nVertices = 3;
-
+void Primitives::Circle::approximate(const float& zoffset/* = 0*/){
 	// Add all vertices
-	//double sign = (zoffset >= 0 ? 1 : -1);
-	double angularStep = twoPi / nVertices;
-	double currentAngle = 0;
+	float angularStep = twoPi / nVertices;
+	float currentAngle = 0;
 	addVertex(0, 0, zoffset); // Add center vertex
 	for (int i = 0; i < nVertices; i++) { // Add perimeter vertices
 		// The negative x coordinate ensures proper winding when viewing down the Z axis
@@ -63,6 +71,12 @@ void Primitives::Circle::approximate(const double& zoffset/* = 0*/){
 }
 
 void Primitives::Cylinder::userBuild() {
+	if (nVertices < 3) // Do not allow cylinders with less than 3 sides
+		nVertices = 3;
+
+	// Reserve memory for geometry
+	reserve(2 * (nVertices + 1), 4 * nVertices);
+
 	//Build a circle of radius dR and offset to +dZ
 	approximate(dZ);
 		
@@ -103,6 +117,12 @@ void Primitives::Cylinder::userBuild() {
 }
 
 void Primitives::Cone::userBuild() {
+	if (nVertices < 3) // Do not allow cones with less than 3 sides
+		nVertices = 3;
+
+	// Reserve memory for geometry
+	reserve(nVertices + 2, 2 * nVertices);
+
 	//Build a circle of radius dR and offset to -dZ
 	approximate(-dZ);
 

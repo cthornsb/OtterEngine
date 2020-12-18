@@ -3,9 +3,9 @@
 
 class vector3{
 public:
-	double x; ///< X coordinate
-	double y; ///< Y coordinate
-	double z; ///< Z coordinate
+	float x; ///< X coordinate
+	float y; ///< Y coordinate
+	float z; ///< Z coordinate
 
 	/** Default constructor (zero vector)
 	  */
@@ -13,11 +13,11 @@ public:
 	
 	/** 2d vector constructor
 	  */
-	vector3(const double &x_, const double &y_) : x(x_), y(y_), z(0) { }
+	vector3(const float &x_, const float &y_) : x(x_), y(y_), z(0) { }
 	
 	/** 3d vector constructor
 	  */
-	vector3(const double &x_, const double &y_, const double &z_) : x(x_), y(y_), z(z_) { }
+	vector3(const float &x_, const float &y_, const float &z_) : x(x_), y(y_), z(z_) { }
 
 	/** Copy constructor
 	  */
@@ -29,15 +29,15 @@ public:
 	
 	/** Perform the dot product between this vector and another vector and return the result
 	  */
-	double operator * (const vector3 &rhs) const { return (rhs.x*x + rhs.y*y + rhs.z*z); }
+	float operator * (const vector3 &rhs) const { return (rhs.x*x + rhs.y*y + rhs.z*z); }
 	
 	/** Multiply this vector by a constant value and return the result
 	  */
-	vector3 operator * (const double &rhs) const { return vector3(x*rhs, y*rhs, z*rhs); }
+	vector3 operator * (const float &rhs) const { return vector3(x*rhs, y*rhs, z*rhs); }
 
 	/** Divide this vector by a constant value and return the result
 	  */
-	vector3 operator / (const double &rhs) const { return vector3(x/rhs, y/rhs, z/rhs); }
+	vector3 operator / (const float &rhs) const { return vector3(x/rhs, y/rhs, z/rhs); }
 
 	/** Add another vector to this vector and return the result
 	  */
@@ -53,7 +53,7 @@ public:
 
 	/** Return true if the length of this vector is equal to a value and return false otherwise
 	  */
-	bool operator == (const double &rhs) const { return (length() == rhs); }
+	bool operator == (const float &rhs) const { return (length() == rhs); }
 
 	/** Inequality operator
 	  */
@@ -61,7 +61,7 @@ public:
 
 	/** Return true if the length of this vector is not equal to a value and return false otherwise
 	  */
-	bool operator != (const double &rhs) const { return (length() != rhs); }
+	bool operator != (const float &rhs) const { return (length() != rhs); }
 
 	/** Return true if the length of this vector is greater than that of another vector and return false otherwise
 	  */
@@ -69,7 +69,7 @@ public:
 
 	/** Return true if the length of this vector is greater than a value and return false otherwise
 	  */	
-	bool operator > (const double &rhs) const { return (length() > rhs); }
+	bool operator > (const float &rhs) const { return (length() > rhs); }
 	
 	/** Return true if the length of this vector is less than that of another vector and return false otherwise
 	  */
@@ -77,7 +77,7 @@ public:
 
 	/** Return true if the length of this vector is less than a value and return false otherwise
 	  */	
-	bool operator < (const double &rhs) const { return (length() < rhs); }
+	bool operator < (const float &rhs) const { return (length() < rhs); }
 
 	/** Return true if the length of this vector is greater than or equal to that of another vector and return false otherwise
 	  */
@@ -85,7 +85,7 @@ public:
 
 	/** Return true if the length of this vector is greater than or equal to a value and return false otherwise
 	  */	
-	bool operator >= (const double &rhs) const { return (length() >= rhs); }
+	bool operator >= (const float &rhs) const { return (length() >= rhs); }
 
 	/** Return true if the length of this vector is less than or equal to that of another vector and return false otherwise
 	  */
@@ -93,15 +93,15 @@ public:
 
 	/** Return true if the length of this vector is less than or equal to a value and return false otherwise
 	  */	
-	bool operator <= (const double &rhs) const { return (length() <= rhs); }
+	bool operator <= (const float &rhs) const { return (length() <= rhs); }
 
 	/** Multiply this vector by a constant value and return the result
 	  */
-	vector3& operator *= (const double &rhs);
+	vector3& operator *= (const float &rhs);
 	
 	/** Divide this vector by a constant value and return the result
 	  */
-	vector3& operator /= (const double &rhs);
+	vector3& operator /= (const float &rhs);
 	
 	/** Add another vector to this vector and return the result
 	  */
@@ -134,12 +134,24 @@ public:
 
 	/** Compute the length of this vector
 	  */
-	double length() const ;
+	float length() const ;
 	
 	/** Compute the square of the length of this vector
 	  */
-	double square() const { return (x*x+y*y+z*z); }
+	float square() const { return (x*x+y*y+z*z); }
 	
+	/** Compute the distance between this and another point in 3d space
+	  */
+	float distance(const vector3& other) const ;
+
+	/** Compute the angle between this and another vector (in radians)
+	  */
+	float angle(const vector3& other) const;
+
+	/** Flip the vector to point in the opposite direction
+	  */
+	void invert();
+
 	/** Zero all elements of this vector
 	  */
 	void zero();

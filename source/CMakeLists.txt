@@ -6,6 +6,7 @@ set(CORE_SOURCES camera.cpp
                  Primitives.cpp
                  ray.cpp 
                  scene.cpp
+                 StlObject.cpp
                  triangle.cpp 
                  vector3.cpp)
 

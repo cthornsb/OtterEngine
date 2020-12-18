@@ -9,7 +9,7 @@ void triangle::update(){
 	
 	// Compute the normal to the plane
 	norm = p2p0.cross(p1p0).normalize();
-	p = ((*p0) + (*p1) + (*p2))*(1/3.0);
+	p = ((*p0) + (*p1) + (*p2))*(1/3.0f);
 }
 
 void triangle::dump() const {

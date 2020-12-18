@@ -17,14 +17,14 @@ matrix3::matrix3(const vector3 &vec){
 	setRotation(vec);
 }
 
-matrix3::matrix3(const double &theta, const double &phi, const double &psi){
+matrix3::matrix3(const float &theta, const float &phi, const float &psi){
 	zero();
 	setRotation(theta, phi, psi);
 }
 
-matrix3::matrix3(const double &a00, const double &a10, const double &a20,
-                 const double &a01, const double &a11, const double &a21,
-                 const double &a02, const double &a12, const double &a22){
+matrix3::matrix3(const float &a00, const float &a10, const float &a20,
+                 const float &a01, const float &a11, const float &a21,
+                 const float &a02, const float &a12, const float &a22){
 	elements[0][0] = a00; elements[1][0] = a10; elements[2][0] = a20; 
 	elements[0][1] = a01; elements[1][1] = a11; elements[2][1] = a21; 
 	elements[0][2] = a02; elements[1][2] = a12; elements[2][2] = a22; 
@@ -59,7 +59,7 @@ matrix3 matrix3::operator * (const matrix3 &rhs) const {
 	return retval;
 }
 
-matrix3 matrix3::operator * (const double &rhs) const {
+matrix3 matrix3::operator * (const float &rhs) const {
 	matrix3 retval;
 	for(unsigned int i = 0; i < 3; i++){ // Over columns
 		for(unsigned int j = 0; j < 3; j++){ // Over rows
@@ -77,7 +77,7 @@ vector3 matrix3::operator * (const vector3 &rhs) const {
 	return retval;
 }
 
-matrix3 matrix3::operator / (const double &rhs) const {
+matrix3 matrix3::operator / (const float &rhs) const {
 	matrix3 retval;
 	for(unsigned int i = 0; i < 3; i++){ // Over columns
 		for(unsigned int j = 0; j < 3; j++){ // Over rows
@@ -122,7 +122,7 @@ matrix3& matrix3::operator *= (const matrix3 &rhs){
 	return (*this);
 }
 
-matrix3& matrix3::operator *= (const double &rhs){
+matrix3& matrix3::operator *= (const float &rhs){
 	for(unsigned int i = 0; i < 3; i++){ // Over columns
 		for(unsigned int j = 0; j < 3; j++){ // Over rows
 			elements[i][j] *= rhs;
@@ -131,7 +131,7 @@ matrix3& matrix3::operator *= (const double &rhs){
 	return (*this);
 }
 
-matrix3& matrix3::operator /= (const double &rhs){
+matrix3& matrix3::operator /= (const float &rhs){
 	for(unsigned int i = 0; i < 3; i++){ // Over columns
 		for(unsigned int j = 0; j < 3; j++){ // Over rows
 			elements[i][j] /= rhs;
@@ -170,7 +170,7 @@ void matrix3::setRow(const size_t &row, const vector3 &vec){
 	elements[0][row] = vec.x; elements[1][row] = vec.y; elements[2][row] = vec.z; 
 }
 
-void matrix3::setRow(const size_t &row, const double &p1, const double &p2, const double &p3){ 
+void matrix3::setRow(const size_t &row, const float &p1, const float &p2, const float &p3){ 
 	elements[0][row] = p1; elements[0][row] = p2; elements[0][row] = p3; 
 }
 
@@ -178,7 +178,7 @@ void matrix3::setRotation(const vector3 &vec){
 	setRotation(vec.x, vec.y, vec.z);
 }
 
-void matrix3::setRotation(const double &theta, const double &phi, const double &psi){
+void matrix3::setRotation(const float &theta, const float &phi, const float &psi){
 	// Pitch-Roll-Yaw convention
 	matrix3 thetaM = getPitchMatrix(theta);
 	matrix3 phiM   = getRollMatrix(phi);
@@ -188,33 +188,33 @@ void matrix3::setRotation(const double &theta, const double &phi, const double &
 	(*this) = psiM*(phiM*thetaM);
 }
 
-matrix3 matrix3::getYawMatrix(const double &angle){
+matrix3 matrix3::getYawMatrix(const float &angle){
 	if(angle == 0)
 		return identityMatrix;
-	double sin_theta = std::sin(angle);
-	double cos_theta = std::cos(angle);
+	float sin_theta = std::sin(angle);
+	float cos_theta = std::cos(angle);
 	matrix3 mat(cos_theta, 0, -sin_theta,
 	                    0, 1,          0,
 	            sin_theta, 0,  cos_theta);
 	return mat;
 }
 
-matrix3 matrix3::getRollMatrix(const double &angle){
+matrix3 matrix3::getRollMatrix(const float &angle){
 	if(angle == 0)
 		return identityMatrix;
-	double sin_phi = std::sin(angle);
-	double cos_phi = std::cos(angle);
+	float sin_phi = std::sin(angle);
+	float cos_phi = std::cos(angle);
 	matrix3 mat( cos_phi, sin_phi, 0,
 	            -sin_phi, cos_phi, 0,
 	                   0,       0, 1);
 	return mat;
 }
 
-matrix3 matrix3::getPitchMatrix(const double &angle){
+matrix3 matrix3::getPitchMatrix(const float &angle){
 	if(angle == 0)
 		return identityMatrix;
-	double sin_psi = std::sin(angle);
-	double cos_psi = std::cos(angle);
+	float sin_psi = std::sin(angle);
+	float cos_psi = std::cos(angle);
 	matrix3 mat(1,        0,       0,
 	            0,  cos_psi, sin_psi,
 	            0, -sin_psi, cos_psi);
@@ -224,7 +224,7 @@ matrix3 matrix3::getPitchMatrix(const double &angle){
 // transform an input vector by this matrix
 // Note: Expects the input vector to be in cartesian coordinates
 void matrix3::transform(vector3 &vector) const {
-	double x = vector.x, y = vector.y, z = vector.z;
+	float x = vector.x, y = vector.y, z = vector.z;
 	vector.x = elements[0][0]*x + elements[0][1]*y + elements[0][2]*z;
 	vector.y = elements[1][0]*x + elements[1][1]*y + elements[1][2]*z;
 	vector.z = elements[2][0]*x + elements[2][1]*y + elements[2][2]*z;
@@ -233,7 +233,7 @@ void matrix3::transform(vector3 &vector) const {
 // transform an input vector by the transpose of this matrix
 // Note: Expects the input vector to be in cartesian coordinates
 void matrix3::transpose(vector3 &vector) const {
-	double x = vector.x, y = vector.y, z = vector.z;
+	float x = vector.x, y = vector.y, z = vector.z;
 	vector.x = elements[0][0]*x + elements[1][0]*y + elements[2][0]*z;
 	vector.y = elements[0][1]*x + elements[1][1]*y + elements[2][1]*z;
 	vector.z = elements[0][2]*x + elements[1][2]*y + elements[2][2]*z;

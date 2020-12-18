@@ -22,7 +22,43 @@ public:
 	
 	/** Vertex constructor
 	  */
-	triangle(const vector3 &p0_, const vector3 &p1_, const vector3 &p2_) : plane(p0_, p1_, p2_), p0(&p0_), p1(&p1_), p2(&p2_) { }
+	triangle(const vector3& p0_, const vector3& p1_, const vector3& p2_) : 
+		plane(p0_, p1_, p2_), 
+		p0(&p0_),
+		p1(&p1_),
+		p2(&p2_) 
+	{ 
+	}
+
+	/** Pointer constructor
+	  */
+	triangle(const vector3* p0_, const vector3* p1_, const vector3* p2_) :
+		plane(*p0_, *p1_, *p2_),
+		p0(p0_),
+		p1(p1_),
+		p2(p2_)
+	{
+	}
+
+	/** Position / normal constructor
+      */
+	triangle(const vector3& p0_, const vector3& p1_, const vector3& p2_, const vector3& norm_) :
+		plane((p0_ + p1_ + p2_)* (1 / 3.0f), norm_),
+		p0(&p0_),
+		p1(&p1_),
+		p2(&p2_)
+	{
+	}
+
+	/** Position / normal pointer constructor
+	  */
+	triangle(const vector3* p0_, const vector3* p1_, const vector3* p2_, const vector3* norm_) :
+		plane((*p0_ + *p1_ + *p2_) * (1 / 3.0f), *norm_),
+		p0(p0_),
+		p1(p1_),
+		p2(p2_)
+	{
+	}
 
 	/** Update the infinite plane which bounds this triangle. This method sets the "position" of the plane to the
 	  * center-of-mass of the three triangle vertices and computes the normal to the surface of the triangle

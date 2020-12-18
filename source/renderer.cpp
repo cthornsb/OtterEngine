@@ -3,11 +3,13 @@
 #include <cmath>
 #include <vector>
 
+#include "Globals.hpp"
 #include "Graphics.hpp"
 #include "vector3.hpp"
 #include "triangle.hpp"
 #include "camera.hpp"
 #include "Primitives.hpp"
+#include "StlObject.hpp"
 #include "colors.hpp"
 #include "scene.hpp"
 
@@ -28,15 +30,15 @@ void dummyFunc(){
 int main(){
 	// Define a new primitive
 	//Primitives::Plane myShape(vector3(), 1, 1);
-	Primitives::Cube myShape(vector3(), 1, 1, 1);
+	//Primitives::Cube myShape(vector3(), 1, 1, 1);
 	//Primitives::Circle myShape(vector3(), 1, 12);
 	//Primitives::Cylinder myShape(vector3(), 1, 1, 12);
-	//Primitives::Cone myShape(vector3(), 1, 1, 12);
+	Primitives::Cone myShape(vector3(), 1, 1, 12);
 
 	// Set the render mode for our cube
 	myShape.setDrawingMode(drawMode::RENDER); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 	
-	// Setup the camera at z=-1.5 m (facing the cube)
+	// Setup the camera at z=-1.5 m (facing the object)
 	camera cam(vector3(0, 0, -1.5));
 	
 	// Show some info about the camera
@@ -60,13 +62,13 @@ int main(){
 	// "Animate the cube by rotating it and moving the camera
 	int count = 0;
 	int dX, dY;
-	double timeElapsed;
+	float timeElapsed;
 	bool isDone = false;
 	KeyStates *keys = myScene.getKeypress();
 	MouseState* mouse = myScene.getWindow()->getMouse();
 	while(!isDone && myScene.update()){
 		// Get time since the last frame
-		timeElapsed = myScene.getRenderTime();
+		timeElapsed = (float)myScene.getRenderTime();
 
 		// Check for keypresses 
 		if(!keys->empty()){
@@ -79,25 +81,25 @@ int main(){
 
 			// Movement in the horizontal plane
 			if (keys->check(KEYBOARD_W)) // Move the camera forward
-				cam.moveForward(10 * timeElapsed);
+				cam.moveForward(10.f * timeElapsed);
 			if (keys->check(KEYBOARD_A)) // Move the camera left
-				cam.moveLeft(10 * timeElapsed);
+				cam.moveLeft(10.f * timeElapsed);
 			if (keys->check(KEYBOARD_S)) // Move the camera backwards
-				cam.moveBackward(10 * timeElapsed);
+				cam.moveBackward(10.f * timeElapsed);
 			if (keys->check(KEYBOARD_D)) // Move the camera right
-				cam.moveRight(10 * timeElapsed);
+				cam.moveRight(10.f * timeElapsed);
 				
 			// Rotation about the vertical axis
 			if (keys->check(KEYBOARD_Q)) // Rotate the camera ccw
-				cam.rotate(0, 0, -15*timeElapsed);
+				cam.rotate(0, 0, -15.f * timeElapsed);
 			if (keys->check(KEYBOARD_E)) // Rotate the camera cw
-				cam.rotate(0, 0, 15*timeElapsed);
+				cam.rotate(0, 0, 15.f * timeElapsed);
 			
 			// Vertical movement
 			if (keys->check(KEYBOARD_Z)) // Move the camera down
-				cam.moveDown(10 * timeElapsed);
+				cam.moveDown(10.f * timeElapsed);
 			if (keys->check(KEYBOARD_X)) // Move the camera up
-				cam.moveUp(10 * timeElapsed);
+				cam.moveUp(10.f * timeElapsed);
 		}
 		
 		// Check mouse buttons
@@ -112,9 +114,9 @@ int main(){
 
 		// Check mouse movement
 		if(mouse->delta(dX, dY)){
-			//cam.rotate(dY * 0.0125, dX * 0.0125);
-			pitch += (dY * 0.00625);
-			yaw += (dX * 0.00625);
+			//cam.rotate(dY * 0.0125f, dX * 0.0125f);
+			pitch += (dY * 0.00625f);
+			yaw += (dX * 0.00625f);
 			myShape.setRotation(pitch.get(), 0, yaw.get());
 		}
 		
@@ -122,7 +124,7 @@ int main(){
 			std::cout << myScene.getFramerate() << " fps\r" << std::flush;
 			
 		// Rotate the cube
-		//myShape.rotate(0.24*deg2rad, 0.14*deg2rad, 0.34*deg2rad);
+		//myShape.rotate(0.3*deg2rad, 0.2*deg2rad, 0.4*deg2rad);
 		
 		// Move the cube along the x-axis
 		//myShape.setPosition(vector3(2*std::sin(0.25*timeElapsed), 2*std::cos(0.25*timeElapsed), 0));

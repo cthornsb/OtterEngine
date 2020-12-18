@@ -34,11 +34,11 @@ public:
 
 	/** Get a vector from the origin of the ray pointing in its direction with a length @a t
 	  */
-	vector3 extend(const double &t){ return (pos+dir*t); }
+	vector3 extend(const float &t){ return (pos+dir*t); }
 
 	/** Move the origin point of the ray a distance @a dist along the direction it is pointing
 	  */
-	void move(const double &dist){ pos += dir*dist; }
+	void move(const float &dist){ pos += dir*dist; }
 
 	/** Dump information about the ray to stdout
 	  */

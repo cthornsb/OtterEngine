@@ -13,6 +13,8 @@ public:
 	  */
 	object() : 
 		built(false),
+		reservedVertices(0),
+		reservedPolygons(0),
 		pos(), 
 		pos0(), 
 		rot(), 
@@ -27,6 +29,8 @@ public:
 	  */	
 	object(const vector3 &pos_) :
 		built(false),
+		reservedVertices(0),
+		reservedPolygons(0),
 		pos(pos_),
 		pos0(pos_),
 		rot(),
@@ -53,6 +57,14 @@ public:
 	  */
 	size_t getNumberOfPolygons() const { return polys.size(); }
 
+	/** Get the number of expected vertices
+	  */
+	size_t getNumberOfReservedVertices() const { return reservedVertices; }
+
+	/** Get the number of expected polygons
+	  */
+	size_t getNumberOfReservedPolygons() const { return reservedPolygons; }
+
 	/** Get the drawing mode to use when drawing the object to the screen
 	  */
 	drawMode getDrawingMode() const { return dmode; }
@@ -60,7 +72,7 @@ public:
 	/** Rotate the object by a given amount about the X, Y, and Z, axes (all in radians)
 	  * @note This method will rotate vertices from their current position. Use setRotation() to specify the rotation explicitly
 	  */
-	void rotate(const double &theta, const double &phi, const double &psi);
+	void rotate(const float& theta, const float& phi, const float& psi);
 
 	/** Move the position of the object
 	  * @note This method moves the object relative to its current position. Use setPosition() to specify the position explicitly
@@ -69,7 +81,7 @@ public:
 
 	/** Rotate the object to specified angles about the X, Y, and Z, axes (all in radians)
 	  */
-	void setRotation(const double &theta, const double &phi, const double &psi);
+	void setRotation(const float& theta, const float& phi, const float& psi);
 
 	/** Set the position of the object
 	  */
@@ -98,6 +110,9 @@ public:
 protected:
 	bool built; ///< Flag indicating that the geometry has been constructed
 
+	size_t reservedVertices; ///< The number of expected vertices
+	size_t reservedPolygons; ///< The number of expected polygons which will be built
+
 	vector3 pos; ///< The position offset of the object (not necessarily the center)
 	vector3 pos0; ///< The original position offset of the object
 	
@@ -110,14 +125,26 @@ protected:
 	
 	std::vector<triangle> polys; ///< Vector of all unique polygons which make up this 3d object
 	
+	/** Reserve space in the geometry vectors so that they will not resize when being filled
+	  * @param nVert Number of expected vertices
+	  * @param nPoly Number of expected polygons. If equal to zero, use the number of vertices
+	  */
+	void reserve(const size_t& nVert, const size_t& nPoly=0);
+
 	/** Rotate all vertices using the object's internal rotation matrix
 	  */
 	void transform();
 	
 	/** Add a unique vertex to the vector of vertices
+	  * @return Pointer to the vertex vector
 	  */
-	void addVertex(const double &x, const double &y, const double &z);
-	
+	vector3* addVertex(const float &x, const float&y, const float&z);
+
+	/** Add a unique vertex to the vector of vertices
+	  * @return Pointer to the vertex vector
+	  */
+	vector3* addVertex(const vector3& vec);
+
 	/** Add a unique polygon to the vector of polygons
 	  */
 	void addTriangle(const unsigned int &i0, const unsigned int &i1, const unsigned int &i2);
@@ -125,6 +152,16 @@ protected:
 	/** Add two unique polygons (representing a quadrilateral) to the vector of polygons
 	  */
 	void addQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3);
+
+	/** Add a unique static triangle to the vector of polygons
+	  * @note Static triangles cannot be moved or rotated
+	  */
+	void addStaticTriangle(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2);
+
+	/** Add two unique static triangles (representing a quadrilateral) to the vector of polygons
+	  * @note Static triangles cannot be moved or rotated
+	  */
+	void addStaticQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3);
 };
 
 #endif

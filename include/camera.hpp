@@ -5,10 +5,6 @@
 #include "plane.hpp"
 #include "triangle.hpp"
 
-extern const double pi;
-extern const double deg2rad;
-extern const double rad2deg;
-
 class WrappedValue {
 public:
 	WrappedValue() :
@@ -20,7 +16,7 @@ public:
 	{
 	}
 
-	WrappedValue(const double& initial, const double& min_, const double& max_, bool lockValue = false) :
+	WrappedValue(const float& initial, const float& min_, const float& max_, bool lockValue = false) :
 		value(initial),
 		minVal(min_),
 		maxVal(max_),
@@ -29,27 +25,27 @@ public:
 	{
 	}
 
-	double operator = (const double& rhs) { return (value = rhs); }
+	float operator = (const float& rhs) { return (value = rhs); }
 
-	double operator += (const double& rhs) { return (value = wrap(rhs)); }
+	float operator += (const float& rhs) { return (value = wrap(rhs)); }
 
-	double operator -= (const double& rhs) { return (value = wrap(-rhs)); }
+	float operator -= (const float& rhs) { return (value = wrap(-rhs)); }
 
-	double operator + (const double& rhs) const { return wrap(rhs); }
+	float operator + (const float& rhs) const { return wrap(rhs); }
 
-	double operator - (const double& rhs) const { return wrap(-rhs); }
+	float operator - (const float& rhs) const { return wrap(-rhs); }
 
-	double get() const { return value; }
+	float get() const { return value; }
 
 private:
-	double value;
-	double minVal;
-	double maxVal;
-	double delta;
+	float value;
+	float minVal;
+	float maxVal;
+	float delta;
 
 	bool lock;
 
-	double wrap(const double& delta) const;
+	float wrap(const float& delta) const;
 };
 
 /** @class camera
@@ -78,15 +74,15 @@ public:
 
 	/** Set the field-of-view of the camera (in degrees)
 	  */
-	void setFOV(const double &fov_);
+	void setFOV(const float &fov_);
 	
 	/** Set the focal-length of the camera (in mm)
 	  */
-	void setFocalLength(const double &length);
+	void setFocalLength(const float &length);
 	
 	/** Set the aspect ratio of the screen
 	  */
-	void setAspectRatio(const double &ratio);
+	void setAspectRatio(const float &ratio);
 
 /////////////////////////////////////////////////
 // Movement methods
@@ -94,27 +90,27 @@ public:
 
 	/** Move the camera in the direction that it is currently pointed
 	  */
-	void moveForward(const double &dist);
+	void moveForward(const float& dist);
 
 	/** Move the camera in the direction that it is currently pointed
 	  */
-	void moveBackward(const double &dist){ moveForward(-dist); }
+	void moveBackward(const float& dist){ moveForward(-dist); }
 
 	/** Move the camera horizontally along the axis perpendicular to the direction it is facing
 	  */
-	void moveRight(const double &dist);
+	void moveRight(const float& dist);
 
 	/** Move the camera horizontally along the axis perpendicular to the direction it is facing
 	  */
-	void moveLeft(const double &dist){ moveRight(-dist); }
+	void moveLeft(const float& dist){ moveRight(-dist); }
 
 	/** Move the camera vertically along the axis perpendicular to the direction it is facing
 	  */	
-	void moveUp(const double &dist);
+	void moveUp(const float& dist);
 	
 	/** Move the camera vertically along the axis perpendicular to the direction it is facing
 	  */
-	void moveDown(const double &dist){ moveUp(-dist); }
+	void moveDown(const float& dist){ moveUp(-dist); }
 	
 	/** Move the camera along a vector from its current position
 	  */
@@ -122,7 +118,7 @@ public:
 	
 	/** Move the camera along the X, Y, and Z axes from its current position
 	  */
-	void move(const double &x, const double &y, const double &z);
+	void move(const float& x, const float& y, const float& z);
 	
 	/** Move the camera to a position in 3d space
 	  */
@@ -130,7 +126,7 @@ public:
 	
 	/** Move the camera to a position in 3d space
 	  */
-	void moveTo(const double &x, const double &y, const double &z);
+	void moveTo(const float& x, const float& y, const float& z);
 
 /////////////////////////////////////////////////
 // Rotation methods
@@ -142,11 +138,11 @@ public:
 	  * @param yaw Angle to turn the camera left or right (i.e. about the vertical axis)
 	  * @param roll Angle to roll the camera (i.e. about the axis into the screen)
 	  */
-	void rotate(const double &pitch, const double &yaw, const double &roll=0);
+	void rotate(const float& pitch, const float& yaw, const float& roll=0);
 
 	/** Rotate the object to specified angles using the pitch-roll-yaw convention (all in radians)
 	  */
-	void setRotation(const double &theta, const double &phi, const double &psi);
+	void setRotation(const float& theta, const float& phi, const float& psi);
 
 	/** Point the camera at a location in 3d space
 	  */
@@ -167,7 +163,7 @@ public:
 	  * @param pixelY Array of vertical coordinates for the three vertices (must contain at least 3 elements)
 	  * @param valid Array of boolean flags which indicates that each of the three vertices are in front of the ray (must contain at least 3 elements)
 	  */
-	void render(const vector3 &offset, const triangle &tri, double *sX, double *sY, bool *valid);
+	void render(const vector3 &offset, const triangle &tri, float* sX, float* sY, bool* valid);
 
 	/** Check whether or not a triangle is facing towards the camera
 	  * @param offset The offset of the object from the world origin
@@ -182,18 +178,18 @@ public:
 	  * @param sY The vertical component of the position where the ray intersects the viewing plane (in screen-space)
 	  * @return True if the ray intersects the viewing plane, and reutrn false otherwise
 	  */
-	bool projectPoint(const vector3 &vertex, double &sX, double &sY);
+	bool projectPoint(const vector3 &vertex, float& sX, float& sY);
 
 	/** Dump camera parameters to stdout
 	  */
 	void dump() const ;
 	
 private:
-	double fov; ///< Field-of-view (in radians)
-	double L; ///< Focal length (in m)
-	double A; ///< Aspect ratio
-	double W; ///< Viewing plane width (in m)
-	double H; ///< Viewing plane height (in m)
+	float fov; ///< Field-of-view (in radians)
+	float L; ///< Focal length (in m)
+	float A; ///< Aspect ratio
+	float W; ///< Viewing plane width (in m)
+	float H; ///< Viewing plane height (in m)
 
 	plane vPlane; ///< The viewing plane of the camera
 	
@@ -231,7 +227,7 @@ private:
 	  * @param x The horizontal component of the screen-space coordinate
 	  * @param y The vertical component of the screen-space coordinate
 	  */
-	void convertToScreenSpace(const vector3 &vec, double &x, double &y);
+	void convertToScreenSpace(const vector3 &vec, float& x, float& y);
 	
 	/** Trace a ray, from the camera position, through a point on the viewing plane to the surface-plane of an input triangle
 	  * @param sX The x-coordinate on the viewing plane through which the ray will be cast (in screen-space)
@@ -240,7 +236,7 @@ private:
 	  * @param P The point (in real-space) where the ray intersects the surface-plane of the triangle
 	  * @return True if the ray intersects with the surface-plane of the triangle, and return false otherwise
 	  */
-	bool rayTrace(const double &sX, const double &sY, const triangle &tri, vector3 &P);
+	bool rayTrace(const float& sX, const float& sY, const triangle &tri, vector3 &P);
 };
 
 #endif

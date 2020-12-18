@@ -15,14 +15,14 @@ vector3& vector3::operator = (const vector3 &rhs){
 	return (*this);
 }
 
-vector3& vector3::operator *= (const double &rhs){
+vector3& vector3::operator *= (const float &rhs){
 	x *= rhs;
 	y *= rhs;
 	z *= rhs;
 	return (*this);
 }
 
-vector3& vector3::operator /= (const double &rhs){
+vector3& vector3::operator /= (const float &rhs){
 	x /= rhs;
 	y /= rhs;
 	z /= rhs;
@@ -50,20 +50,34 @@ vector3 vector3::cross(const vector3 &rhs) const {
 }
 
 vector3 vector3::normalize() const {
-	double mag = length();
+	float mag = length();
 	return vector3(x/mag, y/mag, z/mag);
 }
 
 vector3& vector3::normInPlace(){
-	double mag = length();
+	float mag = length();
 	x /= mag;
 	y /= mag;
 	z /= mag;
 	return (*this);
 }
 
-double vector3::length() const { 
+float vector3::length() const { 
 	return std::sqrt(square()); 
+}
+
+float vector3::distance(const vector3& other) const {
+	return (other - (*this)).length();
+}
+
+float vector3::angle(const vector3& other) const {
+	return std::acos((*this) * other);
+}
+
+void vector3::invert() {
+	x *= -1;
+	y *= -1;
+	z *= -1;
 }
 
 void vector3::zero(){

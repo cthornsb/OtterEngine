@@ -7,7 +7,7 @@
 
 class matrix3{
 public:
-	double elements[3][3]; ///< All elements of the matrix stored using [col][row]
+	float elements[3][3]; ///< All elements of the matrix stored using [col][row]
 
 	/** Default constructor
 	  */
@@ -19,13 +19,13 @@ public:
 
 	/** Rotation matrix constructor
 	  */
-	matrix3(const double &theta, const double &phi, const double &psi);
+	matrix3(const float &theta, const float &phi, const float &psi);
 
 	/** Explicit matrix element constructor
 	  */
-	matrix3(const double &a00, const double &a10, const double &a20,
-	        const double &a01, const double &a11, const double &a21,
-	        const double &a02, const double &a12, const double &a22);
+	matrix3(const float &a00, const float &a10, const float &a20,
+	        const float &a01, const float &a11, const float &a21,
+	        const float &a02, const float &a12, const float &a22);
 
 	/** Copy constructor
 	  */
@@ -41,7 +41,7 @@ public:
 
 	/** Multiply this matrix by a constant and return the resulting matrix
 	  */
-	matrix3 operator * (const double &rhs) const ;
+	matrix3 operator * (const float &rhs) const ;
 
 	/** Multiply this matrix by a vector and return the resulting vector
 	  */
@@ -49,7 +49,7 @@ public:
 
 	/** Divide this matrix by a constant and return the result
 	  */
-	matrix3 operator / (const double &rhs) const ;
+	matrix3 operator / (const float &rhs) const ;
 
 	/** Add a matrix to this one and return the result
 	  */
@@ -65,11 +65,11 @@ public:
 
 	/** Multiply this matrix by a constant and return the result
 	  */	
-	matrix3& operator *= (const double &rhs); 
+	matrix3& operator *= (const float &rhs); 
 
 	/** Divide this matrix by a constant and return the result
 	  */
-	matrix3& operator /= (const double &rhs);
+	matrix3& operator /= (const float &rhs);
 
 	/** Add a matrix to this one and return the result
 	  */
@@ -93,7 +93,7 @@ public:
 
 	/** Set one row in the matrix explicitly
 	  */
-	void setRow(const size_t &row, const double &p1, const double &p2, const double &p3);
+	void setRow(const size_t &row, const float &p1, const float &p2, const float &p3);
 
 	/** Set this to a rotation matrix using a vector whose three coordinates are equal to theta, phi and psi respectively (all in radians)
 	  */
@@ -101,13 +101,13 @@ public:
 
 	/** Set this to a rotation matrix using theta, phi and psi (all in radians)
 	  */
-	void setRotation(const double &theta, const double &phi, const double &psi);
+	void setRotation(const float &theta, const float &phi, const float &psi);
 
-	static matrix3 getPitchMatrix(const double &angle);
+	static matrix3 getPitchMatrix(const float &angle);
 	
-	static matrix3 getRollMatrix(const double &angle);
+	static matrix3 getRollMatrix(const float &angle);
 	
-	static matrix3 getYawMatrix(const double &angle);
+	static matrix3 getYawMatrix(const float &angle);
 
 	/** Operate on an input vector by multiplying it with this matrix
 	  */
