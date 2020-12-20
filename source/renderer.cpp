@@ -45,16 +45,23 @@ int main(){
 	scene myScene(&cam);
 
 	// Set the render mode for our cube
-	myScene.setDrawingMode(drawMode::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
+	myScene.setDrawingMode(drawMode::RENDER); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 
+	// Set the color of the world light
 	//myScene.getWorldLight()->setColor(Colors::RED);
 	
 	// Set the camera to draw surface normal vectors
 	//myScene.setDrawNormals();
-	myScene.setDrawOrigin();
+	//myScene.setDrawOrigin();
+	//myScene.setDrawZDepth();
 	
 	// Add the cube to the scene
 	myScene.addObject(&myShape);
+
+	// Add a child object
+	//float zoffset = (myShape.getSizeZ() + 1) / 2;
+	//Primitives::Cone hat(vector3(), 1, 1, 12);
+	//myShape.addChild(&hat, vector3(0, 0, zoffset));
 
 	// Print the size of the object. This is undefined until calling addObject()
 	std::cout << " Object size (x=" << myShape.getSizeX() << ", y=" << myShape.getSizeY() << ", z=" << myShape.getSizeZ() << ")" << std::endl;
@@ -131,12 +138,12 @@ int main(){
 			std::cout << myScene.getFramerate() << " fps\r" << std::flush;
 			
 		// Move the object along the x-axis
-		theta += cameraSensitivity;
-		myShape.setPosition(vector3(2*std::sin(theta.get()), 0, 2*std::cos(theta.get())));
+		//theta += cameraSensitivity;
+		//myShape.setPosition(vector3(2*std::sin(theta.get()), 0, 2*std::cos(theta.get())));
 		
 		// Rotate the object
-		//myShape.rotate(0.3*deg2rad, 0.2*deg2rad, 0.4*deg2rad); // Relative rotation
-		myShape.setRotation(-pi/2, 0, theta.get()+pi/2); // Absolute rotation
+		myShape.rotate(0.3*deg2rad, 0.2*deg2rad, 0.4*deg2rad); // Relative rotation
+		//myShape.setRotation(-pi/2, 0, theta.get()+pi/2); // Absolute rotation
 
 		// Point the camera at the cube
 		//cam.lookAt(myShape.getPosition());

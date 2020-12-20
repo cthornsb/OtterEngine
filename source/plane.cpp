@@ -17,10 +17,10 @@ bool plane::intersects(const ray& r) const {
 }
 
 bool plane::intersects(const ray& r, float& t) const {
-	float numer = (p - r.pos) * norm;
 	float denom = r.dir * norm;
 	if(denom == 0)
 		return false;
+	float numer = (p - r.pos) * norm;
 	t = numer/denom;
 	return (numer < 0 && denom < 0);
 }

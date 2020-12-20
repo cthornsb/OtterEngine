@@ -4,6 +4,7 @@
 #include "ray.hpp"
 #include "plane.hpp"
 #include "triangle.hpp"
+#include "PixelTriplet.hpp"
 
 class WrappedValue {
 public:
@@ -75,6 +76,12 @@ public:
 	/** Get the current position of the focal point of the camera
 	  */
 	vector3 getPosition() const { return pos; }
+
+	/** Get a ray which originates at the focal point and travels through the viewplane
+	  * @param x Horizontal coordinate in screen space (-1, 1)
+	  * @param y Vertical coordinate in screen space (-1, 1)
+	  */
+	ray getRay(const float& x, const float& y) const { return ray(pos, (vPlane.p + uX * x + uY * y - pos).normalize()); }
 
 	/** Set the field-of-view of the camera (in degrees)
 	  */
@@ -160,14 +167,20 @@ public:
 // Rendering methods
 /////////////////////////////////////////////////
 
+	/** Trace a ray, from the camera position, through a point on the viewing plane to the surface-plane of an input triangle
+	  * @param ray The 3d ray which will be cast
+	  * @param tri The triangle whose surfac will be intersected by the ray
+	  * @param P The point (in real-space) where the ray intersects the surface-plane of the triangle
+	  * @return True if the ray intersects with the surface-plane of the triangle, and return false otherwise
+	  */
+	bool rayTrace(const ray& cast, const pixelTriplet& pixels, vector3& P) const;
+
 	/** Render a single triangle by computing its projection onto the viewing plane
 	  * @param offset The offset of the object from the world origin
-	  * @param tri The triangles to render
-	  * @param pixelX Array of horizontal coordinates for the three vertices (must contain at least 3 elements)
-	  * @param pixelY Array of vertical coordinates for the three vertices (must contain at least 3 elements)
-	  * @param valid Array of boolean flags which indicates that each of the three vertices are in front of the ray (must contain at least 3 elements)
+	  * @param pixels Storage object for triangle rendering data
+	  * @return True if any of the three vertices are visible and return false otherwise
 	  */
-	void render(const vector3 &offset, const triangle &tri, float* sX, float* sY, bool* valid);
+	bool render(const vector3 &offset, pixelTriplet& pixels);
 
 	/** Check whether or not a triangle is facing towards the camera
 	  * @param offset The offset of the object from the world origin
@@ -180,9 +193,15 @@ public:
 	  * @param vertex The originating point of the ray (in real-space)
 	  * @param sX The horizontal component of the position where the ray intersects the viewing plane (in screen-space)
 	  * @param sY The vertical component of the position where the ray intersects the viewing plane (in screen-space)
-	  * @return True if the ray intersects the viewing plane, and reutrn false otherwise
+	  * @param zdepth Computed z-depth into the screen (not used if pointer is null)
+	  * @return True if the ray intersects the viewing plane, and return false otherwise
 	  */
-	bool projectPoint(const vector3 &vertex, float& sX, float& sY);
+	bool projectPoint(const vector3 &vertex, float& sX, float& sY, float* zdepth=0x0);
+
+	/** Get the depth into the screen (i.e. distance along the z-axis of the camera) for a point in 3d space
+	  * @return The distance into the screen to the specified point, or out of the screen in the event that the point is behind the camera
+	  */
+	float getZDepth(const vector3& p) const ;
 
 	/** Dump camera parameters to stdout
 	  */
@@ -232,15 +251,6 @@ private:
 	  * @param y The vertical component of the screen-space coordinate
 	  */
 	void convertToScreenSpace(const vector3 &vec, float& x, float& y);
-	
-	/** Trace a ray, from the camera position, through a point on the viewing plane to the surface-plane of an input triangle
-	  * @param sX The x-coordinate on the viewing plane through which the ray will be cast (in screen-space)
-	  * @param sY The y-coordinate on the viewing plane through which the ray will be cast (in screen-space)
-	  * @param tri The triangle whose surface-plane will be intersected by the ray
-	  * @param P The point (in real-space) where the ray intersects the surface-plane of the triangle
-	  * @return True if the ray intersects with the surface-plane of the triangle, and return false otherwise
-	  */
-	bool rayTrace(const float& sX, const float& sY, const triangle &tri, vector3 &P);
 };
 
 #endif

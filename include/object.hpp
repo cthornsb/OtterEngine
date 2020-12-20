@@ -19,7 +19,7 @@ public:
 	
 	/** Get a pointer to the vector of polygons which comprise this 3d object
 	  */
-	std::vector<triangle>* getPolygons(){ return &polys; }
+	const std::vector<triangle>* getPolygons() const { return &polys; }
 
 	/** Get the position offset of the object
 	  */
@@ -61,6 +61,27 @@ public:
 	  */
 	size_t getNumberOfReservedPolygons() const { return reservedPolygons; }
 
+	/** Get a pointer to this object's parent
+	  * @return Pointer to this object's parent object, or (this) if object has no parent
+	  */
+	const object* getParent() const { return (parent ? parent : this); }
+
+	/** Return true if this object has a parent object and return false otherwise
+	  */
+	bool isChild() const { return (parent != 0x0); }
+
+	/** Return true if this object has child objects and return false otherwise
+	  */
+	bool hasChildren() const { return !children.empty(); }
+
+	/** Get const iterator at the start of the child objects vector
+	  */
+	std::vector<object*>::const_iterator beginChildren() const { return children.cbegin(); }
+
+	/** Get const iterator at the end of the child objects vector
+	  */
+	std::vector<object*>::const_iterator endChildren() const { return children.cend(); }
+
 	/** Rotate the object by a given amount about the X, Y, and Z, axes (all in radians)
 	  * @note This method will rotate vertices from their current position. Use setRotation() to specify the rotation explicitly
 	  */
@@ -87,7 +108,20 @@ public:
 	  */
 	void resetPosition();
 
-	/** Call the child build function for this class
+	/** Add a child to this object
+	  * @note An object with multiple parents may cause undefined behavior
+	  * @param child Pointer to the child object
+	  * @param offset Position offset inside the parent object
+	  */
+	void addChild(object* child, const vector3& offset = zeroVector);
+
+	/** Remove a child from this object
+	  * @param child Pointer to the child object
+	  * @param offset Position offset inside the parent object
+	  */
+	void removeChild(object* child);
+
+	/** Call the user build function for this class
 	  */
 	void build();
 
@@ -116,6 +150,12 @@ protected:
 	
 	std::vector<triangle> polys; ///< Vector of all unique polygons which make up this 3d object
 	
+	std::vector<object*> children; ///< Vector of pointers to child objects
+
+	vector3 parentOffset; ///< Offset of this object within its parent
+
+	const object* parent; ///< Pointer to parent object
+
 	/** Update the physical size of the object along the x-axis
 	  * @note The size is only for informational purposes and does not change the scale of the object
 	  */
@@ -131,6 +171,27 @@ protected:
 	  */
 	void setSizeZ(const float& min_, const float& max_);
 
+	/** Set this object's parent
+	  * @return True if this object had no parent, and return false if otherwise
+	  */
+	bool setParent(object* obj);
+
+	/** Update the position of all child objects to the parent position
+	  */
+	void updatePositionOfChildren();
+
+	/** Update the position based on new parent position
+	  */
+	void updatePositionForParent(const vector3& position);
+
+	/** Update the rotation of all child objects to that of the parent
+	  */
+	void updateRotationOfChildren();
+
+	/** Update the rotation based on new parent rotation
+	  */
+	void updateRotationForParent(const matrix3* rotation);
+
 	/** Reserve space in the geometry vectors so that they will not resize when being filled
 	  * @param nVert Number of expected vertices
 	  * @param nPoly Number of expected polygons. If equal to zero, use the number of vertices
@@ -139,7 +200,7 @@ protected:
 
 	/** Rotate all vertices using the object's internal rotation matrix
 	  */
-	void transform();
+	void transform(const matrix3* mat);
 	
 	/** Add a unique vertex to the vector of vertices
 	  * @return Pointer to the vertex vector

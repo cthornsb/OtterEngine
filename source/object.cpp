@@ -9,13 +9,16 @@ object::object() :
 	reservedPolygons(0),
 	pos(),
 	pos0(),
-	rot(),
+	rot(identityMatrix),
 	center(),
 	maxSize(),
 	minSize(),
 	vertices(),
 	vertices0(),
-	polys()
+	polys(),
+	children(),
+	parentOffset(),
+	parent(0x0)
 {
 	for (int i = 0; i < 3; i++) {
 		maxSize[i] = -FLT_MAX;
@@ -26,34 +29,25 @@ object::object() :
 /** Object position constructor
   */
 object::object(const vector3 & pos_) :
-	built(false),
-	reservedVertices(0),
-	reservedPolygons(0),
-	pos(pos_),
-	pos0(pos_),
-	rot(),
-	center(),
-	maxSize(),
-	minSize(),
-	vertices(),
-	vertices0(),
-	polys()
+	object()
 {
-	for (int i = 0; i < 3; i++) {
-		maxSize[i] = -FLT_MAX;
-		minSize[i] = +FLT_MAX;
-	}
+	pos = pos_;
+	pos0 = pos_;
 }
 
 void object::rotate(const float& theta, const float& phi, const float& psi){
 	rot.setRotation(theta, phi, psi);
 	
 	// Update the rotation of all vertices
-	transform();
+	transform(&rot);
+
+	// Update rotation of child objects
+	updateRotationOfChildren();
 }
 
 void object::move(const vector3 &offset){
 	pos += offset;
+	updatePositionOfChildren();
 }
 
 void object::setRotation(const float& theta, const float& phi, const float& psi){
@@ -63,19 +57,52 @@ void object::setRotation(const float& theta, const float& phi, const float& psi)
 	resetVertices();
 	
 	// Update the rotation of all vertices
-	transform();
+	transform(&rot);
+
+	// Update rotation of child objects
+	updateRotationOfChildren();
 }
 
 void object::setPosition(const vector3 &position){
 	pos = position;
+	updatePositionOfChildren();
 }
 
 void object::resetVertices(){
 	vertices = vertices0;
+	for (auto ch = children.begin(); ch != children.end(); ch++) {
+		(*ch)->resetVertices();
+	}
 }
 
 void object::resetPosition(){
 	pos = pos0;
+	updatePositionOfChildren();
+}
+
+void object::addChild(object* child, const vector3& offset/*=zeroVector*/) {
+	if (!child->built) { // Construct the child geometry (it not already done)
+		child->build();
+	}
+	children.push_back(child);
+	if (!child->setParent(this)) {
+		std::cout << " Object: [warning] Child object already had a parent, this may result in undefined behavior!" << std::endl;
+	}
+	child->parentOffset = offset;
+	child->updateRotationForParent(&rot);
+	child->updatePositionForParent(pos);
+}
+
+void object::removeChild(object* child) {
+	auto ch = std::find(children.begin(), children.end(), child);
+	if (ch != children.end()) { // Remove the child and unlink it from this object
+		(*ch)->parent = 0x0;
+		(*ch)->parentOffset = zeroVector;
+		children.erase(ch);
+	}
+	else {
+		std::cout << " Object: [warning] Child object not found. Cannot remove" << std::endl;
+	}
 }
 
 void object::build() {
@@ -100,6 +127,34 @@ void object::setSizeZ(const float& min_, const float& max_) {
 	maxSize[2] = max_;
 }
 
+bool object::setParent(object* obj) { 
+	bool retval = (parent == 0x0);
+	parent = obj;
+	return retval;
+}
+
+void object::updatePositionOfChildren() {
+	for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
+		(*ch)->updatePositionForParent(pos);
+	}
+}
+
+void object::updatePositionForParent(const vector3& position) {
+	pos = position + parentOffset;
+}
+
+void object::updateRotationOfChildren() {
+	for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
+		(*ch)->updateRotationForParent(&rot);
+		(*ch)->updatePositionForParent(pos); // Necessary because the offset position within the parent changed
+	}
+}
+
+void object::updateRotationForParent(const matrix3* rotation) {
+	rotation->transform(parentOffset);
+	transform(rotation);
+}
+
 void object::reserve(const size_t& nVert, const size_t& nPoly/*=0*/) {
 	reservedVertices = nVert;
 	vertices.reserve(nVert);
@@ -115,10 +170,10 @@ void object::reserve(const size_t& nVert, const size_t& nPoly/*=0*/) {
 	}
 }
 
-void object::transform(){
+void object::transform(const matrix3* mat){
 	// Transform all object vertices
 	for(std::vector<vector3>::iterator vert = vertices.begin(); vert != vertices.end(); vert++)
-		rot.transform((*vert));
+		mat->transform((*vert));
 	
 	// Update the normals of all polygons
 	for(std::vector<triangle>::iterator tri = polys.begin(); tri != polys.end(); tri++)

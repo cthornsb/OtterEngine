@@ -13,41 +13,32 @@
 #define SCREEN_XLIMIT 1.0 ///< Set the horizontal clipping border as a fraction of the total screen width
 #define SCREEN_YLIMIT 1.0 ///< Set the vertical clipping border as a fraction of the total screen height
 
-bool compareDepth(const scene::pixelTriplet& t1, const scene::pixelTriplet& t2) {
-	return (t1.zDepth > t2.zDepth);
-}
-
-float scene::pixelTriplet::computeZDepth(camera* cam_){
-	return (zDepth = tri->p.distance(cam_->getPosition()));
-}
-
-vector3 scene::pixelTriplet::getCenterPoint() const { 
-	return (tri->p + *offset); 
-}
-
-scene::scene() : framerate(0), 
-                 framerateCap(60),
-	             totalRenderTime(0),
-	             framePeriod(16667),
-	             frameCount(0),
-                 drawNorm(false), 
-                 drawOrigin(false), 
-                 isRunning(true), 
-                 screenWidthPixels(640), 
-                 screenHeightPixels(480), 
-                 minPixelsX(0), 
-                 minPixelsY(0),
-                 maxPixelsX(640), 
-                 maxPixelsY(480),
-	             mode(drawMode::WIREFRAME),
-	             timeOfInitialization(hclock::now()),
-	             timeOfLastUpdate(),
-                 cam(0x0),
-	             window(new Window(screenWidthPixels, screenHeightPixels, 1)),
-	             worldLight(),
-	             objects(),
-	             lights(),
-	             polygonsToDraw()
+scene::scene() : 
+	framerate(0), 
+	framerateCap(60),
+	totalRenderTime(0),
+	framePeriod(16667),
+	frameCount(0),
+	drawNorm(false), 
+	drawOrigin(false), 
+	drawDepthMap(false),
+	isRunning(true), 
+	screenWidthPixels(640), 
+	screenHeightPixels(480), 
+	minPixelsX(0), 
+	minPixelsY(0),
+	maxPixelsX(640), 
+	maxPixelsY(480),
+	mode(drawMode::WIREFRAME),
+	buffer(640, 480),
+	timeOfInitialization(hclock::now()),
+	timeOfLastUpdate(),
+	cam(0x0),
+	window(new Window(screenWidthPixels, screenHeightPixels, 1)),
+	worldLight(),
+	objects(),
+	lights(),
+	polygonsToDraw()
 { 
 	initialize();
 }
@@ -97,31 +88,60 @@ bool scene::update(){
 	// Draw the 3d geometry
 	for(auto obj = objects.cbegin(); obj != objects.cend(); obj++)
 		processObject(*obj);
-	
-	// Sort polygons by z-depth
-	if(mode != drawMode::WIREFRAME && mode != drawMode::MESH)
-		std::sort(polygonsToDraw.begin(), polygonsToDraw.end(), compareDepth);
 
-	// Draw rendered polygons
-	for (auto triplet = polygonsToDraw.cbegin(); triplet != polygonsToDraw.cend(); triplet++) {
-		// Draw the triangle to the screen
-		if(mode == drawMode::WIREFRAME || mode == drawMode::MESH){
+	if (mode == drawMode::RENDER) { // Compute pixel z-depth
+		int x0, x1;
+		float realy;
+		const float farDistance = 10.f;
+		for (auto triplet = polygonsToDraw.cbegin(); triplet != polygonsToDraw.cend(); triplet++) {
+			for (int scanline = 0; scanline < maxPixelsY; scanline++) {
+				realy = (-2.f * scanline) / screenHeightPixels + 1;
+				if (triplet->getHorizontalLimits(scanline, x0, x1)) { // Rasterization of triangle
+					// TODO fix object vertices being rendered multiple times
+					for (int x = x0; x <= x1; x++) { // Over every pixel in the row
+						float depth = triplet->calc.getZ((2.f * x0) / screenWidthPixels - 1, realy);
+						if (depth > farDistance)
+							continue;
+						if (!drawDepthMap)
+							window->setDrawColor(worldLight.getColor(triplet->tri));
+						else
+							window->setDrawColor(ColorRGB::heatMap(depth, farDistance));
+						//window->drawLine(x0, scanline, x1, scanline);
+						//buffer.set(x, scanline, depth, &(*triplet));
+						window->drawPixel(x, scanline);
+					}
+				}
+			}
+		}
+	}
+	else if (mode == drawMode::SOLID) {
+		int x0, x1;
+		const float farDistance = 10.f;
+		for (std::vector<pixelTriplet>::const_iterator triplet = polygonsToDraw.cbegin(); triplet != polygonsToDraw.cend(); triplet++) { // Over all polygons to draw
+			for (int scanline = triplet->pY[0]; scanline <= triplet->pY[2]; scanline++) {
+				if (triplet->getHorizontalLimits(scanline, x0, x1)) { // Rasterization of triangle
+					// Draw the triangle face
+					window->setDrawColor(Colors::WHITE);
+					window->drawLine(x0, scanline, x1, scanline);
+
+					// Draw the edges of the triangle
+					drawTriangle(*triplet, Colors::BLACK);
+					window->drawPixel(x0, scanline);
+					window->drawPixel(x1, scanline);
+				}
+			}
+		}
+	}
+	else {
+		// Draw polygons
+		for (auto triplet = polygonsToDraw.cbegin(); triplet != polygonsToDraw.cend(); triplet++) {
+			// Draw the triangle to the screen
 			drawTriangle(*triplet, Colors::WHITE);
 		}
-		else if(mode == drawMode::SOLID){
-			// Draw the triangle face and the outline of the triangle
-			drawFilledTriangle(*triplet, Colors::WHITE);
+	}
 
-			// Draw the edges of the triangles
-			drawTriangle(*triplet, Colors::BLACK);
-		}
-		else if(mode == drawMode::RENDER){
-			// Rendering is more complex than wireframe or solid mesh drawing because we need to take lighting into account
-			ColorRGB col = worldLight.getColor(triplet->tri);
-			drawFilledTriangle(*triplet, col);
-		}
-
-		if (drawNorm) // Draw the surface normal vector
+	if (drawNorm) { // Draw the surface normal vector
+		for (auto triplet = polygonsToDraw.cbegin(); triplet != polygonsToDraw.cend(); triplet++)
 			drawVector(triplet->getCenterPoint(), triplet->tri->norm, Colors::RED, 0.25);
 	}
 
@@ -130,6 +150,9 @@ bool scene::update(){
 		drawVector(vector3(0, 0, 0), vector3(0, 1, 0), Colors::GREEN);
 		drawVector(vector3(0, 0, 0), vector3(0, 0, 1), Colors::BLUE);
 	}
+
+	//if (!polygonsToDraw.empty())
+		//drawVector(vector3(0, 0, 0), polygonsToDraw.back().tri->p, Colors::RED);
 
 	// Update the screen
 	if(!window->processEvents()){ // Check for events
@@ -161,7 +184,6 @@ float scene::sync() {
 		if (timeToSleep > 0) {
 			std::this_thread::sleep_for(std::chrono::microseconds(timeToSleep));
 			totalRenderTime += timeToSleep;
-			//renderTime += timeToSleep/1E6;
 		}
 	}
 
@@ -188,32 +210,31 @@ void scene::setCamera(camera *cam_){
 	cam->setAspectRatio(float(screenWidthPixels)/screenHeightPixels);
 }
 
-void scene::processObject(object *obj){
-	std::vector<triangle>* polys = obj->getPolygons();
+void scene::processPolygons(object* obj) {
+	const std::vector<triangle>* polys = obj->getPolygons();
 	const vector3* offset = obj->getConstPositionPointer();
-	for(std::vector<triangle>::iterator iter = polys->begin(); iter != polys->end(); iter++){
+	for (auto iter = polys->cbegin(); iter != polys->cend(); iter++) {
 		// Do backface culling
-		if(mode != drawMode::WIREFRAME && !cam->checkCulling(*offset, (*iter))) // The triangle is facing away from the camera
+		if (mode != drawMode::WIREFRAME && !cam->checkCulling(*offset, (*iter))) // The triangle is facing away from the camera
 			continue;
-		
+
+		// TODO check for triangles outside of view before rendering
+		//if (!cam->checkVisible())
+			//continue;
+
 		// Render the triangle by converting its projection on the camera's viewing plane into pixel coordinates
-		float sX[3], sY[3];
-		bool valid[3];
-		cam->render(*offset, (*iter), sX, sY, valid);
-		
-		// Check that all vertices are in front of the camera
-		// Relatively crude for now because one or more vertices may still be in front of us
-		if(!valid[0] || !valid[1] || !valid[2])
+		pixelTriplet pixels(&(*iter));
+		if (!cam->render(*offset, pixels)) // All vertices are behind camera
 			continue;
-		
+
 		// Convert to pixel coordinates
 		// (0, 0) is at the top-left of the screen
-		pixelTriplet pixels(&(*iter));
-		if(!convertToPixelSpace(sX, sY, pixels)) // Check if the triangle is on the screen
+		if (!convertToPixelSpace(pixels)) // Check if the triangle is on the screen
 			continue;
-		
-		// Compute the z-depth of the polygon
-		pixels.computeZDepth(cam);
+
+		// Rasterize the triangle
+		if (!pixels.sortVertical(maxPixelsY))
+			continue;
 
 		// Set pointer to the offset vector of the parent object
 		pixels.offset = offset;
@@ -223,20 +244,36 @@ void scene::processObject(object *obj){
 	}
 }
 
-bool scene::checkScreenSpace(const float& x, const float& y){
-	return ((x >= -SCREEN_XLIMIT && x <= SCREEN_XLIMIT) || (y >= -SCREEN_YLIMIT && y <= SCREEN_YLIMIT));
+void scene::processObject(object *obj){
+	// Compute all parent polygons
+	processPolygons(obj);
+	for (auto child = obj->beginChildren(); child != obj->endChildren(); child++) { // And for all the object's children
+		processPolygons((*child));
+	}
 }
 
-bool scene::convertToPixelSpace(const float& x, const float& y, int &px, int &py){
+void scene::convertToScreenSpace(const int& px, const int& py, float& x, float& y) const {
+	x = (2.f * px) / screenWidthPixels - 1;
+	y = (-2.f * py) / screenHeightPixels + 1;
+}
+
+bool scene::checkScreenSpace(const float& x, const float& y) const {
+	return ((x >= -SCREEN_XLIMIT && x <= SCREEN_XLIMIT) && (y >= -SCREEN_YLIMIT && y <= SCREEN_YLIMIT));
+}
+
+bool scene::convertToPixelSpace(const float& x, const float& y, int &px, int &py) const {
 	px = (int)(screenWidthPixels*((x + 1)/2));
 	py = (int)(screenHeightPixels*(1 - (y + 1)/2));
 	return checkScreenSpace(x, y);
 }
 
-bool scene::convertToPixelSpace(const float* x, const float *y, pixelTriplet &coords){
+bool scene::convertToPixelSpace(pixelTriplet &coords) const {
 	bool retval = false;
-	for(size_t i = 0; i < 3; i++)
-		retval |= convertToPixelSpace(x[i], y[i], coords.pX[i], coords.pY[i]);
+	for (size_t i = 0; i < 3; i++) {
+		coords.set(i, (int)(screenWidthPixels * ((coords.sX[i] + 1) / 2)), 
+		              (int)(screenHeightPixels * (1 - (coords.sY[i] + 1) / 2)));
+		retval |= checkScreenSpace(coords.sX[i], coords.sY[i]);
+	}
 	return retval;
 }
 
@@ -329,68 +366,17 @@ void scene::drawTriangle(const pixelTriplet &coords, const ColorRGB &color){
 		window->drawLine(coords.pX[i], coords.pY[i], coords.pX[i+1], coords.pY[i+1]);
 	window->drawLine(coords.pX[2], coords.pY[2], coords.pX[0], coords.pY[0]);
 }
-	
+
 void scene::drawFilledTriangle(const pixelTriplet &coords, const ColorRGB &color){
-	int x0, y0;
-	int x1, y1;
-	int x2, y2;
-	
-	x0 = coords.pX[0]; y0 = coords.pY[0];
-	x1 = coords.pX[1]; y1 = coords.pY[1];
-	x2 = coords.pX[2]; y2 = coords.pY[2];
-
-	// Sort points by ascending Y
-	// Insertion sort
-	if(y1 < y0){
-		std::swap(y0, y1);
-		std::swap(x0, x1);
-	}
-	if(y2 < y1){
-		std::swap(y1, y2);
-		std::swap(x1, x2);
-		if(y1 < y0){
-			std::swap(y1, y0);
-			std::swap(x1, x0);
-		}
-	}
-
-	// Check if the triangle is on the screen
-	if(y2 < minPixelsY || y0 >= maxPixelsY) // Entire triangle is off the top or bottom of the screen
-		return;
-	
 	// Set the fill color
 	window->setDrawColor(color);
 
-	// Check vertical pixel bounds	
-	int lineStart = (y0 >= minPixelsY ? y0 : minPixelsY);
-	int lineStop = (y2 < maxPixelsY ? y2 : maxPixelsY-1);
-	
-	float xA, xB;
-	for(int scanline = lineStart; scanline <= lineStop; scanline++){
-		if(y0 == y1){ // y10 is a horizontal line
-				xA = (scanline-y1)*(float(x2-x1))/(y2-y1) + x1;
-				xB = (scanline-y2)*(float(x0-x2))/(y0-y2) + x2;				
-		}
-		else if(y0 == y2){ // y20 is a horizontal line
-				xA = (scanline-y1)*(float(x2-x1))/(y2-y1) + x1;
-				xB = (scanline-y0)*(float(x1-x0))/(y1-y0) + x0;			
-		}
-		else{ // No lines are horizontal
-			if(scanline <= y1)
-				xA = (scanline-y0)*(float(x1-x0))/(y1-y0) + x0;
-			else
-				xA = (scanline-y1)*(float(x2-x1))/(y2-y1) + x1;
-			xB = (scanline-y2)*(float(x0-x2))/(y0-y2) + x2;
-		}
-
-		if(xB < xA) // Sort xA and xB
-			std::swap(xA, xB);
-
-		// Check if the line is on the screen
-		if(xB < minPixelsX || xA >= maxPixelsX) // Entire line is off the left or right of the screen
+	int x0, x1;
+	for(int scanline = coords.pY[0]; scanline <= coords.pY[2]; scanline++){
+		if (!coords.getHorizontalLimits(scanline, x0, x1))
 			continue;
 
 		// Draw the scanline
-		window->drawLine((int)(xA >= minPixelsX ? xA : minPixelsX), scanline, (int)(xB < maxPixelsX ? xB : maxPixelsX-1), scanline);
+		window->drawLine(x0, scanline, x1, scanline);
 	}
 }

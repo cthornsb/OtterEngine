@@ -3,6 +3,7 @@ set(CORE_SOURCES camera.cpp
                  matrix3.cpp 
                  object.cpp                 
                  plane.cpp
+                 PixelTriplet.cpp
                  Primitives.cpp
                  ray.cpp 
                  scene.cpp

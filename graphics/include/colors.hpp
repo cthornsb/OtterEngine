@@ -84,6 +84,17 @@ public:
 	/** Convert an unsigned char to a floating point value in the range [0, 1]
 	  */
 	static float toFloat(const unsigned char &val){ return (float(val)/255); }
+
+	static ColorRGB heatMap(const float& x, const float& xmax, const float& xmin=0) {
+		float rgb;
+		if (x < xmin)
+			rgb = 0.f;
+		else if (x > xmax)
+			rgb = 1.f;
+		else
+			rgb = 1.0f - x / (xmax - xmin);
+		return ColorRGB(rgb, rgb, rgb);
+	}
 };
 
 namespace Colors{

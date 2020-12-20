@@ -173,10 +173,13 @@ void camera::resetOrientation(){
 // Rendering methods
 /////////////////////////////////////////////////
 
-void camera::render(const vector3 &offset, const triangle &tri, float* sX, float* sY, bool* valid){
-	valid[0] = projectPoint(*tri.p0+offset, sX[0], sY[0]);
-	valid[1] = projectPoint(*tri.p1+offset, sX[1], sY[1]);
-	valid[2] = projectPoint(*tri.p2+offset, sX[2], sY[2]);
+bool camera::render(const vector3 &offset, pixelTriplet& pixels){
+	bool retval = true;
+	retval &= projectPoint(pixels.getVertex0(), pixels.sX[0], pixels.sY[0], &pixels.zDepth[0]);
+	retval &= projectPoint(pixels.getVertex1(), pixels.sX[1], pixels.sY[1], &pixels.zDepth[1]);
+	retval &= projectPoint(pixels.getVertex2(), pixels.sX[2], pixels.sY[2], &pixels.zDepth[2]);
+	pixels.finalize();
+	return retval;
 }
 
 bool camera::checkCulling(const vector3 &offset, const triangle &tri){
@@ -184,9 +187,16 @@ bool camera::checkCulling(const vector3 &offset, const triangle &tri){
 	return (((tri.p+offset) - pos) * tri.norm <= 0);
 }
 
-bool camera::projectPoint(const vector3 &vertex, float& sX, float& sY){
-	ray proj(vertex, pos-vertex);
+bool camera::projectPoint(const vector3 &vertex, float& sX, float& sY, float* zdepth/*=0x0*/){
+	vector3 vec = pos - vertex;
+	ray proj(vertex, vec);
 	
+	if (zdepth) {
+		(*zdepth) = -(vec.length() * vec.cosTheta(uZ));
+		if (*zdepth < 0) // Vertex behind camera
+			return false;
+	}
+
 	float t;
 	if(vPlane.intersects(proj, t)){
 		// Get the point at which the ray intersect the viewing plane
@@ -199,6 +209,11 @@ bool camera::projectPoint(const vector3 &vertex, float& sX, float& sY){
 	}
 	
 	return false;
+}
+
+float camera::getZDepth(const vector3& p) const {
+	vector3 zDepth = p - pos; // Vector from focal point of camera to center of polygon
+	return (zDepth.length() * zDepth.cosTheta(uZ));
 }
 
 void camera::dump() const {
@@ -244,13 +259,9 @@ void camera::convertToScreenSpace(const vector3 &vec, float& x, float& y){
 	y = 2*(vec * uY)/H; // unitless
 }
 
-bool camera::rayTrace(const float& sX, const float& sY, const triangle &tri, vector3 &P){
-	float x = (sX * W)/2;
-	float y = (sY * H)/2;
-	vector3 vec = (vPlane.p + uX*x + uY*y - pos).normalize();
-	ray cast(pos, vec);
+bool camera::rayTrace(const ray& cast, const pixelTriplet& pixels, vector3& P) const {
 	float t;
-	if(tri.intersects(cast, t)){
+	if(pixels.intersects(cast, t)){
 		P = cast.extend(t);
 		return true;
 	}

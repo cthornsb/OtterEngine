@@ -81,7 +81,11 @@ float vector3::distance(const vector3& other) const {
 }
 
 float vector3::angle(const vector3& other) const {
-	return std::acos((*this) * other);
+	return std::acos(cosTheta(other));
+}
+
+float vector3::cosTheta(const vector3& other) const {
+	return ((*this) * other) / (this->length() * other.length());
 }
 
 void vector3::invert() {

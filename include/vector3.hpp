@@ -154,6 +154,10 @@ public:
 	  */
 	float angle(const vector3& other) const;
 
+	/** Compute the cosine of the angle between this and another vector (unitless)
+	  */
+	float cosTheta(const vector3& other) const;
+
 	/** Flip the vector to point in the opposite direction
 	  */
 	void invert();

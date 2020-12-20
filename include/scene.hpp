@@ -8,6 +8,8 @@
 
 #include "lightSource.hpp"
 #include "Graphics.hpp"
+#include "ZBuffer.hpp"
+#include "PixelTriplet.hpp"
 
 class object;
 class camera;
@@ -34,57 +36,6 @@ enum class drawMode {
 
 class scene{
 public:
-	/** @class pixelTriplet
-	  * @brief Simple holder for the pixel coordinates of a 2d projection of a 3d triangle
-	  * @author Cory R. Thornsberry
-	  * @date September 5, 2019
-	  */
-	class pixelTriplet{
-	public:
-		const triangle* tri; ///< Pointer to the real triangle
-
-		const vector3* offset; ///< Pointer to the offset vector of the parent object
-
-		float zDepth; ///< The distance from the camera to the center of the triangle
-
-		int pX[3]; ///< The horizontal pixel coordinates for the three vertices
-		int pY[3]; ///< The vertical pixel coordinates for the three vertices
-
-		bool draw[3]; ///< Flag for each vertex indicating that it is on the screen
-
-		/** Default constructor
-		  */
-		pixelTriplet() : 
-			tri(0x0),
-			offset(0x0),
-			zDepth(0),
-			pX(),
-			pY(),
-			draw()
-		{ 
-		}
-		
-		/** Constructor taking a pointer to a 3d triangle
-		  */
-		pixelTriplet(triangle *t) : 
-			tri(t),
-			offset(0x0),
-			zDepth(0),
-			pX(),
-			pY(),
-			draw()
-		{ 
-		}
-
-		/** Return true if at least one of the vertices is on the screen and return false otherwise
-		  */
-		bool goodToDraw() const { return (draw[0] || draw[1] || draw[2]); }
-
-		float computeZDepth(camera *cam_);
-
-		vector3 getCenterPoint() const;
-	};
-
 	/** Default constructor
 	  */
 	scene();
@@ -168,6 +119,10 @@ public:
 	  */
 	void setDrawOrigin(const bool &enable=true){ drawOrigin = enable; }
 
+	/** Enable or disable shading objects with their z-depth value
+	  */
+	void setDrawZDepth(const bool& enable = true) { drawDepthMap = enable; }
+
 	/** Set the target maximum framerate for rendering (in Hz)
 	  */
 	void setFramerateCap(const unsigned short &cap){ framerateCap = cap; }
@@ -210,6 +165,7 @@ private:
 
 	bool drawNorm; ///< Flag indicating that normal vectors will be drawn on each triangle
 	bool drawOrigin; ///< Flag indicating that the X, Y, and Z axes will be drawn at the origin
+	bool drawDepthMap; ///< "Shade" objects with their Z-depth (i.e. their depth into the screen)
 	bool isRunning; ///< Flag indicating that the window is still open and active
 
 	int screenWidthPixels; ///< Width of the viewing window (in pixels)
@@ -222,6 +178,8 @@ private:
 	int maxPixelsY;
 
 	drawMode mode; ///< Current rendering mode
+
+	ZBuffer buffer;
 
 	hclock::time_point timeOfInitialization; ///< The time that the scene was initialized
 	hclock::time_point timeOfLastUpdate; ///< The last time that update() was called by the user
@@ -238,13 +196,19 @@ private:
 
 	std::vector<pixelTriplet> polygonsToDraw;
 
-	/** 
+	/** Process all polygons of an object
+	  */
+	void processPolygons(object* obj);
+
+	/** Process an object and all its child objects
 	  */
 	void processObject(object *obj);
 
+	void convertToScreenSpace(const int& px, const int& py, float& x, float& y) const;
+
 	/**
 	  */
-	bool checkScreenSpace(const float& x, const float& y);
+	bool checkScreenSpace(const float& x, const float& y) const;
 
 	/** Convert screen-space coordinates [-1, 1] to pixel-space
 	  * @note The origin of pixel-space is the upper-left corner of the screen with the positive x-direction
@@ -255,17 +219,15 @@ private:
 	  * @param py The vertical pixel corresponding to the input y-coordinate
 	  * @return True if the point is on the screen and return false otherwise
 	  */
-	bool convertToPixelSpace(const float& x, const float& y, int &px, int &py);
+	bool convertToPixelSpace(const float& x, const float& y, int &px, int &py) const;
 
 	/** Convert screen-space coordinates [-1, 1] to pixel-space
 	  * @note The origin of pixel-space is the upper-left corner of the screen with the positive x-direction
 	  *       being toward the right side of the screen and the positive y-direction being toward the bottom
-	  * @param x Array of horizontal components of the screen-space coordinates (must contain at least 3 elements)
-	  * @param y Array of vertical components of the screen-space coordinates (must contain at least 3 elements)
 	  * @param coords The pixel coordinate holder for the three vertex projections
 	  * @return True if at least one of the vertices is on the screen and return false otherwise
 	  */
-	bool convertToPixelSpace(const float* x, const float* y, pixelTriplet &coords);
+	bool convertToPixelSpace(pixelTriplet &coords) const;
 
 	/** Draw a point to the screen
 	  * @param point The point in 3d space to draw
