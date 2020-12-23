@@ -43,9 +43,9 @@ scene::scene() :
 	initialize();
 }
 
-scene::scene(camera *cam_) : scene()
+scene::scene(camera *cam_) : 
+	scene()
 { 
-	initialize();
 	setCamera(cam_);
 }
 
@@ -64,6 +64,9 @@ void scene::initialize(){
 	maxPixelsX = (int)(screenWidthPixels-minPixelsX);
 	minPixelsY = (int)(screenHeightPixels*(1-SCREEN_YLIMIT)/2);
 	maxPixelsY = (int)(screenHeightPixels-minPixelsX);
+
+	// Add the world light to the list of light sources
+	addLight(&worldLight);
 }
 
 void scene::addObject(object* obj) { 
@@ -89,28 +92,52 @@ bool scene::update(){
 	for(auto obj = objects.cbegin(); obj != objects.cend(); obj++)
 		processObject(*obj);
 
+	// Compute vertex lighting
+	for (std::vector<pixelTriplet>::iterator triplet = polygonsToDraw.begin(); triplet != polygonsToDraw.end(); triplet++) {
+		triplet->resetLighting(); // Reset dynamic lighting to black
+		for (std::vector<lightSource*>::iterator light = lights.begin(); light != lights.end(); light++) { // Over all lights in the scene
+			if (!(*light)->isEnabled()) // Light disabled
+				continue;
+			triplet->computeLighting(*light);
+		}
+		triplet->finalize();
+	}
+
 	if (mode == drawMode::RENDER) { // Compute pixel z-depth
+		buffer.reset();
 		int x0, x1;
 		float realy;
 		const float farDistance = 10.f;
-		for (auto triplet = polygonsToDraw.cbegin(); triplet != polygonsToDraw.cend(); triplet++) {
+		for (std::vector<pixelTriplet>::iterator triplet = polygonsToDraw.begin(); triplet != polygonsToDraw.end(); triplet++) {
 			for (int scanline = 0; scanline < maxPixelsY; scanline++) {
 				realy = (-2.f * scanline) / screenHeightPixels + 1;
 				if (triplet->getHorizontalLimits(scanline, x0, x1)) { // Rasterization of triangle
 					// TODO fix object vertices being rendered multiple times
 					for (int x = x0; x <= x1; x++) { // Over every pixel in the row
 						float depth = triplet->calc.getZ((2.f * x0) / screenWidthPixels - 1, realy);
-						if (depth > farDistance)
+						if (depth < 0 || depth > farDistance)
 							continue;
-						if (!drawDepthMap)
-							window->setDrawColor(worldLight.getColor(triplet->tri));
-						else
-							window->setDrawColor(ColorRGB::heatMap(depth, farDistance));
-						//window->drawLine(x0, scanline, x1, scanline);
-						//buffer.set(x, scanline, depth, &(*triplet));
-						window->drawPixel(x, scanline);
+						buffer.set(x, scanline, depth, &(*triplet));
 					}
 				}
+			}
+		}
+		// Draw the frame buffer
+		float depth = 0;
+		const pixelTriplet* trip = 0x0;
+		for (unsigned short y = 0; y < maxPixelsY; y++) {
+			for (unsigned short x = 0; x < maxPixelsX; x++) {
+				if(!(trip = buffer.getTriangle(x, y))) // Blank pixel
+					continue;
+				depth = buffer.getDepth(x, y);
+				if (!drawDepthMap) {
+					if (!trip->p0)
+						continue;
+					window->setDrawColor(trip->p0->light/depth);
+				}
+				else
+					window->setDrawColor(ColorRGB::heatMap(depth, farDistance));
+				window->drawPixel(x, y);
 			}
 		}
 	}
@@ -118,7 +145,7 @@ bool scene::update(){
 		int x0, x1;
 		const float farDistance = 10.f;
 		for (std::vector<pixelTriplet>::const_iterator triplet = polygonsToDraw.cbegin(); triplet != polygonsToDraw.cend(); triplet++) { // Over all polygons to draw
-			for (int scanline = triplet->pY[0]; scanline <= triplet->pY[2]; scanline++) {
+			for (int scanline = triplet->p0->pY; scanline <= triplet->p2->pY; scanline++) {
 				if (triplet->getHorizontalLimits(scanline, x0, x1)) { // Rasterization of triangle
 					// Draw the triangle face
 					window->setDrawColor(Colors::WHITE);
@@ -211,11 +238,12 @@ void scene::setCamera(camera *cam_){
 }
 
 void scene::processPolygons(object* obj) {
-	const std::vector<triangle>* polys = obj->getPolygons();
-	const vector3* offset = obj->getConstPositionPointer();
-	for (auto iter = polys->cbegin(); iter != polys->cend(); iter++) {
+	// Render all vertices
+	obj->renderAllVertices(cam);
+	std::vector<triangle>* polys = obj->getPolygons();
+	for (std::vector<triangle>::iterator iter = polys->begin(); iter != polys->end(); iter++) {
 		// Do backface culling
-		if (mode != drawMode::WIREFRAME && !cam->checkCulling(*offset, (*iter))) // The triangle is facing away from the camera
+		if (mode != drawMode::WIREFRAME && !cam->checkCulling(obj->getPosition(), (*iter))) // The triangle is facing away from the camera
 			continue;
 
 		// TODO check for triangles outside of view before rendering
@@ -224,8 +252,8 @@ void scene::processPolygons(object* obj) {
 
 		// Render the triangle by converting its projection on the camera's viewing plane into pixel coordinates
 		pixelTriplet pixels(&(*iter));
-		if (!cam->render(*offset, pixels)) // All vertices are behind camera
-			continue;
+		//if (!cam->render(pixels)) // All vertices are behind camera
+		//	continue;
 
 		// Convert to pixel coordinates
 		// (0, 0) is at the top-left of the screen
@@ -235,9 +263,6 @@ void scene::processPolygons(object* obj) {
 		// Rasterize the triangle
 		if (!pixels.sortVertical(maxPixelsY))
 			continue;
-
-		// Set pointer to the offset vector of the parent object
-		pixels.offset = offset;
 
 		// Add the triangle to the drawing list
 		polygonsToDraw.push_back(pixels);
@@ -270,9 +295,9 @@ bool scene::convertToPixelSpace(const float& x, const float& y, int &px, int &py
 bool scene::convertToPixelSpace(pixelTriplet &coords) const {
 	bool retval = false;
 	for (size_t i = 0; i < 3; i++) {
-		coords.set(i, (int)(screenWidthPixels * ((coords.sX[i] + 1) / 2)), 
-		              (int)(screenHeightPixels * (1 - (coords.sY[i] + 1) / 2)));
-		retval |= checkScreenSpace(coords.sX[i], coords.sY[i]);
+		coords.set(i, (int)(screenWidthPixels * ((coords[i]->sX + 1) / 2)),
+		              (int)(screenHeightPixels * (1 - (coords[i]->sY + 1) / 2)));
+		retval |= checkScreenSpace(coords[i]->sX, coords[i]->sY);
 	}
 	return retval;
 }
@@ -363,8 +388,8 @@ void scene::drawRay(const ray &proj, const ColorRGB &color, const float &length/
 void scene::drawTriangle(const pixelTriplet &coords, const ColorRGB &color){
 	window->setDrawColor(color);
 	for(size_t i = 0; i < 2; i++)
-		window->drawLine(coords.pX[i], coords.pY[i], coords.pX[i+1], coords.pY[i+1]);
-	window->drawLine(coords.pX[2], coords.pY[2], coords.pX[0], coords.pY[0]);
+		window->drawLine(coords[i]->pX, coords[i]->pY, coords[i+1]->pX, coords[i+1]->pY);
+	window->drawLine(coords[2]->pX, coords[2]->pY, coords[0]->pX, coords[0]->pY);
 }
 
 void scene::drawFilledTriangle(const pixelTriplet &coords, const ColorRGB &color){
@@ -372,7 +397,7 @@ void scene::drawFilledTriangle(const pixelTriplet &coords, const ColorRGB &color
 	window->setDrawColor(color);
 
 	int x0, x1;
-	for(int scanline = coords.pY[0]; scanline <= coords.pY[2]; scanline++){
+	for(int scanline = coords[0]->pY; scanline <= coords[2]->pY; scanline++){
 		if (!coords.getHorizontalLimits(scanline, x0, x1))
 			continue;
 

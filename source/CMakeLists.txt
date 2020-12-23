@@ -9,7 +9,9 @@ set(CORE_SOURCES camera.cpp
                  scene.cpp
                  StlObject.cpp
                  triangle.cpp 
-                 vector3.cpp)
+                 vector3.cpp
+                 Vertex.cpp
+                 ZBuffer.cpp)
 
 #Add the sources to the library.
 add_library(CORE_OBJECTS OBJECT ${CORE_SOURCES})

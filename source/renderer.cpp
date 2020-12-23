@@ -48,12 +48,20 @@ int main(){
 	myScene.setDrawingMode(drawMode::RENDER); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 
 	// Set the color of the world light
-	//myScene.getWorldLight()->setColor(Colors::RED);
+	myScene.getWorldLight()->disable();
+
+	// Add a new dynamic light
+	coneLight myLight;
+	myLight.setPosition(vector3(0, 0, -1));
+	myLight.setColor(Colors::WHITE);
+	myLight.setBrightness(1);
+	myLight.setOpeningAngle(pi / 4);
+	myScene.addLight(&myLight);
 	
 	// Set the camera to draw surface normal vectors
 	//myScene.setDrawNormals();
 	//myScene.setDrawOrigin();
-	//myScene.setDrawZDepth();
+	myScene.setDrawZDepth();
 	
 	// Add the cube to the scene
 	myScene.addObject(&myShape);
@@ -90,9 +98,16 @@ int main(){
 			/*if (keys->poll(0xF1))      // F1  
 				dummyFunc();*/
 			
+			// Pressed keys (toggles)
 			if(keys->poll('p'))
 				cam.resetOrientation();
+			if (keys->poll('f')) // Flashlight
+				if (myLight.isEnabled())
+					myLight.disable();
+				else
+					myLight.enable();
 
+			// Held keys
 			// Movement in the horizontal plane
 			if (keys->check(KEYBOARD_W)) // Move the camera forward
 				cam.moveForward(cameraMoveRate * timeElapsed);
@@ -147,6 +162,10 @@ int main(){
 
 		// Point the camera at the cube
 		//cam.lookAt(myShape.getPosition());
+
+		// Lock point-source light to the camera
+		myLight.setPosition(cam.getPosition());
+		myLight.setDirection(cam.getDirection());
 
 		// Cap the framerate
 		timeElapsed = myScene.sync();

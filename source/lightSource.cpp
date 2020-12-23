@@ -1,32 +1,33 @@
 #include <cmath>
 
+#include "Globals.hpp"
 #include "lightSource.hpp"
-#include "plane.hpp"
+#include "triangle.hpp"
 
-float lightSource::getIntensity(const plane *surface) const {
+float lightSource::getIntensity(const pixelTriplet& surface) const {
 	// Compute the dot-product between the triangle normal and the light direction
 	// When the normal is close to anti-parallel with the light direction, the triangle 
 	//  will receive close to the maximum light level. When the angle between the two
 	//  vectors approaches 90 degrees (and above), the triangle will receive little to no light.
-	float dp = -(dir * surface->norm);
+	float dp = -dir.cosTheta(surface.tri->norm);
 	return (dp > 0 ? brightness*dp : 0);
 }
 
-float pointLight::getIntensity(const plane *surface) const {
-	float dp = -(dir * surface->norm);
+float pointLight::getIntensity(const pixelTriplet& surface) const {
+	vector3 displacement = (surface.getCenterPoint() - pos);
+	float dp = -displacement.cosTheta(surface.tri->norm);
 	if(dp < 0) 
 		return 0;
-	return dp/(surface->p - pos).length();
+	return (brightness * dp / displacement.square());
 }
 
-float coneLight::getIntensity(const plane *surface) const {
-	float dp = -(dir * surface->norm);
-	if(dp < 0) 
+float coneLight::getIntensity(const pixelTriplet& surface) const {
+	vector3 displacement = (surface.getCenterPoint() - pos);
+	float dp = -displacement.cosTheta(surface.tri->norm);
+	if (dp < 0)
 		return 0;
-	vector3 displacement = (surface->p - pos);
-	float dist = displacement.length();
-	float beta = std::acos((displacement * dir)/dist);
+	float beta = displacement.angle(dir);
 	if(beta > openingAngle/2)
 		return 0;
-	return (dp / dist);
+	return (brightness * dp / displacement.square());
 }

@@ -6,6 +6,9 @@
 #include "scene.hpp"
 #include "matrix3.hpp"
 #include "triangle.hpp"
+#include "Vertex.hpp"
+
+class camera;
 
 class object{
 public:
@@ -19,7 +22,7 @@ public:
 	
 	/** Get a pointer to the vector of polygons which comprise this 3d object
 	  */
-	const std::vector<triangle>* getPolygons() const { return &polys; }
+	std::vector<triangle>* getPolygons() { return &polys; }
 
 	/** Get the position offset of the object
 	  */
@@ -44,6 +47,10 @@ public:
 	/** Get a const pointer to the position vector
 	  */
 	const vector3* getConstPositionPointer() const { return (const vector3*)&pos; }
+
+	/** Get a const pointer to the position vector
+	  */
+	vector3* getPositionPointer() { return &pos; }
 
 	/** Get the number of unique vertices
 	  */
@@ -108,6 +115,10 @@ public:
 	  */
 	void resetPosition();
 
+	/** Project all vertices onto the view-plane
+	  */
+	void renderAllVertices(camera* cam);
+
 	/** Add a child to this object
 	  * @note An object with multiple parents may cause undefined behavior
 	  * @param child Pointer to the child object
@@ -145,8 +156,7 @@ protected:
 	float maxSize[3]; ///< Maximum extent along the x, y, and z-axes
 	float minSize[3]; ///< Minimum extent along the x, y, and z-axes
 
-	std::vector<vector3> vertices; ///< Vector of all unique vertices
-	std::vector<vector3> vertices0; ///< Vector of all unique vertices with their original coordinates
+	std::vector<Vertex> vertices; ///< Vector of all unique vertices
 	
 	std::vector<triangle> polys; ///< Vector of all unique polygons which make up this 3d object
 	
@@ -205,12 +215,12 @@ protected:
 	/** Add a unique vertex to the vector of vertices
 	  * @return Pointer to the vertex vector
 	  */
-	vector3* addVertex(const float &x, const float&y, const float&z);
+	Vertex* addVertex(const float &x, const float&y, const float&z);
 
 	/** Add a unique vertex to the vector of vertices
 	  * @return Pointer to the vertex vector
 	  */
-	vector3* addVertex(const vector3& vec);
+	Vertex* addVertex(const vector3& vec);
 
 	/** Add a unique polygon to the vector of polygons
 	  */

@@ -1,15 +1,17 @@
+#include <algorithm>
+
 #include "PixelTriplet.hpp"
+#include "lightSource.hpp"
 #include "triangle.hpp"
 
 void zDepthCalc::setup(const float* sX, const float* sY, const float* zDepth) {
 	compute(sX[0], sY[0], zDepth[0], sX[1], sY[1], zDepth[1], sX[2], sY[2], zDepth[2]);
 }
-#include <iostream>
-void zDepthCalc::setup(const pixelTriplet* pixels) {
-	setup(pixels->sX, pixels->sY, pixels->zDepth);
-	/*std::cout << "x0,y0 : " << getZ(pixels->sX[0], pixels->sY[0]) << " (" << pixels->zDepth[0] << ")" << std::endl;
-	std::cout << "x1,y1 : " << getZ(pixels->sX[1], pixels->sY[1]) << " (" << pixels->zDepth[1] << ")" << std::endl;
-	std::cout << "x2,y2 : " << getZ(pixels->sX[2], pixels->sY[2]) << " (" << pixels->zDepth[2] << ")" << std::endl;*/
+
+void zDepthCalc::setup(const pixelTriplet& pixels) {
+	compute(pixels[0]->sX, pixels[0]->sY, pixels[0]->zDepth,
+		pixels[1]->sX, pixels[1]->sY, pixels[1]->zDepth,
+		pixels[2]->sX, pixels[2]->sY, pixels[2]->zDepth);
 }
 
 float zDepthCalc::getZ(const float& x, const float& y) const {
@@ -18,84 +20,100 @@ float zDepthCalc::getZ(const float& x, const float& y) const {
 
 void zDepthCalc::compute(const float& x0, const float& y0, const float& z0,
 	const float& x1, const float& y1, const float& z1,
-	const float& x2, const float& y2, const float& z2) {
-	/*float alpha = x2 - x0 + (y0 - y2) * (x1 - x0) / (y1 - y0);
-	A = ((1 / z2) - (1 / z0) - y0 * (1 / z1 + 1 / z0) / (y1 - y0) - y2 * (1 / z1 - 1 / z0) / (y1 - y0)) / alpha;*/
+	const float& x2, const float& y2, const float& z2) 
+{
 	float alpha = (x2 - x0) - (x1 - x0) * (y2 - y0) / (y1 - y0);
 	A = ((1 / z2) - (1 / z0) + ((1 / z0) - (1 / z1)) * (y2 - y0) / (y1 - y0)) / alpha;
 	B = ((1 / z1) - (1 / z0) - A * (x1 - x0)) / (y1 - y0);
 	C = (1 / z0) - A * x0 - B * y0;
 }
 
-vector3 pixelTriplet::getVertex0() const {
-	if(offset)
-		return (*tri->p0 + *offset);
-	return *tri->p0;
+pixelTriplet::pixelTriplet() :
+	tri(0x0),
+	p0(0x0),
+	p1(0x0),
+	p2(0x0),
+	calc(),
+	draw()
+{
 }
 
-vector3 pixelTriplet::getVertex1() const {
-	if (offset)
-		return (*tri->p1 + *offset);
-	return *tri->p1;
+/** Constructor taking a pointer to a 3d triangle
+  */
+pixelTriplet::pixelTriplet(triangle* t) :
+	tri(t),
+	p0(t->p0),
+	p1(t->p1),
+	p2(t->p2),
+	calc(),
+	draw()
+{
 }
 
-vector3 pixelTriplet::getVertex2() const {
-	if (offset)
-		return (*tri->p2 + *offset);
-	return *tri->p2;
+Vertex* pixelTriplet::operator [] (const size_t& index) const {
+	switch (index) {
+	case 0:
+		return p0;
+	case 1:
+		return p1;
+	case 2:
+		return p2;
+	default:
+		break;
+	}
+	return 0x0;
 }
 
 vector3 pixelTriplet::getCenterPoint() const {
-	if (offset)
-		return (tri->p + *offset);
-	return tri->p;
+	return tri->getCenterPoint();
 }
 
 void pixelTriplet::set(const size_t& index, const int& x, const int& y) {
-	pX[index] = x;
-	pY[index] = y;
+	(*this)[index]->pX = x;
+	(*this)[index]->pY = y;
 }
 
 bool pixelTriplet::sortVertical(const int& yMax) {
 	// Sort points by ascending Y
-	if (pY[1] < pY[0]) {
-		std::swap(pY[0], pY[1]);
-		std::swap(pX[0], pX[1]);
+	if (p1->pY < p0->pY) {
+		std::swap(p0, p1);
 	}
-	if (pY[2] < pY[1]) {
-		std::swap(pY[1], pY[2]);
-		std::swap(pX[1], pX[2]);
-		if (pY[1] < pY[0]) {
-			std::swap(pY[1], pY[0]);
-			std::swap(pX[1], pX[0]);
+	if (p2->pY < p1->pY) {
+		std::swap(p1, p2);
+		if (p1->pY < p0->pY) {
+			std::swap(p1, p0);
 		}
 	}
 
+	// Triangle is a line?
+	if (p0->pY == p2->pY)
+		return false;
+
 	// Check if the triangle is on the screen
-	if (pY[2] < 0 || pY[0] >= yMax) // Entire triangle is off the top or bottom of the screen
+	if (p2->pY < 0 || p0->pY >= yMax) // Entire triangle is off the top or bottom of the screen
 		return false;
 
 	return true;
 }
 
 bool pixelTriplet::getHorizontalLimits(const int& scanline, int& xA, int& xB) const {
-	if (scanline < pY[0] || scanline > pY[2]) // Scanline does not pass through triangle
+	if (scanline < p0->pY || scanline > p2->pY) // Scanline does not pass through triangle
 		return false;
 
-	if (pY[0] == pY[1]) { // y10 is a horizontal line
-		xA = (scanline - pY[1]) * ((pX[2] - pX[1])) / (pY[2] - pY[1]) + pX[1];
-		xB = (scanline - pY[2]) * ((pX[0] - pX[2])) / (pY[0] - pY[2]) + pX[2];
+	if (p0->pY == p1->pY) { // y10 is a horizontal line
+		xA = (scanline - p1->pY) * ((p2->pX - p1->pX)) / (p2->pY - p1->pY) + p1->pX;
+		xB = (scanline - p2->pY) * ((p0->pX - p2->pX)) / (p0->pY - p2->pY) + p2->pX;
 	}
-	else if (pY[0] == pY[2]) { // y20 is a horizontal line
-		xA = (scanline - pY[1]) * ((pX[2] - pX[1])) / (pY[2] - pY[1]) + pX[1];
-		xB = (scanline - pY[0]) * ((pX[1] - pX[0])) / (pY[1] - pY[0]) + pX[0];
+	else if (p0->pY == p2->pY) { // y20 is a horizontal line
+		xA = (scanline - p1->pY) * ((p2->pX - p1->pX)) / (p2->pY - p1->pY) + p1->pX;
+		xB = (scanline - p0->pY) * ((p1->pX - p0->pX)) / (p1->pY - p0->pY) + p0->pX;
 	}
 	else { // No lines are horizontal
-		if (scanline <= pY[1])
-			xA = (scanline - pY[0]) * ((pX[1] - pX[0])) / (pY[1] - pY[0]) + pX[0];
+		if (scanline <= p1->pY)
+			xA = (scanline - p0->pY) * ((p1->pX - p0->pX)) / (p1->pY - p0->pY) + p0->pX;
 		else
-			xA = (scanline - pY[1]) * ((pX[2] - pX[1])) / (pY[2] - pY[1]) + pX[1];
-		xB = (scanline - pY[2]) * ((pX[0] - pX[2])) / (pY[0] - pY[2]) + pX[2];
+			xA = (scanline - p1->pY) * ((p2->pX - p1->pX)) / (p2->pY - p1->pY) + p1->pX;
+		xB = (scanline - p2->pY) * ((p0->pX - p2->pX)) / (p0->pY - p2->pY) + p2->pX;
 	}
 
 	if (xB < xA) // Sort xA and xB
@@ -115,8 +133,20 @@ bool pixelTriplet::getHorizontalLimits(const int& scanline, int& xA, int& xB) co
 	return true;
 }
 
+void pixelTriplet::computeLighting(lightSource* light) {
+	p0->light += light->getColor(*this);
+	p1->light += light->getColor(*this);
+	p2->light += light->getColor(*this);
+}
+
+void pixelTriplet::resetLighting() {
+	p0->light.reset();
+	p1->light.reset();
+	p2->light.reset();
+}
+
 void pixelTriplet::finalize() {
-	calc.setup(this);
+	calc.setup(*this);
 }
 
 bool  pixelTriplet::intersects(const ray& ray, float& t) const {

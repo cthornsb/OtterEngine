@@ -77,6 +77,10 @@ public:
 	  */
 	vector3 getPosition() const { return pos; }
 
+	/** Get the current direction the camera is facing
+	  */
+	vector3 getDirection() const { return uZ; }
+
 	/** Get a ray which originates at the focal point and travels through the viewplane
 	  * @param x Horizontal coordinate in screen space (-1, 1)
 	  * @param y Vertical coordinate in screen space (-1, 1)
@@ -176,11 +180,16 @@ public:
 	bool rayTrace(const ray& cast, const pixelTriplet& pixels, vector3& P) const;
 
 	/** Render a single triangle by computing its projection onto the viewing plane
-	  * @param offset The offset of the object from the world origin
 	  * @param pixels Storage object for triangle rendering data
 	  * @return True if any of the three vertices are visible and return false otherwise
 	  */
-	bool render(const vector3 &offset, pixelTriplet& pixels);
+	bool render(pixelTriplet& pixels);
+
+	/** Render a single vertex by computing its projection onto the viewing plane
+	  * @param vertex Storage object for vertex rendering data
+	  * @return True if the vertex is visible and return false otherwise
+	  */
+	bool render(Vertex& vertex);
 
 	/** Check whether or not a triangle is facing towards the camera
 	  * @param offset The offset of the object from the world origin

@@ -77,6 +77,12 @@ public:
 	  */
 	void dump() const ;
 	
+	void reset() {
+		r = 0;
+		g = 0;
+		b = 0;
+	}
+
 	/** Convert a floating point value in the range [0, 1] to an unsigned char between 0 and 255
 	  */
 	static unsigned char toUChar(const float &val){ return ((unsigned char)(val*255)); }
@@ -85,16 +91,7 @@ public:
 	  */
 	static float toFloat(const unsigned char &val){ return (float(val)/255); }
 
-	static ColorRGB heatMap(const float& x, const float& xmax, const float& xmin=0) {
-		float rgb;
-		if (x < xmin)
-			rgb = 0.f;
-		else if (x > xmax)
-			rgb = 1.f;
-		else
-			rgb = 1.0f - x / (xmax - xmin);
-		return ColorRGB(rgb, rgb, rgb);
-	}
+	static ColorRGB heatMap(const float& x, const float& xmax, const float& xmin = 0);
 };
 
 namespace Colors{

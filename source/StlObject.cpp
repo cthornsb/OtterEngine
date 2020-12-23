@@ -137,15 +137,15 @@ unsigned int StlObject::readBinary(std::ifstream* f) {
 	center.z = getSizeZ() / 2 + minSize[2];
 
 	// Offset all vertices to the center the model
-	std::vector<vector3>::iterator iter1, iter2;
-	for (iter1 = vertices0.begin(), iter2 = vertices.begin(); iter1 != vertices0.end() && iter2 != vertices.end(); iter1++, iter2++) {
-		(*iter1) -= center;
-		(*iter2) -= center;
+	std::vector<Vertex>::iterator iter;
+	for (iter = vertices.begin(); iter != vertices.end(); iter++) {
+		iter->pos -= center;
+		iter->pos -= center;
 	}
 
 	if (!invalidRead) {
 		std::cout << " StlObject: [debug] Read " << nTriangles << " triangles from input .stl files" << std::endl;
-		std::cout << " StlObject: [debug]  Generated " << vertices0.size() << " unique vertices and " << polys.size() << " triangles" << std::endl;
+		std::cout << " StlObject: [debug]  Generated " << vertices.size() << " unique vertices and " << polys.size() << " triangles" << std::endl;
 		std::cout << " StlObject: [debug]  Model has size (x=" << getSizeX() << ", y=" << getSizeY() << ", z=" << getSizeZ() << ")" << std::endl;
 		std::cout << " StlObject: [debug]  x=(" << minSize[0] << ", " << maxSize[0] << ") y=(" << minSize[1] << ", " << maxSize[1] << ") z=(" << minSize[2] << ", " << maxSize[2] << ")" << std::endl;
 	}
@@ -157,7 +157,7 @@ unsigned int StlObject::readBinary(std::ifstream* f) {
 }
 
 void StlObject::readStlBlock(float* array) {
-	vector3* vertPtrs[3] = { 0, 0, 0 };
+	Vertex* vertPtrs[3] = { 0, 0, 0 };
 	vector3 normal(array[0], array[1], array[2]);
 	for (int i = 1; i < 4; i++) {
 		vector3 vertex(array[3 * i], array[3 * i + 1], array[3 * i + 2]);

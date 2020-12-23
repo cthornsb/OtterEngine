@@ -6,14 +6,13 @@
 #include <chrono>
 #include <memory>
 
-#include "lightSource.hpp"
 #include "Graphics.hpp"
 #include "ZBuffer.hpp"
+#include "lightSource.hpp"
 #include "PixelTriplet.hpp"
 
 class object;
 class camera;
-class lightSource;
 class triangle;
 
 // Make a typedef for clarity when working with chrono.
@@ -137,7 +136,7 @@ public:
 	
 	/** Add a light to the list of lights to be rendered
 	  */
-	void addLight(const lightSource &light){ lights.push_back(light); }
+	void addLight(lightSource* light){ lights.push_back(light); }
 
 	/** Clear the screen by filling it with a color (black by default)
 	  */
@@ -192,7 +191,7 @@ private:
 	
 	std::vector<object*> objects;
 	
-	std::vector<lightSource> lights;
+	std::vector<lightSource*> lights;
 
 	std::vector<pixelTriplet> polygonsToDraw;
 

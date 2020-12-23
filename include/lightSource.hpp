@@ -3,12 +3,22 @@
 
 #include "colors.hpp"
 #include "ray.hpp"
-
-class plane;
+#include "PixelTriplet.hpp"
 
 class lightSource : public ray {
 public:
-	lightSource() : ray(vector3(0, 0, 0), vector3(0, 0, 1)), brightness(1), color(Colors::WHITE) { }
+	lightSource() : 
+		ray(vector3(0, 0, 0), vector3(0, 0, 1)), 
+		enabled(true),
+		maxDistance(-1),
+		brightness(1), 
+		color(Colors::WHITE) 
+	{ 
+	}
+
+	void enable() { enabled = true; }
+
+	void disable() { enabled = false; }
 
 	/** Get the brightness of the light source
 	  */
@@ -21,7 +31,7 @@ public:
 	/** Get the scaled color of the light source based on the angle between the direction of the
 	  * light source and the normal to a surface
 	  */
-	ColorRGB getColor(const plane *surface) const { return (color * getIntensity(surface)); }
+	ColorRGB getColor(const pixelTriplet& surface) const { return (color * getIntensity(surface)); }
 
 	/** Set the brightness of the light source
 	  */
@@ -31,7 +41,15 @@ public:
 	  */
 	void setColor(const ColorRGB &color_){ color = color_; }
 
+	/** Check that the light source is enabled
+	  */
+	bool isEnabled() const { return enabled; }
+
 protected:
+	bool enabled; ///< Light enable flag
+
+	float maxDistance; ///< Maximum effective distance of light source
+
 	float brightness; ///< The brightness of the light source
 
 	ColorRGB color; ///< The color of the light source
@@ -39,7 +57,7 @@ protected:
 	/** Get the intensity scaling factor based on the angle between the direction of the
 	  * light source and the normal to a surface
 	  */
-	virtual float getIntensity(const plane *surface) const ;
+	virtual float getIntensity(const pixelTriplet& surface) const ;
 };
 
 class directionalLight : public lightSource {
@@ -60,7 +78,7 @@ protected:
 	  * light source and the normal to a surface as well as the distance from the point
 	  * to the light position
 	  */
-	float getIntensity(const plane *surface) const ;
+	float getIntensity(const pixelTriplet& surface) const ;
 };
 
 class coneLight : public lightSource {
@@ -69,6 +87,8 @@ public:
 	  */
 	coneLight() : lightSource(), openingAngle(0.5236f) { }
 	
+	void setOpeningAngle(const float& angle) { openingAngle = angle; }
+
 protected:
 	float openingAngle; ///< The opening angle of the light cone (in radians)
 
@@ -78,7 +98,7 @@ protected:
 	  * is checked against the opening angle of the light source, with any points lying outside
 	  * the cone being given an intensity of zero
 	  */
-	float getIntensity(const plane *surface) const ;
+	float getIntensity(const pixelTriplet& surface) const ;
 };
 
 #endif

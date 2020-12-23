@@ -81,18 +81,16 @@ void Primitives::Cylinder::userBuild() {
 	approximate(dZ);
 		
 	// Copy the vertices and offset to -dZ
-	std::vector<vector3> copy = vertices0;
+	std::vector<Vertex> copy = vertices;
 	for (auto vert = copy.begin(); vert != copy.end(); vert++)
-		vert->z = -dZ;
+		vert->pos.z = -dZ;
 
 	// Must reverse the vertex order for correct winding 
 	// because the circle faces the camera by default.
 	std::reverse(vertices.begin() + 1, vertices.end());
-	std::reverse(vertices0.begin() + 1, vertices0.end());
 
 	// Copy the new vertices to the vertex vectors
 	vertices.insert(vertices.begin(), copy.begin(), copy.end());
-	vertices0.insert(vertices0.begin(), copy.begin(), copy.end());
 
 	// Construct negative endcap
 	//approximate(-dZ);
@@ -130,8 +128,7 @@ void Primitives::Cone::userBuild() {
 	approximate(-dZ);
 
 	// Add the peak vertex
-	vertices.push_back(vector3(0, 0, dZ));
-	vertices0.push_back(vector3(0, 0, dZ));
+	vertices.push_back(Vertex(vector3(0, 0, dZ), &pos));
 
 	// Fill the base
 	for (int i = 1; i < nVertices; i++) { // Add n-1 triangles

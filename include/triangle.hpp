@@ -1,14 +1,16 @@
 #ifndef TRIANGLE_HPP
 #define TRIANGLE_HPP
 
-#include "matrix3.hpp"
+#include "Vertex.hpp"
 #include "plane.hpp"
 
 class triangle : public plane {
 public:
-	const vector3* p0; ///< Pointer to one of the vertices
-	const vector3* p1; ///< Pointer to one of the vertices
-	const vector3* p2; ///< Pointer to one of the vertices
+	Vertex* p0; ///< Pointer to one of the vertices
+	Vertex* p1; ///< Pointer to one of the vertices
+	Vertex* p2; ///< Pointer to one of the vertices
+
+	const vector3* offset; ///< Object position offset 
 
 	/** Default constructor
 	  */
@@ -16,49 +18,34 @@ public:
 		plane(), 
 		p0(0x0), 
 		p1(0x0),
-		p2(0x0) 
+		p2(0x0),
+		offset(0x0)
 	{ 
 	}
 	
-	/** Vertex constructor
-	  */
-	triangle(const vector3& p0_, const vector3& p1_, const vector3& p2_) : 
-		plane(p0_, p1_, p2_), 
-		p0(&p0_),
-		p1(&p1_),
-		p2(&p2_) 
-	{ 
-	}
-
 	/** Pointer constructor
 	  */
-	triangle(const vector3* p0_, const vector3* p1_, const vector3* p2_) :
-		plane(*p0_, *p1_, *p2_),
+	triangle(Vertex* p0_, Vertex* p1_, Vertex* p2_) :
+		plane(p0_->pos, p1_->pos, p2_->pos),
 		p0(p0_),
 		p1(p1_),
-		p2(p2_)
-	{
-	}
-
-	/** Position / normal constructor
-      */
-	triangle(const vector3& p0_, const vector3& p1_, const vector3& p2_, const vector3& norm_) :
-		plane((p0_ + p1_ + p2_)* (1 / 3.0f), norm_),
-		p0(&p0_),
-		p1(&p1_),
-		p2(&p2_)
+		p2(p2_),
+		offset(&zeroVector)
 	{
 	}
 
 	/** Position / normal pointer constructor
 	  */
-	triangle(const vector3* p0_, const vector3* p1_, const vector3* p2_, const vector3* norm_) :
-		plane((*p0_ + *p1_ + *p2_) * (1 / 3.0f), *norm_),
+	triangle(Vertex* p0_, Vertex* p1_, Vertex* p2_, const vector3* offset_) :
+		plane(p0_->pos, p1_->pos, p2_->pos),
 		p0(p0_),
 		p1(p1_),
-		p2(p2_)
+		p2(p2_),
+		offset(offset_)
 	{
 	}
+
+	vector3 getCenterPoint() const;
 
 	/** Update the infinite plane which bounds this triangle. This method sets the "position" of the plane to the
 	  * center-of-mass of the three triangle vertices and computes the normal to the surface of the triangle

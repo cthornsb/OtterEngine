@@ -4,33 +4,33 @@
 #include <vector>
 #include <float.h>
 
-#include "triangle.hpp"
+class pixelTriplet;
+
+class BufferBit {
+public:
+	BufferBit() :
+		zdepth(FLT_MAX),
+		tri(0x0)
+	{
+	}
+
+	bool set(const float& depth, const pixelTriplet* t);
+
+	float zdepth;
+
+	const pixelTriplet* tri;
+};
+
+typedef std::vector<std::vector<BufferBit> > BufferVector;
 
 class ZBuffer {
 public:
-	class BufferBit {
-	public:
-		BufferBit() :
-			zdepth(FLT_MAX),
-			tri(0x0)
-		{
-		}
-
-		bool set(const float& depth, const triangle* t) {
-			if (depth < zdepth) {
-				zdepth = depth;
-				tri = t;
-				return true;
-			}
-			return false;
-		}
-
-		float zdepth;
-
-		const triangle* tri;
-	};
-
-	ZBuffer() { }
+	ZBuffer() :
+		W(0),
+		H(0),
+		pixels()
+	{ 
+	}
 
 	ZBuffer(const unsigned short& W_, const unsigned short& H_) :
 		W(W_),
@@ -39,13 +39,13 @@ public:
 	{
 	}
 
-	bool set(const unsigned short& x, const unsigned short& y, const float& depth, const triangle* tri) {
-		return pixels[y][x].set(depth, tri);
-	}
+	bool set(const unsigned short& x, const unsigned short& y, const float& depth, const pixelTriplet* tri);
 
-	float getDepth(const unsigned short& x, const unsigned short& y) const { return pixels[y][x].zdepth; }
+	void reset();
 
-	const triangle* getTriangle(const unsigned short& x, const unsigned short& y) const { return pixels[y][x].tri; }
+	float getDepth(const unsigned short& x, const unsigned short& y) const;
+
+	const pixelTriplet* getTriangle(const unsigned short& x, const unsigned short& y) const;
 
 private:
 	unsigned short W;

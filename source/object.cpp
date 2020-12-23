@@ -2,6 +2,7 @@
 #include <float.h>
 
 #include "object.hpp"
+#include "camera.hpp"
 
 object::object() :
 	built(false),
@@ -14,7 +15,6 @@ object::object() :
 	maxSize(),
 	minSize(),
 	vertices(),
-	vertices0(),
 	polys(),
 	children(),
 	parentOffset(),
@@ -69,15 +69,21 @@ void object::setPosition(const vector3 &position){
 }
 
 void object::resetVertices(){
-	vertices = vertices0;
-	for (auto ch = children.begin(); ch != children.end(); ch++) {
+	for (std::vector<Vertex>::iterator vert = vertices.begin(); vert != vertices.end(); vert++)
+		vert->reset();
+	for (auto ch = children.begin(); ch != children.end(); ch++)
 		(*ch)->resetVertices();
-	}
 }
 
 void object::resetPosition(){
 	pos = pos0;
 	updatePositionOfChildren();
+}
+
+void object::renderAllVertices(camera* cam) {
+	for (std::vector<Vertex>::iterator vert = vertices.begin(); vert != vertices.end(); vert++) {
+		cam->render(*vert);
+	}
 }
 
 void object::addChild(object* child, const vector3& offset/*=zeroVector*/) {
@@ -158,7 +164,6 @@ void object::updateRotationForParent(const matrix3* rotation) {
 void object::reserve(const size_t& nVert, const size_t& nPoly/*=0*/) {
 	reservedVertices = nVert;
 	vertices.reserve(nVert);
-	vertices0.reserve(nVert);
 	if (nPoly == 0) {
 		reservedPolygons = nVert;
 		polys.reserve(nVert);
@@ -172,24 +177,23 @@ void object::reserve(const size_t& nVert, const size_t& nPoly/*=0*/) {
 
 void object::transform(const matrix3* mat){
 	// Transform all object vertices
-	for(std::vector<vector3>::iterator vert = vertices.begin(); vert != vertices.end(); vert++)
-		mat->transform((*vert));
+	for(std::vector<Vertex>::iterator vert = vertices.begin(); vert != vertices.end(); vert++)
+		vert->transform(mat);
 	
 	// Update the normals of all polygons
 	for(std::vector<triangle>::iterator tri = polys.begin(); tri != polys.end(); tri++)
 		tri->update();
 }
 
-vector3* object::addVertex(const float&x, const float&y, const float&z){
+Vertex* object::addVertex(const float&x, const float&y, const float&z){
 	return addVertex(vector3(x, y, z));
 }
 
-vector3* object::addVertex(const vector3& vec) {
+Vertex* object::addVertex(const vector3& vec) {
 	if (vertices.size() > reservedVertices){
 		std::cout << " Object: [warning] Not enough memory reserved for vertex vector, this may result in undefined behavior!" << std::endl;
 	}
-	vertices0.push_back(vec);
-	vertices.push_back(vec);
+	vertices.push_back(Vertex(vec, &pos));
 	for (int i = 0; i < 3; i++) { // Update the size of the bounding box
 		if (vec[i] > maxSize[i])
 			maxSize[i] = vec[i];
@@ -203,7 +207,7 @@ void object::addTriangle(const unsigned int& i0, const unsigned int& i1, const u
 	if (polys.size() > reservedPolygons) {
 		std::cout << " Object: [warning] Not enough memory reserved for polygon vector, this may result in undefined behavior!" << std::endl;
 	}
-	polys.push_back(triangle(vertices[i0], vertices[i1], vertices[i2]));
+	polys.push_back(triangle(&vertices[i0], &vertices[i1], &vertices[i2], &pos));
 }
 
 void object::addQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3) {
@@ -213,11 +217,11 @@ void object::addQuad(const unsigned int& i0, const unsigned int& i1, const unsig
 }
 
 void object::addStaticTriangle(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2) {
-	polys.push_back(triangle(vertices0[i0], vertices0[i1], vertices0[i2]));
+	polys.push_back(triangle(&vertices[i0], &vertices[i1], &vertices[i2], &pos));
 }
 
 void object::addStaticQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3) {
 	// Eventually this will use a quad face, but for now we get two triangles
-	polys.push_back(triangle(vertices0[i0], vertices0[i1], vertices0[i2]));
-	polys.push_back(triangle(vertices0[i2], vertices0[i3], vertices0[i0]));
+	polys.push_back(triangle(&vertices[i0], &vertices[i1], &vertices[i2], &pos));
+	polys.push_back(triangle(&vertices[i2], &vertices[i3], &vertices[i0], &pos));
 }

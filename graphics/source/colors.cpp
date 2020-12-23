@@ -51,16 +51,16 @@
 #endif
 
 ColorRGB ColorRGB::operator + (const ColorRGB &rhs) const {
-	float rprime = (r + rhs.r)/255.0f;
-	float gprime = (g + rhs.g)/255.0f;
-	float bprime = (b + rhs.b)/255.0f;
+	float rprime = (r + rhs.r);// / 255.0f;
+	float gprime = (g + rhs.g);// / 255.0f;
+	float bprime = (b + rhs.b);// / 255.0f;
 	return ColorRGB((rprime <= 1 ? rprime : 1), (gprime <= 1 ? gprime : 1), (bprime <= 1 ? bprime : 1));
 }
 
 ColorRGB ColorRGB::operator - (const ColorRGB &rhs) const {
-	float rprime = (r - rhs.r)/255.0f;
-	float gprime = (g - rhs.g)/255.0f;
-	float bprime = (b - rhs.b)/255.0f;
+	float rprime = (r - rhs.r);// / 255.0f;
+	float gprime = (g - rhs.g);// / 255.0f;
+	float bprime = (b - rhs.b);// / 255.0f;
 	return ColorRGB((rprime > 0 ? rprime : 0), (gprime > 1 ? gprime : 0), (bprime > 1 ? bprime : 0));
 }
 
@@ -100,4 +100,15 @@ ColorRGB& ColorRGB::operator /= (const float &rhs){
 
 void ColorRGB::dump() const {
 	std::cout << "r=" << (int)r << ", g=" << (int)g << ", b=" << (int)b << std::endl;
+}
+
+ColorRGB ColorRGB::heatMap(const float& x, const float& xmax, const float& xmin/*=0*/) {
+	float rgb;
+	if (x < xmin)
+		rgb = 0.f;
+	else if (x > xmax)
+		rgb = 1.f;
+	else
+		rgb = 1.0f - x / (xmax - xmin);
+	return ColorRGB(rgb, rgb, rgb);
 }

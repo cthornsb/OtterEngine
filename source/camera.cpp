@@ -173,13 +173,16 @@ void camera::resetOrientation(){
 // Rendering methods
 /////////////////////////////////////////////////
 
-bool camera::render(const vector3 &offset, pixelTriplet& pixels){
+bool camera::render(pixelTriplet& pixels){
 	bool retval = true;
-	retval &= projectPoint(pixels.getVertex0(), pixels.sX[0], pixels.sY[0], &pixels.zDepth[0]);
-	retval &= projectPoint(pixels.getVertex1(), pixels.sX[1], pixels.sY[1], &pixels.zDepth[1]);
-	retval &= projectPoint(pixels.getVertex2(), pixels.sX[2], pixels.sY[2], &pixels.zDepth[2]);
-	pixels.finalize();
+	retval &= projectPoint(pixels[0]->getPosition(), pixels[0]->sX, pixels[0]->sY, &pixels[0]->zDepth);
+	retval &= projectPoint(pixels[1]->getPosition(), pixels[1]->sX, pixels[1]->sY, &pixels[1]->zDepth);
+	retval &= projectPoint(pixels[2]->getPosition(), pixels[2]->sX, pixels[2]->sY, &pixels[2]->zDepth);
 	return retval;
+}
+
+bool camera::render(Vertex& vertex) {
+	return projectPoint(vertex.getPosition(), vertex.sX, vertex.sY, &vertex.zDepth);
 }
 
 bool camera::checkCulling(const vector3 &offset, const triangle &tri){
