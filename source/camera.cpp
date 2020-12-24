@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-#include <cmath>
+//#include <cmath>
 
 #include "camera.hpp"
 #include "object.hpp"
@@ -8,32 +8,13 @@
 
 const vector3 upVector(0, 1, 0);
 
-float WrappedValue::wrap(const float& d) const {
-	float retval = value + d;
-	if (!lock) {
-		retval = fmod((value + d) - minVal, delta);
-		if (retval < 0) {
-			if (!lock)
-				retval += delta;
-			else
-				retval = 0;
-		}
-		return retval + minVal;
-	}
-	else if (retval < minVal)
-		return minVal;
-	else if (retval > maxVal)
-		return maxVal;
-	return retval;
-}
-
 camera::camera() :
+	plane(),
 	fov(pi/2), // radians
 	L(50E-3f), // m
 	A(640.0f/480), 
 	W(0),
 	H(0),
-	vPlane(),
 	pos(),
 	uX(1,0,0),
 	uY(0,1,0),
@@ -123,10 +104,7 @@ void camera::moveTo(const float&x, const float&y, const float&z){
 void camera::rotate(const float& pitch, const float& yaw, const float& roll/*=0*/){
 	// Reset the camera to its original orientation
 	resetUnitVectors();
-	pitchAngle += pitch;
-	yawAngle += yaw;
-	rollAngle += roll;
-	setRotation(pitchAngle.get(), rollAngle.get(), yawAngle.get());
+	setRotation((pitchAngle += pitch), (rollAngle += roll), (yawAngle += yaw));
 }
 
 void camera::setRotation(const float& theta, const float& phi, const float& psi){
@@ -137,9 +115,9 @@ void camera::setRotation(const float& theta, const float& phi, const float& psi)
 	matrix3 rot(theta, phi, psi);
 
 	// Update the rotation of the three unit vectors
-	rot.transform(uX);
-	rot.transform(uY);
-	rot.transform(uZ);
+	rot.transformInPlace(uX);
+	rot.transformInPlace(uY);
+	rot.transformInPlace(uZ);
 
 	// Update the viewing plane
 	updateViewingPlane();
@@ -152,7 +130,7 @@ void camera::lookAt(const vector3 &position){
 	// Compute the Y-axis unit vector  	
 	matrix3 pitch = matrix3::getPitchMatrix(std::acos(uZ.y) - pi/2);
 	uY = upVector;
-	pitch.transform(uY);
+	pitch.transformInPlace(uY);
 	
 	// Get the X-axis unit vector by computing the cross product of the Y and Z vectors
 	uX = uY.cross(uZ);
@@ -187,7 +165,7 @@ bool camera::render(Vertex& vertex) {
 
 bool camera::checkCulling(const vector3 &offset, const triangle &tri){
 	// Check if the triangle is facing towards the camera
-	return (((tri.p+offset) - pos) * tri.norm <= 0);
+	return ((tri.getCenterPoint() - pos) * tri.getNormal() <= 0);
 }
 
 bool camera::projectPoint(const vector3 &vertex, float& sX, float& sY, float* zdepth/*=0x0*/){
@@ -201,9 +179,9 @@ bool camera::projectPoint(const vector3 &vertex, float& sX, float& sY, float* zd
 	}
 
 	float t;
-	if(vPlane.intersects(proj, t)){
+	if(intersects(proj, t)){
 		// Get the point at which the ray intersect the viewing plane
-		vector3 pp = proj.extend(t) - vPlane.p;
+		vector3 pp = proj.extend(t) - p;
 
 		// Convert the viewing plane point to screen space (-1, 1)
 		convertToScreenSpace(pp, sX, sY);
@@ -247,8 +225,8 @@ void camera::computeViewingPlane(){
 }
 
 void camera::updateViewingPlane(){
-	vPlane.p = pos + uZ*L;
-	vPlane.norm = uZ;
+	p = pos + uZ*L;
+	norm = uZ;
 }
 
 void camera::resetUnitVectors() {

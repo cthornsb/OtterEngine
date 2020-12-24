@@ -5,49 +5,7 @@
 #include "plane.hpp"
 #include "triangle.hpp"
 #include "PixelTriplet.hpp"
-
-class WrappedValue {
-public:
-	WrappedValue() :
-		value(0),
-		minVal(0),
-		maxVal(0),
-		delta(0),
-		lock(false)
-	{
-	}
-
-	WrappedValue(const float& initial, const float& min_, const float& max_, bool lockValue = false) :
-		value(initial),
-		minVal(min_),
-		maxVal(max_),
-		delta(max_-min_),
-		lock(lockValue)
-	{
-	}
-
-	float operator = (const float& rhs) { return (value = rhs); }
-
-	float operator += (const float& rhs) { return (value = wrap(rhs)); }
-
-	float operator -= (const float& rhs) { return (value = wrap(-rhs)); }
-
-	float operator + (const float& rhs) const { return wrap(rhs); }
-
-	float operator - (const float& rhs) const { return wrap(-rhs); }
-
-	float get() const { return value; }
-
-private:
-	float value;
-	float minVal;
-	float maxVal;
-	float delta;
-
-	bool lock;
-
-	float wrap(const float& delta) const;
-};
+#include "WrappedValue.hpp"
 
 /** @class camera
   * @brief Handles all projections of 3d geometry onto the screen
@@ -55,7 +13,7 @@ private:
   * @date September 4, 2019
   */
 
-class camera {
+class camera : public plane {
 public:
 	/** Default constructor
 	  */
@@ -85,7 +43,7 @@ public:
 	  * @param x Horizontal coordinate in screen space (-1, 1)
 	  * @param y Vertical coordinate in screen space (-1, 1)
 	  */
-	ray getRay(const float& x, const float& y) const { return ray(pos, (vPlane.p + uX * x + uY * y - pos).normalize()); }
+	ray getRay(const float& x, const float& y) const { return ray(pos, (p + uX * x + uY * y - pos).normalize()); }
 
 	/** Set the field-of-view of the camera (in degrees)
 	  */
@@ -222,8 +180,6 @@ private:
 	float A; ///< Aspect ratio
 	float W; ///< Viewing plane width (in m)
 	float H; ///< Viewing plane height (in m)
-
-	plane vPlane; ///< The viewing plane of the camera
 	
 	vector3 pos; ///< The focal point of the camera (its position)
 

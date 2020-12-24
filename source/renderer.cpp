@@ -54,14 +54,14 @@ int main(){
 	coneLight myLight;
 	myLight.setPosition(vector3(0, 0, -1));
 	myLight.setColor(Colors::WHITE);
-	myLight.setBrightness(1);
+	myLight.setBrightness(10);
 	myLight.setOpeningAngle(pi / 4);
 	myScene.addLight(&myLight);
 	
 	// Set the camera to draw surface normal vectors
 	//myScene.setDrawNormals();
 	//myScene.setDrawOrigin();
-	myScene.setDrawZDepth();
+	//myScene.setDrawZDepth();
 	
 	// Add the cube to the scene
 	myScene.addObject(&myShape);
@@ -163,7 +163,7 @@ int main(){
 		// Point the camera at the cube
 		//cam.lookAt(myShape.getPosition());
 
-		// Lock point-source light to the camera
+		// Lock dynamic light source to the camera
 		myLight.setPosition(cam.getPosition());
 		myLight.setDirection(cam.getDirection());
 

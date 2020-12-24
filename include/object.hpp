@@ -7,6 +7,7 @@
 #include "matrix3.hpp"
 #include "triangle.hpp"
 #include "Vertex.hpp"
+#include "WrappedValue.hpp"
 
 class camera;
 
@@ -51,6 +52,14 @@ public:
 	/** Get a const pointer to the position vector
 	  */
 	vector3* getPositionPointer() { return &pos; }
+
+	/** Get a const pointer to the rotation matrix
+	  */
+	const matrix3* getConstRotationMatrix() const { return (const matrix3*)&rot; }
+
+	/** Get a pointer to the rotation matrix
+	  */
+	matrix3* getRotationMatrix() { return &rot; }
 
 	/** Get the number of unique vertices
 	  */
@@ -107,10 +116,6 @@ public:
 	  */
 	void setPosition(const vector3 &position);
 
-	/** Reset the coordinates of all vertices to their original values
-	  */
-	void resetVertices();
-	
 	/** Reset the offset position of the object to its original location
 	  */
 	void resetPosition();
@@ -153,11 +158,17 @@ protected:
 
 	vector3 center; ///< Center of the box which bounds the model
 
+	WrappedValue pitchAngle; ///< Angle of camera tilt up or down (i.e. about the horizontal axis)
+	WrappedValue rollAngle; ///< Angle of camera roll cw or ccw (i.e. about the depth axis)
+	WrappedValue yawAngle; ///< Angle of camera turn left or right (i.e. about the vertical axis
+
 	float maxSize[3]; ///< Maximum extent along the x, y, and z-axes
 	float minSize[3]; ///< Minimum extent along the x, y, and z-axes
 
 	std::vector<Vertex> vertices; ///< Vector of all unique vertices
 	
+	std::vector<Vertex*> verticesToDraw; ///< List of vertices which will be drawn
+
 	std::vector<triangle> polys; ///< Vector of all unique polygons which make up this 3d object
 	
 	std::vector<object*> children; ///< Vector of pointers to child objects
@@ -188,7 +199,7 @@ protected:
 
 	/** Update the position of all child objects to the parent position
 	  */
-	void updatePositionOfChildren();
+	void updatePosition();
 
 	/** Update the position based on new parent position
 	  */
@@ -196,7 +207,7 @@ protected:
 
 	/** Update the rotation of all child objects to that of the parent
 	  */
-	void updateRotationOfChildren();
+	void updateRotation();
 
 	/** Update the rotation based on new parent rotation
 	  */

@@ -223,11 +223,20 @@ matrix3 matrix3::getPitchMatrix(const float &angle){
 
 // transform an input vector by this matrix
 // Note: Expects the input vector to be in cartesian coordinates
-void matrix3::transform(vector3 &vector) const {
+void matrix3::transformInPlace(vector3 &vector) const {
 	float x = vector.x, y = vector.y, z = vector.z;
 	vector.x = elements[0][0]*x + elements[0][1]*y + elements[0][2]*z;
 	vector.y = elements[1][0]*x + elements[1][1]*y + elements[1][2]*z;
 	vector.z = elements[2][0]*x + elements[2][1]*y + elements[2][2]*z;
+}
+
+vector3 matrix3::transform(const vector3& vector) const {
+	vector3 retval(
+		elements[0][0] * vector.x + elements[0][1] * vector.y + elements[0][2] * vector.z,
+		elements[1][0] * vector.x + elements[1][1] * vector.y + elements[1][2] * vector.z,
+		elements[2][0] * vector.x + elements[2][1] * vector.y + elements[2][2] * vector.z
+	);
+	return retval;
 }
 
 // transform an input vector by the transpose of this matrix
@@ -239,7 +248,7 @@ void matrix3::transpose(vector3 &vector) const {
 	vector.z = elements[0][2]*x + elements[1][2]*y + elements[2][2]*z;
 }
 
-std::string matrix3::dump(){
+std::string matrix3::dump() const {
 	std::stringstream stream;
 	stream.precision(3);
 	stream << std::fixed;

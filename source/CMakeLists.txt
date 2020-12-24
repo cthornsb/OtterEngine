@@ -11,6 +11,7 @@ set(CORE_SOURCES camera.cpp
                  triangle.cpp 
                  vector3.cpp
                  Vertex.cpp
+                 WrappedValue.cpp
                  ZBuffer.cpp)
 
 #Add the sources to the library.

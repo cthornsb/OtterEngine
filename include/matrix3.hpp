@@ -111,15 +111,19 @@ public:
 
 	/** Operate on an input vector by multiplying it with this matrix
 	  */
-	void transform(vector3 &vec) const ;
+	void transformInPlace(vector3 &vector) const ;
+
+	/** Operate on an input vector by multiplying it with this matrix
+	  */
+	vector3 transform(const vector3& vector) const;
 
 	/** Operate on an input vector by multiplying it with the transpose of this matrix
 	  */
-	void transpose(vector3 &vec) const ;
+	void transpose(vector3 &vector) const ;
 
 	/** Dump all matrix elements into a returned string
 	  */
-	std::string dump();
+	std::string dump() const ;
 
 	/** Zero all elements of this matrix
 	  */	

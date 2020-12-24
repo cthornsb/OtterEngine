@@ -14,6 +14,12 @@ void zDepthCalc::setup(const pixelTriplet& pixels) {
 		pixels[2]->sX, pixels[2]->sY, pixels[2]->zDepth);
 }
 
+void zDepthCalc::setup(const pixelTriplet& pixels, const float& z0, const float& z1, const float& z2) {
+	compute(pixels[0]->sX, pixels[0]->sY, z0,
+		pixels[1]->sX, pixels[1]->sY, z1,
+		pixels[2]->sX, pixels[2]->sY, z2);
+}
+
 float zDepthCalc::getZ(const float& x, const float& y) const {
 	return 1 / (A * x + B * y + C);
 }
@@ -33,7 +39,13 @@ pixelTriplet::pixelTriplet() :
 	p0(0x0),
 	p1(0x0),
 	p2(0x0),
-	calc(),
+	zCalc(),
+	rCalc(),
+	gCalc(),
+	bCalc(),
+	light0(),
+	light1(),
+	light2(),
 	draw()
 {
 }
@@ -45,7 +57,13 @@ pixelTriplet::pixelTriplet(triangle* t) :
 	p0(t->p0),
 	p1(t->p1),
 	p2(t->p2),
-	calc(),
+	zCalc(),
+	rCalc(),
+	gCalc(),
+	bCalc(),
+	light0(),
+	light1(),
+	light2(),
 	draw()
 {
 }
@@ -66,6 +84,10 @@ Vertex* pixelTriplet::operator [] (const size_t& index) const {
 
 vector3 pixelTriplet::getCenterPoint() const {
 	return tri->getCenterPoint();
+}
+
+ColorRGB pixelTriplet::getLighting(const float& x, const float& y) const {
+	return ColorRGB(rCalc.getZ(x, y), gCalc.getZ(x, y), bCalc.getZ(x, y));
 }
 
 void pixelTriplet::set(const size_t& index, const int& x, const int& y) {
@@ -133,27 +155,25 @@ bool pixelTriplet::getHorizontalLimits(const int& scanline, int& xA, int& xB) co
 	return true;
 }
 
-void pixelTriplet::computeLighting(lightSource* light) {
-	p0->light += light->getColor(*this);
-	p1->light += light->getColor(*this);
-	p2->light += light->getColor(*this);
-}
-
-void pixelTriplet::resetLighting() {
-	p0->light.reset();
-	p1->light.reset();
-	p2->light.reset();
+void pixelTriplet::computeVertexLighting(lightSource* light) {
+	vector3 norm = tri->getNormal();
+	light0 += light->getColor(p0, norm);
+	light1 += light->getColor(p1, norm);
+	light2 += light->getColor(p2, norm);
 }
 
 void pixelTriplet::finalize() {
-	calc.setup(*this);
+	zCalc.setup(*this);
+	rCalc.setup(*this, light0.r, light1.r, light2.r);
+	gCalc.setup(*this, light0.g, light1.g, light2.g);
+	bCalc.setup(*this, light0.b, light1.b, light2.b);
 }
 
 bool  pixelTriplet::intersects(const ray& ray, float& t) const {
-	float denom = ray.dir * tri->norm;
+	float denom = ray.dir * tri->getNormal();
 	if (denom == 0) // Normal is orthogonal to ray
 		return false;
-	float numer = (getCenterPoint() - ray.pos) * tri->norm;
+	float numer = (getCenterPoint() - ray.pos) * tri->getNormal();
 	t = numer / denom;
 	return (numer < 0 && denom < 0);
 }

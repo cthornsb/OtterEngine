@@ -31,7 +31,7 @@ public:
 	/** Get the scaled color of the light source based on the angle between the direction of the
 	  * light source and the normal to a surface
 	  */
-	ColorRGB getColor(const pixelTriplet& surface) const { return (color * getIntensity(surface)); }
+	ColorRGB getColor(const Vertex* vert, const vector3& norm) const { return (color * getIntensity(vert, norm)); }
 
 	/** Set the brightness of the light source
 	  */
@@ -57,7 +57,7 @@ protected:
 	/** Get the intensity scaling factor based on the angle between the direction of the
 	  * light source and the normal to a surface
 	  */
-	virtual float getIntensity(const pixelTriplet& surface) const ;
+	virtual float getIntensity(const Vertex* vert, const vector3& norm) const ;
 };
 
 class directionalLight : public lightSource {
@@ -78,7 +78,7 @@ protected:
 	  * light source and the normal to a surface as well as the distance from the point
 	  * to the light position
 	  */
-	float getIntensity(const pixelTriplet& surface) const ;
+	float getIntensity(const Vertex* vert, const vector3& norm) const ;
 };
 
 class coneLight : public lightSource {
@@ -98,7 +98,11 @@ protected:
 	  * is checked against the opening angle of the light source, with any points lying outside
 	  * the cone being given an intensity of zero
 	  */
-	float getIntensity(const pixelTriplet& surface) const ;
+	float getIntensity(const Vertex* vert, const vector3& norm) const ;
+
+	/** Compute the fractional intensity based on the angle from the directional axis of the light (radians)
+	  */
+	virtual float radialIntensity(const float& angle) const;
 };
 
 #endif

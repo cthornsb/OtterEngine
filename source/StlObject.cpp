@@ -138,9 +138,12 @@ unsigned int StlObject::readBinary(std::ifstream* f) {
 
 	// Offset all vertices to the center the model
 	std::vector<Vertex>::iterator iter;
-	for (iter = vertices.begin(); iter != vertices.end(); iter++) {
-		iter->pos -= center;
-		iter->pos -= center;
+	for (std::vector<Vertex>::iterator iter = vertices.begin(); iter != vertices.end(); iter++) {
+		iter->offsetPosition(-center);
+	}
+	// Offset the center points of all polygons to the center the model
+	for (std::vector<triangle>::iterator iter = polys.begin(); iter != polys.end(); iter++) {
+		iter->offsetPosition(-center);
 	}
 
 	if (!invalidRead) {
@@ -172,22 +175,22 @@ void StlObject::readStlBlock(float* array) {
 	if (vertPtrs[0] && vertPtrs[1] && vertPtrs[2]) {
 		if (normal != zeroVector) { // Stl file includes the normal vector
 			if (!reversed) { // Normal vertices (right-hand rule)
-				triangle tri(vertPtrs[0], vertPtrs[1], vertPtrs[2]);
-				if (normal.angle(tri.norm) > 0.01f) {
-					std::cout << " StlObject: [debug] Stl normal is anti-parallel to computed normal (angle=" << normal.angle(tri.norm) << ")" << std::endl;
+				triangle tri(vertPtrs[0], vertPtrs[1], vertPtrs[2], this);
+				if (normal.angle(tri.getNormal()) > 0.01f) {
+					std::cout << " StlObject: [debug] Stl normal is anti-parallel to computed normal (angle=" << normal.angle(tri.getNormal()) << ")" << std::endl;
 					std::cout << " StlObject: [debug]  Switching to reverse vertex winding" << std::endl;
-					tri = triangle(vertPtrs[0], vertPtrs[2], vertPtrs[1]);
+					tri = triangle(vertPtrs[0], vertPtrs[2], vertPtrs[1], this);
 					reversed = true;
 				}
 				polys.push_back(tri);
 			}
 			else { // Reversed vertices
-				triangle tri(vertPtrs[0], vertPtrs[2], vertPtrs[1]);
+				triangle tri(vertPtrs[0], vertPtrs[2], vertPtrs[1], this);
 				polys.push_back(tri);
 			}
 		}
 		else
-			polys.push_back(triangle(vertPtrs[0], vertPtrs[1], vertPtrs[2]));
+			polys.push_back(triangle(vertPtrs[0], vertPtrs[1], vertPtrs[2], this));
 	}
 	else {
 		std::cout << " error\n";

@@ -2,6 +2,7 @@
 #define PIXEL_TRIPLET_HPP
 
 #include "vector3.hpp"
+#include "colors.hpp"
 #include "ray.hpp"
 
 class triangle;
@@ -22,6 +23,8 @@ public:
 	void setup(const float* sX, const float* sY, const float* zDepth);
 
 	void setup(const pixelTriplet& pixels);
+
+	void setup(const pixelTriplet& pixels, const float& z0, const float& z1, const float& z2);
 
 	float getZ(const float& x, const float& y) const;
 
@@ -48,7 +51,15 @@ public:
 	Vertex* p1;
 	Vertex* p2;
 
-	zDepthCalc calc;
+	zDepthCalc zCalc;
+
+	zDepthCalc rCalc;
+	zDepthCalc gCalc;
+	zDepthCalc bCalc;
+
+	ColorRGB light0; ///< Dynamic lighting color at vertex 0
+	ColorRGB light1; ///< Dynamic lighting color at vertex 1
+	ColorRGB light2; ///< Dynamic lighting color at vertex 2
 
 	bool draw[3]; ///< Flag for each vertex indicating that it is on the screen
 
@@ -68,15 +79,17 @@ public:
 
 	vector3 getCenterPoint() const;
 
+	ColorRGB getLighting(const float& x, const float& y) const;
+
+	float getZDepth(const float& x, const float& y) const { return zCalc.getZ(x, y); }
+
 	void set(const size_t& index, const int& x, const int& y);
 
 	bool sortVertical(const int& yMax);
 
 	bool getHorizontalLimits(const int& scanline, int& xA, int& xB) const;
 
-	void computeLighting(lightSource* light);
-
-	void resetLighting();
+	void computeVertexLighting(lightSource* light);
 
 	void finalize();
 

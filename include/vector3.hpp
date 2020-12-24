@@ -53,6 +53,14 @@ public:
 	  */
 	vector3 operator - (const vector3 &rhs) const { return vector3(x-rhs.x, y-rhs.y, z-rhs.z); }
 
+	/** Unary plus operator
+	  */
+	vector3 operator + () const { return vector3(*this); }
+
+	/** Unary minus operator
+	  */
+	vector3 operator - () const { return vector3(-x, -y, -z); }
+
 	/** Equality operator
 	  */
 	bool operator == (const vector3 &rhs) const { return (x==rhs.x && y==rhs.y && z==rhs.z); }

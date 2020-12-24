@@ -6,9 +6,6 @@
 
 class plane{
 public:
-	vector3 p; ///< A point on the surface of the plane
-	vector3 norm; ///< The normal vector to the surface of the plane
-
 	/** Default constructor
 	  */
 	plane() : p(), norm(0, 0, 1) { }
@@ -24,6 +21,10 @@ public:
 	/** Constructor taking three points which lie on the surface of the plane
 	  */
 	plane(const vector3 &p0_, const vector3 &p1_, const vector3 &p2_);
+
+	/** Permanently offset the plane by an input vector
+	  */
+	void offsetPosition(const vector3& vec) { p += vec; }
 
 	/** Check if a ray intersects with the infinite plane defined by this object
 	  * @param r The ray to check for intersection
@@ -41,6 +42,11 @@ public:
 	/** Dump plane parameters to stdout
 	  */
 	void dump() const ;
+
+protected:
+	vector3 p; ///< A point on the surface of the plane
+
+	vector3 norm; ///< The normal vector to the surface of the plane
 };
 
 #endif

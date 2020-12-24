@@ -9,10 +9,7 @@ class matrix3;
 class Vertex {
 public:
 	friend class object;
-
-	vector3 pos; ///< Current vertex position
-
-	vector3 norm; ///< Vertex normal vector
+	friend class triangle;
 
 	short pX; ///< The horizontal pixel coordinates of the vertex projection
 	short pY; ///< The vertical pixel coordinates of the vertex projection
@@ -22,50 +19,50 @@ public:
 
 	float zDepth; ///< The distance between the vertex and the focal point of the camera, into the screen
 
-	ColorRGB light; ///< Additive lighting color at vertex
-
 	Vertex() :
-		pos(),
+		pX(0),
+		pY(0),
+		sX(0),
+		sY(0),
+		zDepth(0),
 		pos0(),
-		norm(),
+		norm0(),
 		offset(&zeroVector),
-		pX(0),
-		pY(0),
-		sX(0),
-		sY(0),
-		zDepth(0),
-		light()
+		rotation(0x0),
+		parent(0x0)
 	{
 	}
 
-	Vertex(const vector3& position, const vector3* displacement) :
-		pos(position),
-		pos0(position),
-		norm(),
-		offset(displacement),
-		pX(0),
-		pY(0),
-		sX(0),
-		sY(0),
-		zDepth(0),
-		light()
-	{
-	}
+	Vertex(const vector3& position, const object* obj);
 
-	bool operator == (const vector3& vec) const { return (vec == pos); }
+	bool operator == (const vector3& vec) const { return (vec == pos0); }
 
-	vector3 getPosition() const { return (pos + *offset); }
-
-	void transform(const matrix3* mat);
-
-	/** Reset position and normal to initial values
+	/** Permanently offset the vertex position by an input vector
 	  */
-	void reset();
+	void offsetPosition(const vector3& vec) { pos0 += vec; }
+
+	/** Get the position of this vertex
+	  */
+	vector3 getPosition() const;
+
+	/** Get the normal vector at this vertex
+	  */
+	vector3 getNormal() const;
+
+	/** Transform the vertex position by an input matrix and return the result
+	  */
+	vector3 transform(const matrix3* mat);
 
 private:
 	vector3 pos0; ///< Original vertex position
 
+	vector3 norm0; ///< Vertex normal vector
+
 	const vector3* offset; ///< Vertex position offset
+
+	const matrix3* rotation; ///< Rotation matrix of object
+
+	const object* parent; ///< Pointer to the parent object
 };
 
 #endif

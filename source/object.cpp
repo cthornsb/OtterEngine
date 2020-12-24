@@ -1,6 +1,8 @@
 #include <iostream>
 #include <float.h>
+#include <map>
 
+#include "Globals.hpp"
 #include "object.hpp"
 #include "camera.hpp"
 
@@ -12,9 +14,13 @@ object::object() :
 	pos0(),
 	rot(identityMatrix),
 	center(),
+	pitchAngle(0, 0, 2 * pi),
+	rollAngle(0, 0, 2 * pi),
+	yawAngle(0, 0, 2 * pi),
 	maxSize(),
 	minSize(),
 	vertices(),
+	verticesToDraw(),
 	polys(),
 	children(),
 	parentOffset(),
@@ -36,48 +42,34 @@ object::object(const vector3 & pos_) :
 }
 
 void object::rotate(const float& theta, const float& phi, const float& psi){
-	rot.setRotation(theta, phi, psi);
-	
-	// Update the rotation of all vertices
-	transform(&rot);
+	// Update the rotation matrix
+	rot.setRotation((pitchAngle += theta), (rollAngle += psi), (yawAngle += phi));
 
 	// Update rotation of child objects
-	updateRotationOfChildren();
+	updateRotation();
 }
 
 void object::move(const vector3 &offset){
 	pos += offset;
-	updatePositionOfChildren();
+	updatePosition();
 }
 
 void object::setRotation(const float& theta, const float& phi, const float& psi){
-	rot.setRotation(theta, phi, psi);
-
-	// Reset all vertices to their original position
-	resetVertices();
-	
-	// Update the rotation of all vertices
-	transform(&rot);
+	// Update the rotation matrix
+	rot.setRotation(theta, psi, phi);
 
 	// Update rotation of child objects
-	updateRotationOfChildren();
+	updateRotation();
 }
 
 void object::setPosition(const vector3 &position){
 	pos = position;
-	updatePositionOfChildren();
-}
-
-void object::resetVertices(){
-	for (std::vector<Vertex>::iterator vert = vertices.begin(); vert != vertices.end(); vert++)
-		vert->reset();
-	for (auto ch = children.begin(); ch != children.end(); ch++)
-		(*ch)->resetVertices();
+	updatePosition();
 }
 
 void object::resetPosition(){
 	pos = pos0;
-	updatePositionOfChildren();
+	updatePosition();
 }
 
 void object::renderAllVertices(camera* cam) {
@@ -115,6 +107,19 @@ void object::build() {
 	if (built)
 		return;
 	this->userBuild();
+	// Finalize the object geometry
+	// Compute the average normal vector at all vertices
+	for (std::vector<triangle>::iterator tri = polys.begin(); tri != polys.end(); tri++) {
+		for (std::vector<Vertex>::iterator vert = vertices.begin(); vert != vertices.end(); vert++) {
+			if (tri->hasVertex(&(*vert)))
+				vert->norm0 += tri->getNormal();
+		}
+	}
+	// Normalize vertex normals
+	for (std::vector<Vertex>::iterator vert = vertices.begin(); vert != vertices.end(); vert++) {
+		vert->norm0.normInPlace();
+	}
+	verticesToDraw.reserve(vertices.size());
 	built = true;
 }
 
@@ -139,7 +144,7 @@ bool object::setParent(object* obj) {
 	return retval;
 }
 
-void object::updatePositionOfChildren() {
+void object::updatePosition() {
 	for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
 		(*ch)->updatePositionForParent(pos);
 	}
@@ -149,7 +154,8 @@ void object::updatePositionForParent(const vector3& position) {
 	pos = position + parentOffset;
 }
 
-void object::updateRotationOfChildren() {
+void object::updateRotation() {
+	rot.transformInPlace(pos);
 	for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
 		(*ch)->updateRotationForParent(&rot);
 		(*ch)->updatePositionForParent(pos); // Necessary because the offset position within the parent changed
@@ -157,8 +163,7 @@ void object::updateRotationOfChildren() {
 }
 
 void object::updateRotationForParent(const matrix3* rotation) {
-	rotation->transform(parentOffset);
-	transform(rotation);
+	rotation->transformInPlace(parentOffset);
 }
 
 void object::reserve(const size_t& nVert, const size_t& nPoly/*=0*/) {
@@ -167,7 +172,6 @@ void object::reserve(const size_t& nVert, const size_t& nPoly/*=0*/) {
 	if (nPoly == 0) {
 		reservedPolygons = nVert;
 		polys.reserve(nVert);
-		
 	}
 	else {
 		reservedPolygons = nPoly;
@@ -193,7 +197,7 @@ Vertex* object::addVertex(const vector3& vec) {
 	if (vertices.size() > reservedVertices){
 		std::cout << " Object: [warning] Not enough memory reserved for vertex vector, this may result in undefined behavior!" << std::endl;
 	}
-	vertices.push_back(Vertex(vec, &pos));
+	vertices.push_back(Vertex(vec, this));
 	for (int i = 0; i < 3; i++) { // Update the size of the bounding box
 		if (vec[i] > maxSize[i])
 			maxSize[i] = vec[i];
@@ -207,7 +211,7 @@ void object::addTriangle(const unsigned int& i0, const unsigned int& i1, const u
 	if (polys.size() > reservedPolygons) {
 		std::cout << " Object: [warning] Not enough memory reserved for polygon vector, this may result in undefined behavior!" << std::endl;
 	}
-	polys.push_back(triangle(&vertices[i0], &vertices[i1], &vertices[i2], &pos));
+	polys.push_back(triangle(&vertices[i0], &vertices[i1], &vertices[i2], this));
 }
 
 void object::addQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3) {
@@ -217,11 +221,11 @@ void object::addQuad(const unsigned int& i0, const unsigned int& i1, const unsig
 }
 
 void object::addStaticTriangle(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2) {
-	polys.push_back(triangle(&vertices[i0], &vertices[i1], &vertices[i2], &pos));
+	polys.push_back(triangle(&vertices[i0], &vertices[i1], &vertices[i2], this));
 }
 
 void object::addStaticQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3) {
 	// Eventually this will use a quad face, but for now we get two triangles
-	polys.push_back(triangle(&vertices[i0], &vertices[i1], &vertices[i2], &pos));
-	polys.push_back(triangle(&vertices[i2], &vertices[i3], &vertices[i0], &pos));
+	polys.push_back(triangle(&vertices[i0], &vertices[i1], &vertices[i2], this));
+	polys.push_back(triangle(&vertices[i2], &vertices[i3], &vertices[i0], this));
 }

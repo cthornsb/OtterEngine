@@ -94,11 +94,10 @@ bool scene::update(){
 
 	// Compute vertex lighting
 	for (std::vector<pixelTriplet>::iterator triplet = polygonsToDraw.begin(); triplet != polygonsToDraw.end(); triplet++) {
-		triplet->resetLighting(); // Reset dynamic lighting to black
 		for (std::vector<lightSource*>::iterator light = lights.begin(); light != lights.end(); light++) { // Over all lights in the scene
 			if (!(*light)->isEnabled()) // Light disabled
 				continue;
-			triplet->computeLighting(*light);
+			triplet->computeVertexLighting(*light);
 		}
 		triplet->finalize();
 	}
@@ -114,7 +113,7 @@ bool scene::update(){
 				if (triplet->getHorizontalLimits(scanline, x0, x1)) { // Rasterization of triangle
 					// TODO fix object vertices being rendered multiple times
 					for (int x = x0; x <= x1; x++) { // Over every pixel in the row
-						float depth = triplet->calc.getZ((2.f * x0) / screenWidthPixels - 1, realy);
+						float depth = triplet->getZDepth((2.f * x) / screenWidthPixels - 1, realy);
 						if (depth < 0 || depth > farDistance)
 							continue;
 						buffer.set(x, scanline, depth, &(*triplet));
@@ -126,6 +125,7 @@ bool scene::update(){
 		float depth = 0;
 		const pixelTriplet* trip = 0x0;
 		for (unsigned short y = 0; y < maxPixelsY; y++) {
+			realy = (-2.f * y) / screenHeightPixels + 1;
 			for (unsigned short x = 0; x < maxPixelsX; x++) {
 				if(!(trip = buffer.getTriangle(x, y))) // Blank pixel
 					continue;
@@ -133,7 +133,7 @@ bool scene::update(){
 				if (!drawDepthMap) {
 					if (!trip->p0)
 						continue;
-					window->setDrawColor(trip->p0->light/depth);
+					window->setDrawColor(trip->getLighting((2.f * x) / screenWidthPixels - 1, realy));
 				}
 				else
 					window->setDrawColor(ColorRGB::heatMap(depth, farDistance));
@@ -169,7 +169,7 @@ bool scene::update(){
 
 	if (drawNorm) { // Draw the surface normal vector
 		for (auto triplet = polygonsToDraw.cbegin(); triplet != polygonsToDraw.cend(); triplet++)
-			drawVector(triplet->getCenterPoint(), triplet->tri->norm, Colors::RED, 0.25);
+			drawVector(triplet->tri->getCenterPoint(), triplet->tri->getNormal(), Colors::RED, 0.25);
 	}
 
 	if(drawOrigin){ // Draw the origin
@@ -238,8 +238,12 @@ void scene::setCamera(camera *cam_){
 }
 
 void scene::processPolygons(object* obj) {
+	/*if (!obj->isVisible()) { // Check if the object is on screen
+		return;
+	}*/
 	// Render all vertices
 	obj->renderAllVertices(cam);
+	// Process all visible polygons
 	std::vector<triangle>* polys = obj->getPolygons();
 	for (std::vector<triangle>::iterator iter = polys->begin(); iter != polys->end(); iter++) {
 		// Do backface culling
