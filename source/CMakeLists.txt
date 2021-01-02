@@ -1,5 +1,6 @@
 set(CORE_SOURCES camera.cpp 
                  lightSource.cpp
+                 matrix2.cpp
                  matrix3.cpp 
                  object.cpp                 
                  plane.cpp
@@ -7,8 +8,11 @@ set(CORE_SOURCES camera.cpp
                  Primitives.cpp
                  ray.cpp 
                  scene.cpp
+                 Sprite.cpp
                  StlObject.cpp
+                 Texture.cpp
                  triangle.cpp 
+                 vector2.cpp
                  vector3.cpp
                  Vertex.cpp
                  WrappedValue.cpp

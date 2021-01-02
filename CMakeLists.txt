@@ -94,7 +94,14 @@ if(GRAPHICS_LIBRARY MATCHES "OpenGL")
 			set(FREEGLUT_DLL_LIST ${FREEGLUT_DIRECTORY}/bin/freeglut.dll)
 		endif(CMAKE_CL_64)
 		include_directories(${FREEGLUT_INCLUDE})
-		set(GRAPHICS_LIBS ${FREEGLUT_LIBRARY} opengl32.lib)
+		#Set SOIL directory
+		if(NOT SOIL_DIRECTORY)
+			set(SOIL_DIRECTORY "" CACHE STRING "SOIL install directory" FORCE)
+		endif(NOT SOIL_DIRECTORY)
+		set(SOIL_INCLUDE ${SOIL_DIRECTORY}/inc)
+		set(SOIL_LIBRARY ${SOIL_DIRECTORY}/lib/soil.lib)
+		include_directories(${SOIL_INCLUDE})
+		set(GRAPHICS_LIBS ${FREEGLUT_LIBRARY} ${SOIL_LIBRARY} opengl32.lib)
 		#It is necessary to copy freeglut.dll to the build directory containing the executable.
 		#Alternatively it may be copied to the Windows system directory.
 		#This is necessary so that the freeglut headers point to the correct library
