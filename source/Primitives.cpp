@@ -81,7 +81,8 @@ void Primitives::Cylinder::userBuild() {
 	approximate(dZ);
 		
 	// Copy the vertices and offset to -dZ
-	std::vector<Vertex> copy = vertices;
+	std::vector<Vertex> copy;
+	vertices.copy(copy);
 	for (auto vert = copy.begin(); vert != copy.end(); vert++)
 		vert->offsetPosition(vector3(0, 0, -dZ));
 
@@ -90,7 +91,7 @@ void Primitives::Cylinder::userBuild() {
 	std::reverse(vertices.begin() + 1, vertices.end());
 
 	// Copy the new vertices to the vertex vectors
-	vertices.insert(vertices.begin(), copy.begin(), copy.end());
+	vertices.append(copy);
 
 	// Construct negative endcap
 	//approximate(-dZ);
@@ -128,7 +129,7 @@ void Primitives::Cone::userBuild() {
 	approximate(-dZ);
 
 	// Add the peak vertex
-	vertices.push_back(Vertex(vector3(0, 0, dZ), this));
+	vertices.add(0, 0, dZ, this);
 
 	// Fill the base
 	for (int i = 1; i < nVertices; i++) { // Add n-1 triangles

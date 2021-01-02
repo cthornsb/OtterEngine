@@ -197,21 +197,21 @@ Vertex* object::addVertex(const vector3& vec) {
 	if (vertices.size() > reservedVertices){
 		std::cout << " Object: [warning] Not enough memory reserved for vertex vector, this may result in undefined behavior!" << std::endl;
 	}
-	vertices.push_back(Vertex(vec, this));
+	vertices.add(vec, this);
 	for (int i = 0; i < 3; i++) { // Update the size of the bounding box
 		if (vec[i] > maxSize[i])
 			maxSize[i] = vec[i];
 		if (vec[i] < minSize[i])
 			minSize[i] = vec[i];
 	}
-	return &vertices.back();
+	return vertices.back();
 }
 
 void object::addTriangle(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2){
 	if (polys.size() > reservedPolygons) {
 		std::cout << " Object: [warning] Not enough memory reserved for polygon vector, this may result in undefined behavior!" << std::endl;
 	}
-	polys.push_back(triangle(&vertices[i0], &vertices[i1], &vertices[i2], this));
+	polys.push_back(triangle(vertices[i0], vertices[i1], vertices[i2], this));
 }
 
 void object::addQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3) {
@@ -221,11 +221,11 @@ void object::addQuad(const unsigned int& i0, const unsigned int& i1, const unsig
 }
 
 void object::addStaticTriangle(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2) {
-	polys.push_back(triangle(&vertices[i0], &vertices[i1], &vertices[i2], this));
+	polys.push_back(triangle(vertices[i0], vertices[i1], vertices[i2], this));
 }
 
 void object::addStaticQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3) {
 	// Eventually this will use a quad face, but for now we get two triangles
-	polys.push_back(triangle(&vertices[i0], &vertices[i1], &vertices[i2], this));
-	polys.push_back(triangle(&vertices[i2], &vertices[i3], &vertices[i0], this));
+	polys.push_back(triangle(vertices[i0], vertices[i1], vertices[i2], this));
+	polys.push_back(triangle(vertices[i2], vertices[i3], vertices[i0], this));
 }

@@ -3,6 +3,9 @@
 #include "matrix3.hpp"
 
 Vertex::Vertex(const vector3& position, const object* obj) :
+	p0(0x0),
+	p1(0x0),
+	p2(0x0),
 	pX(0),
 	pY(0),
 	sX(0),

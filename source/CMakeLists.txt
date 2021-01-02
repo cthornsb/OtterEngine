@@ -15,6 +15,7 @@ set(CORE_SOURCES camera.cpp
                  vector2.cpp
                  vector3.cpp
                  Vertex.cpp
+                 VertexContainer.cpp
                  WrappedValue.cpp
                  ZBuffer.cpp)
 

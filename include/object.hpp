@@ -8,6 +8,7 @@
 #include "triangle.hpp"
 #include "Vertex.hpp"
 #include "WrappedValue.hpp"
+#include "VertexContainer.hpp"
 
 class camera;
 
@@ -165,7 +166,7 @@ protected:
 	float maxSize[3]; ///< Maximum extent along the x, y, and z-axes
 	float minSize[3]; ///< Minimum extent along the x, y, and z-axes
 
-	std::vector<Vertex> vertices; ///< Vector of all unique vertices
+	VertexContainer vertices; ///< Vector of all unique vertices
 	
 	std::vector<Vertex*> verticesToDraw; ///< List of vertices which will be drawn
 
