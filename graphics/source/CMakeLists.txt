@@ -1,11 +1,11 @@
 if(GRAPHICS_LIBRARY MATCHES "OpenGL")
 	# To install OpenGL:
 	#sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev
-	set(GRAPHICS_SOURCES colors.cpp GraphicsOpenGL.cpp)
+	set(GRAPHICS_SOURCES ColorRGB.cpp LogicalColor.cpp GraphicsOpenGL.cpp)
 elseif(GRAPHICS_LIBRARY MATCHES "SDL")
 	# To install SDL:
 	#sudo apt-get install libsdl2-dev
-	set(GRAPHICS_SOURCES colors.cpp GraphicsSDL.cpp)
+	set(GRAPHICS_SOURCES ColorRGB.cpp LogicalColor.cpp GraphicsSDL.cpp)
 else()
 	message(STATUS "Unsupported renderer (${GRAPHICS_LIBRARY})")
 endif()

@@ -1,15 +1,15 @@
 #include <iostream>
 
-#include "colors.hpp"
+#include "ColorRGB.hpp"
 
 #ifdef USE_SDL_RENDERER
-	ColorRGB::ColorRGB(const float &value){
+	ColorRGB::ColorRGB(const float& value){
 		r = toUChar(value);
 		g = r;
 		b = r;
 	}
 
-	ColorRGB::ColorRGB(const float &red, const float &green, const float &blue){
+	ColorRGB::ColorRGB(const float& red, const float& green, const float& blue){
 		r = toUChar(red);
 		g = toUChar(green);
 		b = toUChar(blue);
@@ -26,16 +26,18 @@
 		b = ((unsigned char)(0.0722*b));
 	}
 #else
-	ColorRGB::ColorRGB(const float &value){
+	ColorRGB::ColorRGB(const float& value, const float& alpha/*=1*/){
 		r = value;
 		g = r;
 		b = r;
+		a = alpha;
 	}
 
-	ColorRGB::ColorRGB(const float &red, const float &green, const float &blue){
+	ColorRGB::ColorRGB(const float& red, const float& green, const float& blue, const float& alpha/*=1*/){
 		r = red;
 		g = green;
 		b = blue;
+		a = alpha;
 	}
 
 	ColorRGB ColorRGB::invert() const {
@@ -44,20 +46,37 @@
 
 	void ColorRGB::toGrayscale(){
 		// Based on the sRGB convention
-		r *= 0.2126f;
-		g *= 0.7152f;
-		b *= 0.0722f;
+		float prime = r * 0.2126f + g * 0.7152f + b * 0.0722f;
+		r = prime;
+		g = prime;
+		b = prime;
 	}
 #endif
 
-ColorRGB ColorRGB::operator + (const ColorRGB &rhs) const {
+float ColorRGB::operator [] (const size_t& index) {
+	switch (index) {
+	case 0:
+		return r;
+	case 1:
+		return g;
+	case 2:
+		return b;
+	case 3:
+		return a;
+	default:
+		break;
+	}
+	return -1;
+}
+
+ColorRGB ColorRGB::operator + (const ColorRGB& rhs) const {
 	float rprime = (r + rhs.r);// / 255.0f;
 	float gprime = (g + rhs.g);// / 255.0f;
 	float bprime = (b + rhs.b);// / 255.0f;
 	return ColorRGB((rprime <= 1 ? rprime : 1), (gprime <= 1 ? gprime : 1), (bprime <= 1 ? bprime : 1));
 }
 
-ColorRGB ColorRGB::operator - (const ColorRGB &rhs) const {
+ColorRGB ColorRGB::operator - (const ColorRGB& rhs) const {
 	float rprime = (r - rhs.r);// / 255.0f;
 	float gprime = (g - rhs.g);// / 255.0f;
 	float bprime = (b - rhs.b);// / 255.0f;
@@ -65,11 +84,11 @@ ColorRGB ColorRGB::operator - (const ColorRGB &rhs) const {
 }
 
 #ifndef USE_SDL_RENDERER
-ColorRGB ColorRGB::operator * (const float &rhs) const {
+ColorRGB ColorRGB::operator * (const float& rhs) const {
 	return ColorRGB(r*rhs, g*rhs, b*rhs);
 }
 
-ColorRGB ColorRGB::operator / (const float &rhs) const {
+ColorRGB ColorRGB::operator / (const float& rhs) const {
 	return ColorRGB(r/rhs, g/rhs, b/rhs);
 }
 #else
@@ -82,19 +101,19 @@ ColorRGB ColorRGB::operator / (const float& rhs) const {
 }
 #endif
 
-ColorRGB& ColorRGB::operator += (const ColorRGB &rhs){
+ColorRGB& ColorRGB::operator += (const ColorRGB& rhs){
 	return ((*this) = (*this) + rhs);
 }
 
-ColorRGB& ColorRGB::operator -= (const ColorRGB &rhs){
+ColorRGB& ColorRGB::operator -= (const ColorRGB& rhs){
 	return ((*this) = (*this) - rhs);
 }
 
-ColorRGB& ColorRGB::operator *= (const float &rhs){
+ColorRGB& ColorRGB::operator *= (const float& rhs){
 	return ((*this) = (*this) * rhs);
 }
 
-ColorRGB& ColorRGB::operator /= (const float &rhs){
+ColorRGB& ColorRGB::operator /= (const float& rhs){
 	return ((*this) = (*this) / rhs);
 }
 

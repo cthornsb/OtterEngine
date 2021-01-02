@@ -5,40 +5,86 @@
 #include <queue>
 #include <string>
 
-#include "colors.hpp"
+#include "ColorRGB.hpp"
 
+/// <summary>
+/// Simple mouse motion and button press wrapper for interfacing with GLUT
+/// </summary>
 class MouseState {
 public:
+	/** Default constructor
+	  **/
 	MouseState();
 
+	/** Lock the cursor to the center of the screen
+	  **/
 	void setLockPointer(bool state = true) { lockPointer = state; }
 
+	/** Set the horizontal position of the cursor (in pixels)
+	  **/
 	void setX(const int& x) { posX = x; }
 
+	/** Set the vertical position of the cursor (in pixels)
+	  **/
 	void setY(const int& y) { posY = y; }
 
+	/** Set the position of the cursor (in pixels)
+	  **/
 	void setPosition(const int& x, const int& y);
 
+	/** Get the current horizontal position of the cursor (in pixels)
+	  **/
 	int getX() const { return posX; }
 
+	/** Get the current vertical position of the cursor (in pixels)
+	  **/
 	int getY() const { return posY; }
 
+	/** Get the change in horizontal position of the cursor since the last call to setPosition()
+	  * @note Does not reset the delta position values
+	  **/
 	int getDeltaX() const { return dX; }
 
+	/** Get the change in vertical position of the cursor since the last call to setPosition()
+	  * @note Does not reset the delta position values
+	  **/
 	int getDeltaY() const { return dY; }
 
+	/** Return true if no mouse button is pressed, and return false otherwise
+	  **/
 	bool empty() const { return (count == 0); }
 
+	/** Return true if the mouse has moved since the last call to setPosition(), and return false otherwise
+	  **/
 	bool delta();
 
+	/** Get the change in the horizontal and vertical position of the mouse and reset the delta values 	
+	  * @return True if the mouse has moved since the last call to setPosition(), and return false otherwise
+	  **/
 	bool delta(int& dx, int& dy);
 
+	/** Check if a mouse button is pressed but do not reset its state
+	  * @note This method should be used for mouse buttons which are held down
+	  **/
+	bool check(const unsigned char& button) const { return states[button]; }
+
+	/** Check if a mouse button is pressed and reset its state
+	  * @note This method should be used for mouse button presses, where holding the button down is ignored
+	  **/
 	bool poll(const int& button);
 
+	/** Set a mouse button as pressed
+	  * @note Typically this method should be called by the external mouse callback
+	  **/
 	void down(const int& button);
 
+	/** Set a mouse button as released
+	  * @note Typically this method should be called by the external mouse callback
+	  **/
 	void up(const int& button);
 
+	/** Reset the state of all mouse buttons
+	  **/
 	void reset();
 
 private:
@@ -55,26 +101,56 @@ private:
 	bool states[3]; ///< Mouse button states for left, middle, and right buttons (true indicates button is down) 
 };
 
+/// <summary>
+/// Simple keyboard key press wrapper for interfacing with GLUT
+/// </summary>
 class KeyStates{
 public:
+	/** Default constructor
+	  **/
 	KeyStates();
 	
+	/** Enable character stream mode
+	  * Characters may be retrieved from the character buffer by calling get(). 
+	  * This mode should be used for text entry e.g. a word processor program.
+	  **/
 	void enableStreamMode();
 	
+	/** Disable character stream mode and return to default keypress mode
+	  **/
 	void disableStreamMode();
 	
+	/** Return true if no key is pressed, and return false otherwise
+	  **/
 	bool empty() const { return (count == 0); }
-	
+
+	/** Check if a key is pressed but do not reset its state
+	  * @note This method should be used for keys which are held down
+	  **/
 	bool check(const unsigned char &key) const { return states[key]; }
-	
+
+	/** Check if a mouse button is pressed and reset its state
+	  * @note This method should be used for key presses, where holding the key down is ignored
+	  **/
 	bool poll(const unsigned char &key);
-	
+
+	/** Set a key as pressed
+	  * @note Typically this method should be called by the external keyboard callback
+	  **/
 	void keyDown(const unsigned char &key);
-	
+
+	/** Set a key as released
+	  * @note Typically this method should be called by the external keyboard callback
+	  **/
 	void keyUp(const unsigned char &key);
 	
+	/** Get a character from the character stream buffer
+	  * @return True if there was at least one character in the buffer, and return false if the buffer is empty
+	  **/
 	bool get(char& key);
 
+	/** Reset the state of all keyboard keys and empty the character buffer
+	  **/
 	void reset();
 
 private:
@@ -82,11 +158,14 @@ private:
 
 	bool streamMode; ///< Flag to set keyboard to behave as stream buffer
 
-	std::queue<char> buffer;
+	std::queue<char> buffer; ///< Character input buffer
 
 	bool states[256]; ///< States of keyboard keys (true indicates key is down) 
 };
 
+/// <summary>
+/// Wrapper class for interfacing with GLUT and OpenGL, and for managing graphical windows
+/// </summary>
 class Window{
 public:
 	/** Default constructor
@@ -127,35 +206,40 @@ public:
 	  */
 	~Window();
 	
+	/** Destroy the graphical window
+	  **/
 	void close();
 
+	/** Process GLUT callback events
+	  * This method should be called once per iteration of the main loop.
+	  **/
 	bool processEvents();
 
-	/** Get the width of the window (in pixels)
+	/** Get the current width of the window (in pixels)
 	  */
-	int getCurrentWidth() const { return W; }
+	int getCurrentWidth() const { return width; }
 	
-	/** Get the height of the window (in pixels)
+	/** Get the current height of the window (in pixels)
 	  */
-	int getCurrentHeight() const { return H; }
+	int getCurrentHeight() const { return height; }
 
-	/** Get the width of the window (in pixels)
+	/** Get the initial width of the window (in pixels)
 	  */
 	int getWidth() const { return W; }
 	
-	/** Get the height of the window (in pixels)
+	/** Get the initial height of the window (in pixels)
 	  */
 	int getHeight() const { return H; }
 
-	/** Get screen scale multiplier.
+	/** Get screen pixel multiplier
 	  */
 	int getScale() const { return nMult; }
 
-	/** Get the aspect ratio of the window (W/H)
+	/** Get the current aspect ratio of the window (W/H)
 	  */
 	float getCurrentAspectRatio() const { return aspect; }
 
-	/** Get the aspect ratio of the window (W/H)
+	/** Get the initial aspect ratio of the window (W/H)
 	  */
 	float getAspectRatio() const { return A; }
 
@@ -164,10 +248,12 @@ public:
 	int getWindowID() const { return winID; }
 
 	/** Get a pointer to the keyboard handler
+	  * The user must call setupKeyboardHandler() to handle keyboard callbacks
 	  */
 	KeyStates* getKeypress(){ return &keys; }
 
 	/** Get a pointer to the mouse handler
+	  * The user must call setupMouseHandler() to handle mouse callbacks
 	  */
 	MouseState* getMouse() { return &mouse; }
 
@@ -195,26 +281,26 @@ public:
 	  */
 	void setCurrent();
 
-	/** Clear the screen with a given color
+	/** Clear the screen with a given RGB color
 	  */
 	static void clear(const ColorRGB &color=Colors::BLACK);
 
-	/** Draw a single pixel at position (x, y)
+	/** Draw a pixel at position (x, y) on the screen
 	  */
 	static void drawPixel(const int &x, const int &y);
 
-	/** Draw multiple pixels at positions (x1, y1) (x2, y2) ... (xN, yN)
+	/** Draw multiple pixels at positions (x1, y1) (x2, y2) ... (xN, yN) on the screen
 	  * @param x Array of X pixel coordinates
 	  * @param y Array of Y pixel coordinates
 	  * @param N The number of elements in the arrays and the number of pixels to draw
 	  */
 	static void drawPixel(const int *x, const int *y, const size_t &N);
 	
-	/** Draw a single line to the screen between points (x1, y1) and (x2, y2)
+	/** Draw a line between points (x1, y1) and (x2, y2) on the screen
 	  */
 	static void drawLine(const int &x1, const int &y1, const int &x2, const int &y2);
 
-	/** Draw multiple lines to the screen
+	/** Draw multiple lines on the screen
 	  * @param x Array of X pixel coordinates
 	  * @param y Array of Y pixel coordinates
 	  * @param N The number of elements in the arrays. Since it is assumed that the number of elements 
@@ -222,7 +308,7 @@ public:
 	  */
 	static void drawLine(const int *x, const int *y, const size_t &N);
 
-	/** Draw multiple lines to the screen
+	/** Draw a rectangle on the screen
 	  * @param x1 X coordinate of the upper left corner
 	  * @param y1 Y coordinate of the upper left corner
 	  * @param x2 X coordinate of the bottom right corner
@@ -230,30 +316,67 @@ public:
 	  */
 	static void drawRectangle(const int &x1, const int &y1, const int &x2, const int &y2);
 
+	/** Draw OpenGL texture on the screen within the specified bounds
+	  * @param texture GL texture context
+	  * @param x1 X coordinate of the upper left corner
+	  * @param y1 Y coordinate of the upper left corner
+	  * @param x2 X coordinate of the bottom right corner
+	  * @param y2 Y coordinate of the bottom right corner
+	 **/
+	static void drawTexture(const unsigned int& texture, const int& x1, const int& y1, const int& x2, const int& y2);
+
 	/** Render the current frame
 	  */
 	static void render();
 
-	/** Return true if the window has been closed and return false otherwise
+	/** Return true if the window is open and return false otherwise
 	  */
 	bool status();
 
-	/** Initialize OpenGL and open the window
+	/** Initialize OpenGL and open a window with a given name
 	  */
 	void initialize(const std::string& name="OpenGL");
 
+	/** Enable keyboard character stream mode
+	  * This mode should be used for text entry e.g. a word processor program.
+	  **/
 	void setKeyboardStreamMode();
 
+	/** Disable keyboard character stream mode and return to default keypress mode
+	  **/
 	void setKeyboardToggleMode();
 
+	/** Setup GLUT keyboard callback to capture keyboard key presses in this window
+	  **/
 	void setupKeyboardHandler();
 
+	/** Setup GLUT mouse callback to capture mouse movement and button presses in this window
+	**/
 	void setupMouseHandler();
 
+	/** Enable OpenGL alpha blending for translucent textures
+	  **/
+	void enableAlphaBlending();
+
+	/** Enable OpenGL Z-depth test and setup viewport for perspective 3d mode
+	  * This method must be called for rendering 3d objects as the default rendering mode is 2d
+	  **/
+	void enableZDepth();
+
+	/** Enable OpenGL backface culling
+	  **/
+	void enableCulling();
+
+	/** QT OpenGL callback, currently not used
+	  **/
 	virtual void paintGL();
 	
+	/** QT OpenGL callback, currently not used
+	  **/
 	virtual void initializeGL();
 
+	/** QT OpenGL callback, currently not used
+	  **/
 	virtual void resizeGL(int width, int height);
 
 private:
@@ -261,8 +384,8 @@ private:
 	int H; ///< Original height of the window (in pixels)
 	float A; ///< Original aspect ratio of window
 
-	int width; ///< Current width of window
-	int height; ///< Current height of window
+	int width; ///< Current width of window (in pixels)
+	int height; ///< Current height of window (in pixels)
 	float aspect; ///< Current aspect ratio of window
 	
 	int nMult; ///< Integer multiplier for window scaling
@@ -270,8 +393,8 @@ private:
 
 	bool init; ///< Flag indicating that the window has been initialized
 
-	KeyStates keys; ///< The last key which was pressed by the user
+	KeyStates keys; ///< GLUT keyboard event callback wrapper
 
-	MouseState mouse;
+	MouseState mouse; ///< GLUT mouse event callback wrapper
 };
 #endif

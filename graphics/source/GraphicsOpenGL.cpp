@@ -117,7 +117,7 @@ void handleSpecialKeysUp(int key, int x, int y){
   * @param width The new width of the window after the user has resized it.
   * @param height The new height of the window after the user has resized it.
   */
-void reshapeScene(GLint width, GLint height){
+void reshapeScene2D(GLint width, GLint height){
 	Window *currentWindow = getCurrentWindow();
 
 	glMatrixMode(GL_PROJECTION);
@@ -150,6 +150,26 @@ void reshapeScene(GLint width, GLint height){
 	currentWindow->clear();
 }
 
+void reshapeScene3D(GLint width, GLint height) {
+	// Compute aspect ratio of the new window
+	if (height == 0) height = 1;                // To prevent divide by 0
+	GLfloat aspect = (GLfloat)width / (GLfloat)height;
+
+	// Set the viewport to cover the new window
+	glViewport(0, 0, width, height);
+
+	// Set the aspect ratio of the clipping volume to match the viewport
+	glMatrixMode(GL_PROJECTION);  // To operate on the Projection matrix
+	glLoadIdentity();             // Reset
+
+	// Enable perspective projection with fovy, aspect, zNear and zFar
+	gluPerspective(90.f, aspect, 0.1f, 100.0f);
+	glMatrixMode(GL_MODELVIEW);
+
+	// Clear the window.
+	getCurrentWindow()->clear();
+}
+
 void displayFunction() {
 	// This callback does nothing, but is required on Windows
 }
@@ -178,7 +198,8 @@ void MouseState::setPosition(const int& x, const int& y) {
 	static bool firstPosition = true;
 	if (firstPosition) {
 		firstPosition = false;
-		glutWarpPointer(320, 240);
+		Window* win = getCurrentWindow();
+		glutWarpPointer(win->getWidth() / 2, win->getHeight() / 2);
 	}
 	if (!lockPointer) {
 		dX = x - posX;
@@ -187,9 +208,10 @@ void MouseState::setPosition(const int& x, const int& y) {
 		posY = y;
 	}
 	else{
-		dX = x - 320;
-		dY = y - 240;
-		glutWarpPointer(320, 240);
+		Window* win = getCurrentWindow();
+		dX = x - win->getWidth() / 2;
+		dY = y - win->getHeight() / 2;
+		glutWarpPointer(win->getWidth() / 2, win->getHeight() / 2);
 	}
 }
 
@@ -318,11 +340,11 @@ void Window::setScalingFactor(const int &scale){
 }
 	
 void Window::setDrawColor(ColorRGB *color, const float &alpha/*=1*/){
-	glColor3f(color->r, color->g, color->b);
+	glColor4f(color->r, color->g, color->b, color->a);
 }
 
 void Window::setDrawColor(const ColorRGB &color, const float &alpha/*=1*/){
-	glColor3f(color.r, color.g, color.b);
+	glColor4f(color.r, color.g, color.b, color.a);
 }
 
 void Window::setCurrent(){
@@ -330,7 +352,7 @@ void Window::setCurrent(){
 }
 
 void Window::clear(const ColorRGB &color/*=Colors::BLACK*/){
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void Window::drawPixel(const int &x, const int &y){
@@ -358,17 +380,24 @@ void Window::drawLine(const int *x, const int *y, const size_t &N){
 		drawLine(x[i], y[i], x[i+1], y[i+1]);
 }
 
-/** Draw multiple lines to the screen
-  * @param x1 X coordinate of the upper left corner
-  * @param y1 Y coordinate of the upper left corner
-  * @param x2 X coordinate of the bottom right corner
-  * @param y2 Y coordinate of the bottom right corner
-  */
 void Window::drawRectangle(const int &x1, const int &y1, const int &x2, const int &y2){
 	drawLine(x1, y1, x2, y1); // Top
 	drawLine(x2, y1, x2, y2); // Right
 	drawLine(x2, y2, x1, y2); // Bottom
 	drawLine(x1, y2, x1, y1); // Left
+}
+
+void Window::drawTexture(const unsigned int& texture, const int& x1, const int& y1, const int& x2, const int& y2) {
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glEnable(GL_TEXTURE_2D);
+	glBegin(GL_QUADS);
+		glTexCoord2i(0, 0); glVertex2i(x1, y1);
+		glTexCoord2i(1, 0); glVertex2i(x2, y1);
+		glTexCoord2i(1, 1); glVertex2i(x2, y2);
+		glTexCoord2i(0, 1); glVertex2i(x1, y2);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Window::render(){
@@ -398,13 +427,13 @@ void Window::initialize(const std::string& name/*="OpenGL"*/){
 	listOfWindows[winID] = this;
 
 	// Set window size handler
-	glutReshapeFunc(reshapeScene);
+	glutReshapeFunc(reshapeScene2D);
+
+	// Update the viewport
+	reshapeScene2D(W * nMult, H * nMult);
 
 	// Set the display function callback (required for Windows)
 	glutDisplayFunc(displayFunction);
-
-	// Set window size handler
-	glutReshapeFunc(reshapeScene);
 
 	init = true;
 }
@@ -445,6 +474,28 @@ void Window::setupMouseHandler() {
 	glutPassiveMotionFunc(handleMouseMovementPassive);
 }
 
+void Window::enableAlphaBlending() {
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void Window::enableZDepth() {
+	glLoadIdentity();
+	gluPerspective(45.0f, aspect, 0.1f, 100.0f);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glShadeModel(GL_SMOOTH);
+	glClearDepth(1.0f);
+	glutReshapeFunc(reshapeScene3D);
+	reshapeScene3D(W * nMult, H * nMult);
+}
+
+void Window::enableCulling() {
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+}
+
 void Window::paintGL(){
 	this->render();
 }
@@ -454,5 +505,5 @@ void Window::initializeGL(){
 }
 
 void Window::resizeGL(int width, int height){
-	reshapeScene(width, height);
+	reshapeScene2D(width, height);
 }
