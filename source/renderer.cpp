@@ -73,6 +73,8 @@ int main(){
 
 	// Print the size of the object. This is undefined until calling addObject()
 	std::cout << " Object size (x=" << myShape.getSizeX() << ", y=" << myShape.getSizeY() << ", z=" << myShape.getSizeZ() << ")" << std::endl;
+	std::cout << "  Vertices: " << myShape.getNumberOfVertices() << std::endl;
+	std::cout << "  Polygons: " << myShape.getNumberOfPolygons() << std::endl;
 
 	WrappedValue pitch(0, -pi, pi);
 	WrappedValue yaw(0, -pi, pi);

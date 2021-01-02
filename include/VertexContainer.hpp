@@ -10,7 +10,12 @@ class object;
 
 class VertexContainer {
 public:
-	VertexContainer() {}
+	VertexContainer() :
+		nVertices(0),
+		raw(),
+		vertices()	
+	{
+	}
 
 	Vertex* operator [] (const size_t& index) { return &vertices[index]; }
 
@@ -18,9 +23,11 @@ public:
 
 	void copy(std::vector<Vertex>& out);
 
-	void reserve(const size_t& nVertices);
+	void reserve(const size_t& N);
 
-	size_t size() const { return vertices.size(); }
+	bool findVertex(Vertex* ptr, size_t& index) const;
+	
+	size_t size() const { return nVertices; }
 
 	std::vector<Vertex>::iterator begin() { return vertices.begin(); }
 
@@ -32,13 +39,20 @@ public:
 
 	Vertex* back() { return &vertices.back(); }
 
+	float* getRawData() { return raw.data(); }
+
+	const float* getConstRawData() const { return (const float*)raw.data(); }
+
 	void add(const vector3& position, const object* obj);
 
 	void add(const float& posX, const float& posY, const float& posZ, const object* obj);
 
 private:
-	std::vector<float> raw;
-	std::vector<Vertex> vertices;
+	size_t nVertices; ///< Number of vertices
+
+	std::vector<float> raw; ///< Raw vertex positions
+
+	std::vector<Vertex> vertices; ///< Vertex information
 };
 
 #endif

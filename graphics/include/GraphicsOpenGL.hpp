@@ -6,6 +6,9 @@
 #include <string>
 
 #include "ColorRGB.hpp"
+#include "vector3.hpp"
+
+class object;
 
 /// <summary>
 /// Simple mouse motion and button press wrapper for interfacing with GLUT
@@ -324,6 +327,25 @@ public:
 	  * @param y2 Y coordinate of the bottom right corner
 	 **/
 	static void drawTexture(const unsigned int& texture, const int& x1, const int& y1, const int& x2, const int& y2);
+
+	/** Draw an array of raw 3d vertices
+	  * @param vertices Array of raw 3d position components formatted as {x0, y0, z0, ... , xN-1, yN-1, zN-1}
+	  * @param indices Array of triangle vertex indicies formatted as {i00, i01, i02, ... , i(N-1)0, i(N-1)1, i(N-1)2}
+	  * @param N Number of triangle vertex indecies in index array
+	  */
+	static void drawVertexArray(const float* vertices, const unsigned short* indices, const size_t& N);
+
+	/** Draw a 3d object on the screen
+	  * @param obj Pointer to 3d object which will be drawn
+	  * @param offset Position offset of object (camera position)
+	  */
+	void drawObject(const object* obj, const vector3& offset);
+
+	/** Draw a static 3d object on the screen
+	  * @param obj Pointer to 3d object which will be drawn
+	  * @param offset Position offset of object (camera position)
+	  */
+	void drawStaticObject(const object* obj, const vector3& offset);
 
 	/** Render the current frame
 	  */

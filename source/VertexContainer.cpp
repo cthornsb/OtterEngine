@@ -10,9 +10,19 @@ void VertexContainer::copy(std::vector<Vertex>& out) {
 		out.push_back(*vert);
 }
 
-void VertexContainer::reserve(const size_t& nVertices) {
-	raw.reserve(nVertices * 3);
-	vertices.reserve(nVertices);
+void VertexContainer::reserve(const size_t& N) {
+	raw.reserve(N * 3);
+	vertices.reserve(N);
+}
+
+bool VertexContainer::findVertex(Vertex* ptr, size_t& index) const {
+	index = 0;
+	for (auto vert = vertices.cbegin(); vert != vertices.cend(); vert++) {
+		if (&(*vert) == ptr)
+			return true;
+		index++;
+	}
+	return false;
 }
 
 void VertexContainer::append(const std::vector<float>& in, const object* obj) {
@@ -30,6 +40,7 @@ void VertexContainer::append(const std::vector<float>& in, const object* obj) {
 		case 2: // x
 			vec.x = *vert;
 			vertices.push_back(Vertex(vec, obj));
+			nVertices++;
 			break;
 		default:
 			break;
@@ -43,6 +54,7 @@ void VertexContainer::append(const std::vector<Vertex>& in) {
 		raw.push_back(vert->getPosition().y);
 		raw.push_back(vert->getPosition().z);
 		vertices.push_back(*vert);
+		nVertices++;
 	}
 }
 
@@ -51,6 +63,7 @@ void VertexContainer::add(const vector3& position, const object* obj) {
 	raw.push_back(position.y);
 	raw.push_back(position.z);
 	vertices.push_back(Vertex(position, obj));
+	nVertices++;
 }
 
 void VertexContainer::add(const float& posX, const float& posY, const float& posZ, const object* obj) {
@@ -58,4 +71,5 @@ void VertexContainer::add(const float& posX, const float& posY, const float& pos
 	raw.push_back(posY);
 	raw.push_back(posZ);
 	vertices.push_back(Vertex(vector3(posX, posY, posZ), obj));
+	nVertices++;
 }

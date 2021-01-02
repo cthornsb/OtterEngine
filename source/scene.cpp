@@ -58,7 +58,11 @@ void scene::initialize(){
 	window->setupMouseHandler(); // Set mouse support
 	window->setupKeyboardHandler(); // Set keyboard support
 	window->getMouse()->setLockPointer();
-	
+
+	// Switch to 3d OpenGL mode
+	//window->enableZDepth();
+	//window->enableCulling();
+
 	// Set the pixel coordinate bounds
 	minPixelsX = (int)(screenWidthPixels*(1-SCREEN_YLIMIT)/2);
 	maxPixelsX = (int)(screenWidthPixels-minPixelsX);
@@ -88,6 +92,11 @@ bool scene::update(){
 	// Clear the screen with a color
 	clear(Colors::BLACK);
 	
+	// Draw the vertices (using OpenGL)
+	/*for (auto obj = objects.cbegin(); obj != objects.cend(); obj++) {
+		window->drawObject(*obj, cam->getPosition());
+	}*/
+
 	// Draw the 3d geometry
 	for(auto obj = objects.cbegin(); obj != objects.cend(); obj++)
 		processObject(*obj);

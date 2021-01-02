@@ -182,15 +182,15 @@ void StlObject::readStlBlock(float* array) {
 					tri = triangle(vertPtrs[0], vertPtrs[2], vertPtrs[1], this);
 					reversed = true;
 				}
-				polys.push_back(tri);
+				polys.add(tri, &vertices);
 			}
 			else { // Reversed vertices
 				triangle tri(vertPtrs[0], vertPtrs[2], vertPtrs[1], this);
-				polys.push_back(tri);
+				polys.add(tri, &vertices);
 			}
 		}
 		else
-			polys.push_back(triangle(vertPtrs[0], vertPtrs[1], vertPtrs[2], this));
+			polys.add(vertPtrs[0], vertPtrs[1], vertPtrs[2], &vertices, this);
 	}
 	else {
 		std::cout << " error\n";

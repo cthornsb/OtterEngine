@@ -9,6 +9,7 @@
 #include "Vertex.hpp"
 #include "WrappedValue.hpp"
 #include "VertexContainer.hpp"
+#include "PolygonContainer.hpp"
 
 class camera;
 
@@ -24,7 +25,7 @@ public:
 	
 	/** Get a pointer to the vector of polygons which comprise this 3d object
 	  */
-	std::vector<triangle>* getPolygons() { return &polys; }
+	std::vector<triangle>* getPolygons() { return polys.getPolygons(); }
 
 	/** Get the position offset of the object
 	  */
@@ -45,6 +46,12 @@ public:
 	/** Get the size of the object along the z-axis
 	  */
 	float getSizeZ() const { return (maxSize[2] - minSize[2]); }
+
+	float getPitchAngle() const { return pitchAngle.get(); }
+
+	float getRollAngle() const { return rollAngle.get(); }
+
+	float getYawAngle() const { return yawAngle.get(); }
 
 	/** Get a const pointer to the position vector
 	  */
@@ -82,6 +89,14 @@ public:
 	  * @return Pointer to this object's parent object, or (this) if object has no parent
 	  */
 	const object* getParent() const { return (parent ? parent : this); }
+
+	/** Get the array of raw vertex position data
+	  */
+	const float* getRawVertexData() const { return vertices.getConstRawData(); }
+
+	/** Get the array of raw vertex index data
+	  */
+	const unsigned short* getRawIndexData() const { return polys.getConstIndicies(); }
 
 	/** Return true if this object has a parent object and return false otherwise
 	  */
@@ -170,8 +185,8 @@ protected:
 	
 	std::vector<Vertex*> verticesToDraw; ///< List of vertices which will be drawn
 
-	std::vector<triangle> polys; ///< Vector of all unique polygons which make up this 3d object
-	
+	PolygonContainer polys; ///< Vector of all unique polygons which make up this 3d object
+
 	std::vector<object*> children; ///< Vector of pointers to child objects
 
 	vector3 parentOffset; ///< Offset of this object within its parent
@@ -236,21 +251,21 @@ protected:
 
 	/** Add a unique polygon to the vector of polygons
 	  */
-	void addTriangle(const unsigned int &i0, const unsigned int &i1, const unsigned int &i2);
+	void addTriangle(const unsigned short &i0, const unsigned short &i1, const unsigned short &i2);
 
 	/** Add two unique polygons (representing a quadrilateral) to the vector of polygons
 	  */
-	void addQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3);
+	void addQuad(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2, const unsigned short& i3);
 
 	/** Add a unique static triangle to the vector of polygons
 	  * @note Static triangles cannot be moved or rotated
 	  */
-	void addStaticTriangle(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2);
+	void addStaticTriangle(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2);
 
 	/** Add two unique static triangles (representing a quadrilateral) to the vector of polygons
 	  * @note Static triangles cannot be moved or rotated
 	  */
-	void addStaticQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3);
+	void addStaticQuad(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2, const unsigned short& i3);
 };
 
 #endif

@@ -207,25 +207,25 @@ Vertex* object::addVertex(const vector3& vec) {
 	return vertices.back();
 }
 
-void object::addTriangle(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2){
+void object::addTriangle(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2){
 	if (polys.size() > reservedPolygons) {
 		std::cout << " Object: [warning] Not enough memory reserved for polygon vector, this may result in undefined behavior!" << std::endl;
 	}
-	polys.push_back(triangle(vertices[i0], vertices[i1], vertices[i2], this));
+	polys.add(i0, i1, i2, &vertices, this);
 }
 
-void object::addQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3) {
+void object::addQuad(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2, const unsigned short& i3) {
 	// Eventually this will use a quad face, but for now we get two triangles
 	addTriangle(i0, i1, i2);
 	addTriangle(i2, i3, i0);
 }
 
-void object::addStaticTriangle(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2) {
-	polys.push_back(triangle(vertices[i0], vertices[i1], vertices[i2], this));
+void object::addStaticTriangle(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2) {
+	polys.add(i0, i1, i2, &vertices, this);
 }
 
-void object::addStaticQuad(const unsigned int& i0, const unsigned int& i1, const unsigned int& i2, const unsigned int& i3) {
+void object::addStaticQuad(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2, const unsigned short& i3) {
 	// Eventually this will use a quad face, but for now we get two triangles
-	polys.push_back(triangle(vertices[i0], vertices[i1], vertices[i2], this));
-	polys.push_back(triangle(vertices[i2], vertices[i3], vertices[i0], this));
+	polys.add(i0, i1, i2, &vertices, this);
+	polys.add(i2, i3, i0, &vertices, this);
 }

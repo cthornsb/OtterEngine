@@ -5,6 +5,7 @@ set(CORE_SOURCES camera.cpp
                  object.cpp                 
                  plane.cpp
                  PixelTriplet.cpp
+                 PolygonContainer.cpp
                  Primitives.cpp
                  ray.cpp 
                  scene.cpp

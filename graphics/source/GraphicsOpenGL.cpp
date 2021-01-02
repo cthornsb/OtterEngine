@@ -2,7 +2,9 @@
 
 #include <GL/freeglut.h>
 
+#include "Globals.hpp"
 #include "GraphicsOpenGL.hpp"
+#include "object.hpp"
 
 std::map<int, Window*> listOfWindows;
 
@@ -398,6 +400,26 @@ void Window::drawTexture(const unsigned int& texture, const int& x1, const int& 
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Window::drawVertexArray(const float* vertices, const unsigned short* indices, const size_t& N) {
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, vertices);
+	glDrawElements(GL_TRIANGLES, N, GL_UNSIGNED_SHORT, indices);
+	glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void Window::drawObject(const object* obj, const vector3& offset) {
+	glLoadIdentity(); // Reset model-view matrix
+	//vector3 offsetPosition = obj->getPosition() - offset;
+	//glTranslatef(offsetPosition.x, offsetPosition.y, offsetPosition.z);  // Translation
+	glTranslatef(0.f, 0.f, -5.f); // Testing
+	glRotatef(obj->getPitchAngle() * rad2deg, 1.f, 0.f, 0.f); // Rotation about x-axis (pitch)
+	glRotatef(obj->getYawAngle() * rad2deg,   0.f, 1.f, 0.f); // Rotation about y-axis (yaw)
+	glRotatef(obj->getRollAngle() * rad2deg,  0.f, 0.f, 1.f); // Rotation about z-axis (roll)
+
+	// Draw the vertices
+	drawVertexArray(obj->getRawVertexData(), obj->getRawIndexData(), 3*obj->getNumberOfPolygons());
 }
 
 void Window::render(){
