@@ -7,6 +7,12 @@
 
 #include "Texture.hpp"
 
+Texture::~Texture() {
+	free();
+	unsigned int arr[1] = { nContext }; // Simple workaround (temporary)
+	glDeleteTextures(1, arr);
+}
+
 unsigned int Texture::getTexture() {
 	if (!nBytes)
 		return 0;
@@ -14,7 +20,10 @@ unsigned int Texture::getTexture() {
 	// Generate an OpenGL texture
 	glGenTextures(1, &nContext);
 	glBindTexture(GL_TEXTURE_2D, nContext);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, nWidth, nHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, getConstData());
 	glBindTexture(GL_TEXTURE_2D, 0);
 

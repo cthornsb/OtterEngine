@@ -60,8 +60,8 @@ void scene::initialize(){
 	window->getMouse()->setLockPointer();
 
 	// Switch to 3d OpenGL mode
-	//window->enableZDepth();
-	//window->enableCulling();
+	window->enableZDepth();
+	window->enableCulling();
 
 	// Set the pixel coordinate bounds
 	minPixelsX = (int)(screenWidthPixels*(1-SCREEN_YLIMIT)/2);
@@ -93,12 +93,12 @@ bool scene::update(){
 	clear(Colors::BLACK);
 	
 	// Draw the vertices (using OpenGL)
-	/*for (auto obj = objects.cbegin(); obj != objects.cend(); obj++) {
+	for (auto obj = objects.cbegin(); obj != objects.cend(); obj++) {
 		window->drawObject(*obj, cam->getPosition());
-	}*/
+	}
 
 	// Draw the 3d geometry
-	for(auto obj = objects.cbegin(); obj != objects.cend(); obj++)
+	/*for(auto obj = objects.cbegin(); obj != objects.cend(); obj++)
 		processObject(*obj);
 
 	// Compute vertex lighting
@@ -185,7 +185,7 @@ bool scene::update(){
 		drawVector(vector3(0, 0, 0), vector3(1, 0, 0), Colors::RED);
 		drawVector(vector3(0, 0, 0), vector3(0, 1, 0), Colors::GREEN);
 		drawVector(vector3(0, 0, 0), vector3(0, 0, 1), Colors::BLUE);
-	}
+	}*/
 
 	//if (!polygonsToDraw.empty())
 		//drawVector(vector3(0, 0, 0), polygonsToDraw.back().tri->p, Colors::RED);

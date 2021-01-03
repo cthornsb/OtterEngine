@@ -96,9 +96,7 @@ public:
 
 	/** Destructor
 	  **/
-	~Texture() {
-		free();
-	}
+	~Texture();
 
 	/** Return true if image data is loaded in conventional memory and return false otherwise
 	  **/
@@ -129,6 +127,10 @@ public:
 	/** Get a logical pixel from a pixel in the loaded image
 	  **/
 	bool getPixel(const int& x, const int& y, LogicalColor& color);
+
+	void setParameter() {}
+
+	void generateMipmaps() {}
 
 	/** Set multiplicitive opacity of the texture
 	  * @param opacity Opacity of texture, in range [0, 1]

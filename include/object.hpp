@@ -12,6 +12,7 @@
 #include "PolygonContainer.hpp"
 
 class camera;
+class Shader;
 
 class object{
 public:
@@ -85,10 +86,14 @@ public:
 	  */
 	size_t getNumberOfReservedPolygons() const { return reservedPolygons; }
 
-	/** Get a pointer to this object's parent
+	/** Get a const pointer to this object's parent
 	  * @return Pointer to this object's parent object, or (this) if object has no parent
 	  */
 	const object* getParent() const { return (parent ? parent : this); }
+
+	/** Get a const pointer to the shader used to render the object
+	  */
+	const Shader* getShader() const { return shader; }
 
 	/** Get the array of raw vertex position data
 	  */
@@ -131,6 +136,10 @@ public:
 	/** Set the position of the object
 	  */
 	void setPosition(const vector3 &position);
+
+	/** Set the shader to use for rendering
+	  */
+	void setShader(const Shader* shdr) { shader = shdr; }
 
 	/** Reset the offset position of the object to its original location
 	  */
@@ -193,6 +202,8 @@ protected:
 
 	const object* parent; ///< Pointer to parent object
 
+	const Shader* shader; ///< Pointer to an OpenGL shader to use for rendering
+
 	/** Update the physical size of the object along the x-axis
 	  * @note The size is only for informational purposes and does not change the scale of the object
 	  */
@@ -211,7 +222,7 @@ protected:
 	/** Set this object's parent
 	  * @return True if this object had no parent, and return false if otherwise
 	  */
-	bool setParent(object* obj);
+	bool setParent(const object* obj);
 
 	/** Update the position of all child objects to the parent position
 	  */

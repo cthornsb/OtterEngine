@@ -24,7 +24,8 @@ object::object() :
 	polys(),
 	children(),
 	parentOffset(),
-	parent(0x0)
+	parent(0x0),
+	shader(0x0)
 {
 	for (int i = 0; i < 3; i++) {
 		maxSize[i] = -FLT_MAX;
@@ -138,7 +139,7 @@ void object::setSizeZ(const float& min_, const float& max_) {
 	maxSize[2] = max_;
 }
 
-bool object::setParent(object* obj) { 
+bool object::setParent(const object* obj) { 
 	bool retval = (parent == 0x0);
 	parent = obj;
 	return retval;

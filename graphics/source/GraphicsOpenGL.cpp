@@ -1,10 +1,13 @@
+#include <iostream>
 #include <map>
 
+#include <GL/glew.h>
 #include <GL/freeglut.h>
 
 #include "Globals.hpp"
 #include "GraphicsOpenGL.hpp"
 #include "object.hpp"
+#include "Shader.hpp"
 
 std::map<int, Window*> listOfWindows;
 
@@ -402,9 +405,11 @@ void Window::drawTexture(const unsigned int& texture, const int& x1, const int& 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Window::drawVertexArray(const float* vertices, const unsigned short* indices, const size_t& N) {
+void Window::drawVertexArray(const float* vertices, const unsigned short* indices, const size_t& N, const Shader* shdr/*=0x0*/) {
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, vertices);
+	if(shdr)
+		glUseProgram(shdr->getProgram());
 	glDrawElements(GL_TRIANGLES, N, GL_UNSIGNED_SHORT, indices);
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
@@ -419,7 +424,7 @@ void Window::drawObject(const object* obj, const vector3& offset) {
 	glRotatef(obj->getRollAngle() * rad2deg,  0.f, 0.f, 1.f); // Rotation about z-axis (roll)
 
 	// Draw the vertices
-	drawVertexArray(obj->getRawVertexData(), obj->getRawIndexData(), 3*obj->getNumberOfPolygons());
+	drawVertexArray(obj->getRawVertexData(), obj->getRawIndexData(), 3*obj->getNumberOfPolygons(), obj->getShader());
 }
 
 void Window::render(){
@@ -438,9 +443,8 @@ void Window::initialize(const std::string& name/*="OpenGL"*/){
 
 	// Open the graphics window
 	static bool firstInit = true;
-	if(firstInit){ // Stupid glut
+	if(firstInit){ // Initialize GLUT
 		glutInit(&dummyArgc, NULL);
-		firstInit = false;
 	}
 	glutInitDisplayMode(GLUT_SINGLE);
 	glutInitWindowSize(W*nMult, H*nMult);
@@ -456,6 +460,14 @@ void Window::initialize(const std::string& name/*="OpenGL"*/){
 
 	// Set the display function callback (required for Windows)
 	glutDisplayFunc(displayFunction);
+
+	if (firstInit) { // Initialize GLEW
+		GLenum err = glewInit(); // Initialize GLEW
+		if (err != GLEW_OK) {
+			std::cout << " [ERROR] Failed to initialize GLEW!" << std::endl;
+		}
+		firstInit = false;
+	}
 
 	init = true;
 }
