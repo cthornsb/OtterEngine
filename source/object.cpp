@@ -120,6 +120,7 @@ void object::build() {
 	for (std::vector<Vertex>::iterator vert = vertices.begin(); vert != vertices.end(); vert++) {
 		vert->norm0.normInPlace();
 	}
+	polys.finalize();
 	verticesToDraw.reserve(vertices.size());
 	built = true;
 }

@@ -405,12 +405,13 @@ void Window::drawTexture(const unsigned int& texture, const int& x1, const int& 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Window::drawVertexArray(const float* vertices, const unsigned short* indices, const size_t& N, const Shader* shdr/*=0x0*/) {
+void Window::drawVertexArray(const float* vertices, const size_t& N, const Shader* shdr/*=0x0*/) {
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, vertices);
 	if(shdr)
 		glUseProgram(shdr->getProgram());
-	glDrawElements(GL_TRIANGLES, N, GL_UNSIGNED_SHORT, indices);
+	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)N);
+	//glDrawElements(GL_TRIANGLES, N, GL_UNSIGNED_SHORT, indices);
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
@@ -418,13 +419,37 @@ void Window::drawObject(const object* obj, const vector3& offset) {
 	glLoadIdentity(); // Reset model-view matrix
 	//vector3 offsetPosition = obj->getPosition() - offset;
 	//glTranslatef(offsetPosition.x, offsetPosition.y, offsetPosition.z);  // Translation
-	glTranslatef(0.f, 0.f, -5.f); // Testing
+	glTranslatef(0.f, 0.f, -2.5f); // Testing
 	glRotatef(obj->getPitchAngle() * rad2deg, 1.f, 0.f, 0.f); // Rotation about x-axis (pitch)
 	glRotatef(obj->getYawAngle() * rad2deg,   0.f, 1.f, 0.f); // Rotation about y-axis (yaw)
 	glRotatef(obj->getRollAngle() * rad2deg,  0.f, 0.f, 1.f); // Rotation about z-axis (roll)
 
-	// Draw the vertices
-	drawVertexArray(obj->getRawVertexData(), obj->getRawIndexData(), 3*obj->getNumberOfPolygons(), obj->getShader());
+	// Bind VBOs for vertex data array and index array
+	glBindBuffer(GL_ARRAY_BUFFER, obj->getVertexVBO());
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj->getIndexVBO());
+
+	glEnableClientState(GL_VERTEX_ARRAY); // Activate vertex array
+	glEnableClientState(GL_NORMAL_ARRAY); // Activate vertex normal array
+	//glEnableClientState(GL_COLOR_ARRAY); // Activate vertex color array
+	//glEnableClientState(GL_TEXTURE_COORD_ARRAY); // Activate texture coords array
+
+	// do same as vertex array except pointer
+	glVertexPointer(3, GL_FLOAT, 0, (const void*)0);    // last param is offset, not ptr
+	glNormalPointer(GL_FLOAT, 0, (const void*)obj->getPolygons()->getSizeOfVertexData());
+	//glColorPointer(3, GL_FLOAT, 
+	//glTexCoordPointer(2, GL_FLOAT, stride, offset3);
+
+	// Draw the faces
+	glUseProgram(obj->getShader()->getProgram());
+	glDrawElements(GL_TRIANGLES, (GLsizei)(3 * obj->getNumberOfPolygons()), GL_UNSIGNED_SHORT, 0x0);
+
+	glDisableClientState(GL_VERTEX_ARRAY);            // deactivate vertex position array
+	glDisableClientState(GL_NORMAL_ARRAY);            // deactivate vertex normal array
+	//glDisableClientState(GL_COLOR_ARRAY);
+	//glDisableClientState(GL_TEXTURE_COORD_ARRAY);     // deactivate vertex tex coord array
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void Window::render(){
@@ -525,9 +550,27 @@ void Window::enableZDepth() {
 	reshapeScene3D(W * nMult, H * nMult);
 }
 
+void Window::disableZDepth() {
+	glDisable(GL_DEPTH_TEST);
+	glutReshapeFunc(reshapeScene2D);
+	reshapeScene2D(W * nMult, H * nMult);
+}
+
 void Window::enableCulling() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+}
+
+void Window::disableCulling() {
+	glDisable(GL_CULL_FACE);
+}
+
+void Window::enableWireframeMode() {
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+}
+
+void Window::disableWireframeMode() {
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void Window::paintGL(){

@@ -14,6 +14,9 @@
 class camera;
 class Shader;
 
+/// <summary>
+/// 3d object geometry class
+/// </summary>
 class object{
 public:
 	/** Default constructor
@@ -48,10 +51,16 @@ public:
 	  */
 	float getSizeZ() const { return (maxSize[2] - minSize[2]); }
 
+	/** Get the current pitch angle (angle about the x-axis) (in radians)
+	  */
 	float getPitchAngle() const { return pitchAngle.get(); }
 
+	/** Get the current roll angle (angle about the z-axis) (in radians)
+	  */
 	float getRollAngle() const { return rollAngle.get(); }
 
+	/** Get the current yaw angle (angle about the y-axis) (in radians)
+	  */
 	float getYawAngle() const { return yawAngle.get(); }
 
 	/** Get a const pointer to the position vector
@@ -95,13 +104,25 @@ public:
 	  */
 	const Shader* getShader() const { return shader; }
 
+	/** Get a pointer to the vertex container object
+	  */
+	const VertexContainer* getVertices() const { return &vertices; }
+
+	/** Get a pointer to the polygon container object
+	  */
+	const PolygonContainer* getPolygons() const { return &polys; }
+
 	/** Get the array of raw vertex position data
 	  */
-	const float* getRawVertexData() const { return vertices.getConstRawData(); }
+	const float* getRawVertexData() const { return polys.getConstVertexData(); }
 
-	/** Get the array of raw vertex index data
+	/** Get OpenGL VBO id number corresponding to object vertices
 	  */
-	const unsigned short* getRawIndexData() const { return polys.getConstIndicies(); }
+	unsigned int getVertexVBO() const { return polys.getVertexVBO(); }
+
+	/** Get OpenGL VBO id number corresponding to object vertex indicies
+	  */
+	unsigned int getIndexVBO() const { return polys.getIndexVBO(); }
 
 	/** Return true if this object has a parent object and return false otherwise
 	  */

@@ -130,6 +130,14 @@ public:
 	  */
 	void setDrawingMode(const drawMode& dmode) { mode = dmode; }
 
+	/** Enable OpenGL hardware renderer
+	  */
+	void enableOpenGLRenderer();
+
+	/** Disable OpenGL hardware renderer and use software renderer
+	  */
+	void disableOpenGLRenderer();
+
 	/** Add an object to the list of objects to be rendered
 	  */
 	void addObject(object* obj);
@@ -142,12 +150,18 @@ public:
 	  */
 	void clear(const ColorRGB &color=Colors::BLACK);
 	
-	/** Update the screen
+	/** Draw objects on the screen using software renderer
 	  * @note This method should be called once per iteration of the main loop
 	  * @return True if the update was successful and return false if the user closed the window
 	  */
 	bool update();
 	
+	/** Draw objects on the screen using OpenGL renderer
+	  * @note This method should be called once per iteration of the main loop
+	  * @return True if the update was successful and return false if the user closed the window
+	  */
+	bool updateOpenGL();
+
 	/** Sync the frame timer to the requested framerate
 	  * @return The time elapsed since last update() was called (in seconds)
 	  */
@@ -195,6 +209,11 @@ private:
 
 	std::vector<pixelTriplet> polygonsToDraw;
 
+	/** Refresh the screen
+	  * @return True if the update was successful and return false if the user closed the window
+	  */
+	bool render();
+
 	/** Process all polygons of an object
 	  */
 	void processPolygons(object* obj);
@@ -203,6 +222,8 @@ private:
 	  */
 	void processObject(object *obj);
 
+	/**
+	  */
 	void convertToScreenSpace(const int& px, const int& py, float& x, float& y) const;
 
 	/**

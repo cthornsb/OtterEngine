@@ -331,11 +331,10 @@ public:
 
 	/** Draw an array of raw 3d vertices
 	  * @param vertices Array of raw 3d position components formatted as {x0, y0, z0, ... , xN-1, yN-1, zN-1}
-	  * @param indices Array of triangle vertex indicies formatted as {i00, i01, i02, ... , i(N-1)0, i(N-1)1, i(N-1)2}
 	  * @param N Number of triangle vertex indecies in index array
 	  * @param shdr Pointer to the shader program which should be used for triangle rendering
 	  */
-	static void drawVertexArray(const float* vertices, const unsigned short* indices, const size_t& N, const Shader* shdr=0x0);
+	static void drawVertexArray(const float* vertices, const size_t& N, const Shader* shdr=0x0);
 
 	/** Draw a 3d object on the screen
 	  * @param obj Pointer to 3d object which will be drawn
@@ -387,9 +386,27 @@ public:
 	  **/
 	void enableZDepth();
 
+	/** Disable OpenGL Z-depth test and setup viewport for 2d drawing mode (default)
+	  **/
+	void disableZDepth();
+
 	/** Enable OpenGL backface culling
+	  * OpenGL perspective mode must be enabled, otherwise this will have no effect
 	  **/
 	void enableCulling();
+
+	/** Disable OpenGL backface culling
+	  */
+	void disableCulling();
+
+	/** Switch to wireframe mode
+	  * OpenGL perspective mode must be enabled, otherwise this will have no effect
+	  */
+	void enableWireframeMode();
+
+	/** Disable wireframe mode (default)
+	  */
+	void disableWireframeMode();
 
 	/** QT OpenGL callback, currently not used
 	  **/

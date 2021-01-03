@@ -11,10 +11,6 @@ public:
 	friend class object;
 	friend class triangle;
 
-	float* p0; ///< Pointer to the x-coordinate of the vertex position
-	float* p1; ///< Pointer to the y-coordinate of the vertex position
-	float* p2; ///< Pointer to the z-coordinate of the vertex position
-
 	short pX; ///< The horizontal pixel coordinates of the vertex projection
 	short pY; ///< The vertical pixel coordinates of the vertex projection
 
@@ -24,9 +20,6 @@ public:
 	float zDepth; ///< The distance between the vertex and the focal point of the camera, into the screen
 
 	Vertex() :
-		p0(0x0),
-		p1(0x0),
-		p2(0x0),
 		pX(0),
 		pY(0),
 		sX(0),
@@ -52,9 +45,17 @@ public:
 	  */
 	vector3 getPosition() const;
 
+	/** Get the initial vertex position
+	  */
+	vector3 getInitialPosition() const { return pos0; }
+
 	/** Get the normal vector at this vertex
 	  */
 	vector3 getNormal() const;
+
+	/** Get the initial vertex normal
+	  */
+	vector3 getInitialNormal() const { return norm0; }
 
 	/** Transform the vertex position by an input matrix and return the result
 	  */

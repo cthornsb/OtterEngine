@@ -59,10 +59,6 @@ void scene::initialize(){
 	window->setupKeyboardHandler(); // Set keyboard support
 	window->getMouse()->setLockPointer();
 
-	// Switch to 3d OpenGL mode
-	window->enableZDepth();
-	window->enableCulling();
-
 	// Set the pixel coordinate bounds
 	minPixelsX = (int)(screenWidthPixels*(1-SCREEN_YLIMIT)/2);
 	maxPixelsX = (int)(screenWidthPixels-minPixelsX);
@@ -71,6 +67,17 @@ void scene::initialize(){
 
 	// Add the world light to the list of light sources
 	addLight(&worldLight);
+}
+
+void scene::enableOpenGLRenderer() {
+	// Switch to OpenGL renderer mode
+	window->enableZDepth();
+	window->enableCulling();
+}
+
+void scene::disableOpenGLRenderer() {
+	// Switch to software renderer
+	window->disableZDepth();
 }
 
 void scene::addObject(object* obj) { 
@@ -92,13 +99,8 @@ bool scene::update(){
 	// Clear the screen with a color
 	clear(Colors::BLACK);
 	
-	// Draw the vertices (using OpenGL)
-	for (auto obj = objects.cbegin(); obj != objects.cend(); obj++) {
-		window->drawObject(*obj, cam->getPosition());
-	}
-
 	// Draw the 3d geometry
-	/*for(auto obj = objects.cbegin(); obj != objects.cend(); obj++)
+	for(auto obj = objects.cbegin(); obj != objects.cend(); obj++)
 		processObject(*obj);
 
 	// Compute vertex lighting
@@ -185,18 +187,37 @@ bool scene::update(){
 		drawVector(vector3(0, 0, 0), vector3(1, 0, 0), Colors::RED);
 		drawVector(vector3(0, 0, 0), vector3(0, 1, 0), Colors::GREEN);
 		drawVector(vector3(0, 0, 0), vector3(0, 0, 1), Colors::BLUE);
-	}*/
+	}
 
-	//if (!polygonsToDraw.empty())
-		//drawVector(vector3(0, 0, 0), polygonsToDraw.back().tri->p, Colors::RED);
+	return render();
+}
 
+bool scene::updateOpenGL() {
+	// Update the timer
+	timeOfLastUpdate = hclock::now();
+
+	// Clear the vector of triangles to draw
+	polygonsToDraw.clear();
+
+	// Clear the screen with a color
+	clear(Colors::BLACK);
+
+	// Draw the vertices (using OpenGL)
+	//window->enableWireframeMode();
+	for (auto obj = objects.cbegin(); obj != objects.cend(); obj++) {
+		window->drawObject(*obj, cam->getPosition());
+	}
+
+	return render();
+}
+
+bool scene::render() {
 	// Update the screen
-	if(!window->processEvents()){ // Check for events
+	if (!window->processEvents()) { // Check for events
 		isRunning = false;
 		return false;
 	}
 	window->render();
-
 	return true;
 }
 

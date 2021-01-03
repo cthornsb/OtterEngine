@@ -12,14 +12,11 @@ class VertexContainer {
 public:
 	VertexContainer() :
 		nVertices(0),
-		raw(),
 		vertices()	
 	{
 	}
 
 	Vertex* operator [] (const size_t& index) { return &vertices[index]; }
-
-	void copy(std::vector<float>& out);
 
 	void copy(std::vector<Vertex>& out);
 
@@ -39,18 +36,12 @@ public:
 
 	Vertex* back() { return &vertices.back(); }
 
-	float* getRawData() { return raw.data(); }
-
-	const float* getConstRawData() const { return (const float*)raw.data(); }
-
 	void add(const vector3& position, const object* obj);
 
 	void add(const float& posX, const float& posY, const float& posZ, const object* obj);
 
 private:
 	size_t nVertices; ///< Number of vertices
-
-	std::vector<float> raw; ///< Raw vertex positions
 
 	std::vector<Vertex> vertices; ///< Vertex information
 };
