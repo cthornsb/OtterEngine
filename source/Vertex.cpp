@@ -1,8 +1,8 @@
 #include "Vertex.hpp"
 #include "object.hpp"
-#include "matrix3.hpp"
+#include "Matrix.hpp"
 
-Vertex::Vertex(const vector3& position, const object* obj) :
+Vertex::Vertex(const Vector3& position, const object* obj) :
 	pX(0),
 	pY(0),
 	sX(0),
@@ -16,14 +16,14 @@ Vertex::Vertex(const vector3& position, const object* obj) :
 {
 }
 
-vector3 Vertex::getPosition() const { 
+Vector3 Vertex::getPosition() const { 
 	return rotation->transform(pos0 + *offset); 
 }
 
-vector3 Vertex::getNormal() const {
+Vector3 Vertex::getNormal() const {
 	return rotation->transform(norm0);
 }
 
-vector3 Vertex::transform(const matrix3* mat) {
+Vector3 Vertex::transform(const Matrix3* mat) {
 	return mat->transform(pos0);
 }

@@ -13,14 +13,14 @@ namespace Primitives {
 		{
 		}
 
-		Plane(const vector3& pos_) :
+		Plane(const Vector3& pos_) :
 			object(pos_),
 			dX(0.5),
 			dY(0.5)
 		{
 		}
 
-		Plane(const vector3& pos_, const float& X, const float& Y) :
+		Plane(const Vector3& pos_, const float& X, const float& Y) :
 			object(pos_),
 			dX(X/2),
 			dY(Y/2)
@@ -44,13 +44,13 @@ namespace Primitives {
 		{
 		}
 
-		Cube(const vector3& pos_) :
+		Cube(const Vector3& pos_) :
 			Plane(pos_),
 			dZ(0.5)
 		{
 		}
 
-		Cube(const vector3& pos_, const float& X, const float& Y, const float& Z) :
+		Cube(const Vector3& pos_, const float& X, const float& Y, const float& Z) :
 			Plane(pos_, X, Y),
 			dZ(Z/2)
 		{
@@ -73,14 +73,14 @@ namespace Primitives {
 		{
 		}
 
-		Circle(const vector3& pos_) :
+		Circle(const Vector3& pos_) :
 			object(pos_),
 			dR(0.5),
 			nVertices(6)
 		{
 		}
 
-		Circle(const vector3& pos_, const float& R, const int& sides) :
+		Circle(const Vector3& pos_, const float& R, const int& sides) :
 			object(pos_),
 			dR(R),
 			nVertices(sides)
@@ -107,13 +107,13 @@ namespace Primitives {
 		{
 		}
 
-		Cylinder(const vector3& pos_) :
+		Cylinder(const Vector3& pos_) :
 			Circle(pos_),
 			dZ(0.5)
 		{
 		}
 
-		Cylinder(const vector3& pos_, const float& R, const float& Z, const int& sides) :
+		Cylinder(const Vector3& pos_, const float& R, const float& Z, const int& sides) :
 			Circle(pos_, R, sides),
 			dZ(Z/2)
 		{
@@ -135,13 +135,13 @@ namespace Primitives {
 		{
 		}
 
-		Cone(const vector3& pos_) :
+		Cone(const Vector3& pos_) :
 			Circle(pos_),
 			dZ(0.5)
 		{
 		}
 
-		Cone(const vector3& pos_, const float& R, const float& Z, const int& sides) :
+		Cone(const Vector3& pos_, const float& R, const float& Z, const int& sides) :
 			Circle(pos_, R, sides),
 			dZ(Z / 2)
 		{

@@ -5,13 +5,16 @@
 
 #include "Globals.hpp"
 #include "Graphics.hpp"
-#include "vector3.hpp"
 #include "triangle.hpp"
 #include "camera.hpp"
 #include "Primitives.hpp"
 #include "StlObject.hpp"
 #include "colors.hpp"
 #include "scene.hpp"
+#include "Texture.hpp"
+#include "Shader.hpp"
+#include "Matrix.hpp"
+#include "Vector.hpp"
 
 constexpr unsigned char KEYBOARD_W     = 0x77;
 constexpr unsigned char KEYBOARD_A     = 0x61;
@@ -29,14 +32,14 @@ void dummyFunc(){
 
 int main(){
 	// Define a new primitive
-	//Primitives::Plane myShape(vector3(), 1, 1);
-	//Primitives::Cube myShape(vector3(), 1, 1, 1);
-	//Primitives::Circle myShape(vector3(), 1, 12);
-	//Primitives::Cylinder myShape(vector3(), 1, 1, 12);
-	Primitives::Cone myShape(vector3(), 1, 1, 12);
+	//Primitives::Plane myShape(Vector3(), 1, 1);
+	Primitives::Cube myShape(Vector3(), 1, 1, 1);
+	//Primitives::Circle myShape(Vector3(), 1, 12);
+	//Primitives::Cylinder myShape(Vector3(), 1, 1, 12);
+	//Primitives::Cone myShape(Vector3(), 1, 1, 12);
 
 	// Setup the camera at z=-1.5 m (facing the object)
-	camera cam(vector3(0, 0, -1.5));
+	camera cam(Vector3(0, 0, -1.5f), Vector3(0, 0, 1.f));
 	
 	// Show some info about the camera
 	cam.dump();
@@ -44,23 +47,29 @@ int main(){
 	// Setup the scene with our camera
 	scene myScene(&cam);
 
+	// Switch from software renderer to hardware renderer
+	myScene.enableOpenGLRenderer();
+
 	// Set the render mode for our cube
-	myScene.setDrawingMode(drawMode::RENDER); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
+	myScene.setDrawingMode(drawMode::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
 
 	// Set the color of the world light
 	myScene.getWorldLight()->disable();
 
 	// Add a new dynamic light
 	coneLight myLight;
-	myLight.setPosition(vector3(0, 0, -1));
+	myLight.setPosition(Vector3(0, 0, -1));
 	myLight.setColor(Colors::WHITE);
 	myLight.setBrightness(10);
 	myLight.setOpeningAngle(pi / 4);
 	myScene.addLight(&myLight);
-	
+
+	// Load the (default) shader
+	myShape.setShader(myScene.getWindow()->getShader(ShaderType::MVP));
+
 	// Set the camera to draw surface normal vectors
 	//myScene.setDrawNormals();
-	//myScene.setDrawOrigin();
+	myScene.setDrawOrigin();
 	//myScene.setDrawZDepth();
 	
 	// Add the cube to the scene
@@ -68,8 +77,8 @@ int main(){
 
 	// Add a child object
 	//float zoffset = (myShape.getSizeZ() + 1) / 2;
-	//Primitives::Cone hat(vector3(), 1, 1, 12);
-	//myShape.addChild(&hat, vector3(0, 0, zoffset));
+	//Primitives::Cone hat(Vector3(), 1, 1, 12);
+	//myShape.addChild(&hat, Vector3(0, 0, zoffset));
 
 	// Print the size of the object. This is undefined until calling addObject()
 	std::cout << " Object size (x=" << myShape.getSizeX() << ", y=" << myShape.getSizeY() << ", z=" << myShape.getSizeZ() << ")" << std::endl;
@@ -86,6 +95,9 @@ int main(){
 	// Camera sensitivity
 	const float cameraSensitivity = 0.01f;
 
+	myShape.setPosition(Vector3(0, 0, 1.5f));
+	//myShape.setRotation(pi/2, 0, 0); // Absolute rotation
+
 	// "Animate" the object by rotating it and moving the camera
 	int count = 0;
 	int dX, dY;
@@ -93,7 +105,7 @@ int main(){
 	bool isDone = false;
 	KeyStates *keys = myScene.getKeypress();
 	MouseState* mouse = myScene.getWindow()->getMouse();
-	while(!isDone && myScene.update()){
+	while(!isDone && myScene.updateOpenGL()){
 		// Check for keypresses 
 		if(!keys->empty()){
 			// Function keys (0xF1 to 0xFC)
@@ -145,18 +157,16 @@ int main(){
 
 		// Check mouse movement
 		if(mouse->delta(dX, dY)){
-			cam.rotate(dY * cameraSensitivity, dX * cameraSensitivity);
-			/*pitch += (dY * cameraSensitivity/2);
-			yaw += (dX * cameraSensitivity/2);
-			myShape.setRotation(pitch.get(), 0, yaw.get());*/
+			cam.rotateFPS(dY * cameraSensitivity, dX * cameraSensitivity);
+			//myShape.rotate(dY * cameraSensitivity / 2, 0, dX * cameraSensitivity / 2);
 		}
 		
 		if(count++ % 120 == 0) // Frame count (every 2 seconds by default)
 			std::cout << myScene.getFramerate() << " fps\r" << std::flush;
 			
 		// Move the object along the x-axis
-		//theta += cameraSensitivity;
-		//myShape.setPosition(vector3(2*std::sin(theta.get()), 0, 2*std::cos(theta.get())));
+		theta += cameraSensitivity * 2.f;
+		myShape.setPosition(Vector3(1.f * std::sin(theta.get()), 1.f * std::cos(theta.get()), 2.5f));
 		
 		// Rotate the object
 		myShape.rotate(0.3*deg2rad, 0.2*deg2rad, 0.4*deg2rad); // Relative rotation
@@ -166,8 +176,8 @@ int main(){
 		//cam.lookAt(myShape.getPosition());
 
 		// Lock dynamic light source to the camera
-		myLight.setPosition(cam.getPosition());
-		myLight.setDirection(cam.getDirection());
+		//myLight.setPosition(cam.getPosition());
+		//myLight.setDirection(cam.getDirection());
 
 		// Cap the framerate
 		timeElapsed = myScene.sync();

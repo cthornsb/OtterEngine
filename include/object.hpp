@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "scene.hpp"
-#include "matrix3.hpp"
+#include "Matrix.hpp"
 #include "triangle.hpp"
 #include "Vertex.hpp"
 #include "WrappedValue.hpp"
@@ -25,7 +25,7 @@ public:
 
 	/** Object position constructor
 	  */	
-	object(const vector3& pos_);
+	object(const Vector3& pos_);
 	
 	/** Get a pointer to the vector of polygons which comprise this 3d object
 	  */
@@ -33,11 +33,11 @@ public:
 
 	/** Get the position offset of the object
 	  */
-	vector3 getPosition() const { return pos; }
+	Vector3 getPosition() const { return pos; }
 
 	/** Get the position of the center of the object
 	  */
-	vector3 getCenter() const { return (center + pos); }
+	Vector3 getCenter() const { return (center + pos); }
 
 	/** Get the size of the object along the x-axis
 	  */
@@ -65,19 +65,19 @@ public:
 
 	/** Get a const pointer to the position vector
 	  */
-	const vector3* getConstPositionPointer() const { return (const vector3*)&pos; }
+	const Vector3* getConstPositionPointer() const { return (const Vector3*)&pos; }
 
 	/** Get a const pointer to the position vector
 	  */
-	vector3* getPositionPointer() { return &pos; }
+	Vector3* getPositionPointer() { return &pos; }
 
 	/** Get a const pointer to the rotation matrix
 	  */
-	const matrix3* getConstRotationMatrix() const { return (const matrix3*)&rot; }
+	const Matrix3* getConstRotationMatrix() const { return (const Matrix3*)&rot; }
 
 	/** Get a pointer to the rotation matrix
 	  */
-	matrix3* getRotationMatrix() { return &rot; }
+	Matrix3* getRotationMatrix() { return &rot; }
 
 	/** Get the number of unique vertices
 	  */
@@ -124,6 +124,10 @@ public:
 	  */
 	unsigned int getIndexVBO() const { return polys.getIndexVBO(); }
 
+	/** Get the OpenGL modelview matrix
+	  */
+	Matrix4* getModelMatrix();
+
 	/** Return true if this object has a parent object and return false otherwise
 	  */
 	bool isChild() const { return (parent != 0x0); }
@@ -148,7 +152,7 @@ public:
 	/** Move the position of the object
 	  * @note This method moves the object relative to its current position. Use setPosition() to specify the position explicitly
 	  */
-	void move(const vector3 &offset);
+	void move(const Vector3 &offset);
 
 	/** Rotate the object to specified angles about the X, Y, and Z, axes (all in radians)
 	  */
@@ -156,7 +160,7 @@ public:
 
 	/** Set the position of the object
 	  */
-	void setPosition(const vector3 &position);
+	void setPosition(const Vector3 &position);
 
 	/** Set the shader to use for rendering
 	  */
@@ -175,7 +179,7 @@ public:
 	  * @param child Pointer to the child object
 	  * @param offset Position offset inside the parent object
 	  */
-	void addChild(object* child, const vector3& offset = zeroVector);
+	void addChild(object* child, const Vector3& offset = zeroVector);
 
 	/** Remove a child from this object
 	  * @param child Pointer to the child object
@@ -197,12 +201,12 @@ protected:
 	size_t reservedVertices; ///< The number of expected vertices
 	size_t reservedPolygons; ///< The number of expected polygons which will be built
 
-	vector3 pos; ///< The position offset of the object (not necessarily the center)
-	vector3 pos0; ///< The original position offset of the object
+	Vector3 pos; ///< The position offset of the object (not necessarily the center)
+	Vector3 pos0; ///< The original position offset of the object
 	
-	matrix3 rot; ///< The rotation of the object about the offset position
+	Matrix3 rot; ///< The rotation of the object about the offset position
 
-	vector3 center; ///< Center of the box which bounds the model
+	Vector3 center; ///< Center of the box which bounds the model
 
 	WrappedValue pitchAngle; ///< Angle of camera tilt up or down (i.e. about the horizontal axis)
 	WrappedValue rollAngle; ///< Angle of camera roll cw or ccw (i.e. about the depth axis)
@@ -219,11 +223,13 @@ protected:
 
 	std::vector<object*> children; ///< Vector of pointers to child objects
 
-	vector3 parentOffset; ///< Offset of this object within its parent
+	Vector3 parentOffset; ///< Offset of this object within its parent
 
 	const object* parent; ///< Pointer to parent object
 
 	const Shader* shader; ///< Pointer to an OpenGL shader to use for rendering
+
+	Matrix4 modelMatrix; ///< Model rotation and translation matrix used by OpenGL
 
 	/** Update the physical size of the object along the x-axis
 	  * @note The size is only for informational purposes and does not change the scale of the object
@@ -251,7 +257,7 @@ protected:
 
 	/** Update the position based on new parent position
 	  */
-	void updatePositionForParent(const vector3& position);
+	void updatePositionForParent(const Vector3& position);
 
 	/** Update the rotation of all child objects to that of the parent
 	  */
@@ -259,7 +265,7 @@ protected:
 
 	/** Update the rotation based on new parent rotation
 	  */
-	void updateRotationForParent(const matrix3* rotation);
+	void updateRotationForParent(const Matrix3* rotation);
 
 	/** Reserve space in the geometry vectors so that they will not resize when being filled
 	  * @param nVert Number of expected vertices
@@ -269,7 +275,7 @@ protected:
 
 	/** Rotate all vertices using the object's internal rotation matrix
 	  */
-	void transform(const matrix3* mat);
+	void transform(const Matrix3* mat);
 	
 	/** Add a unique vertex to the vector of vertices
 	  * @return Pointer to the vertex vector
@@ -279,7 +285,7 @@ protected:
 	/** Add a unique vertex to the vector of vertices
 	  * @return Pointer to the vertex vector
 	  */
-	Vertex* addVertex(const vector3& vec);
+	Vertex* addVertex(const Vector3& vec);
 
 	/** Add a unique polygon to the vector of polygons
 	  */

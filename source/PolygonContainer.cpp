@@ -50,15 +50,15 @@ void PolygonContainer::finalize() {
 }
 
 void PolygonContainer::addVertex(Vertex* vert) {
-	vector3 pos  = vert->getInitialPosition();
-	vector3 norm = back()->getInitialNormal();
+	Vector3 pos  = vert->getInitialPosition();
+	Vector3 norm = back()->getInitialNormal();
 	indicies.push_back((unsigned short)(rawVertices.size() / 3));
-	rawVertices.push_back(pos.x);
-	rawVertices.push_back(pos.y);
-	rawVertices.push_back(pos.z);
-	rawNormals.push_back(norm.x);
-	rawNormals.push_back(norm.y);
-	rawNormals.push_back(norm.z);
+	rawVertices.push_back(pos[0]);
+	rawVertices.push_back(pos[1]);
+	rawVertices.push_back(pos[2]);
+	rawNormals.push_back(norm[0]);
+	rawNormals.push_back(norm[1]);
+	rawNormals.push_back(norm[2]);
 }
 
 bool PolygonContainer::addIndex(Vertex* vert, VertexContainer* vertices) {

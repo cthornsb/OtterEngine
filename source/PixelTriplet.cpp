@@ -82,7 +82,7 @@ Vertex* pixelTriplet::operator [] (const size_t& index) const {
 	return 0x0;
 }
 
-vector3 pixelTriplet::getCenterPoint() const {
+Vector3 pixelTriplet::getCenterPoint() const {
 	return tri->getCenterPoint();
 }
 
@@ -156,7 +156,7 @@ bool pixelTriplet::getHorizontalLimits(const int& scanline, int& xA, int& xB) co
 }
 
 void pixelTriplet::computeVertexLighting(lightSource* light) {
-	vector3 norm = tri->getNormal();
+	Vector3 norm = tri->getNormal();
 	light0 += light->getColor(p0, norm);
 	light1 += light->getColor(p1, norm);
 	light2 += light->getColor(p2, norm);

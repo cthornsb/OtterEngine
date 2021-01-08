@@ -45,7 +45,7 @@ void Sprite::flipVertical() {
 }
 
 void Sprite::drawCorner(const int& x, const int& y) {
-	vector2 offset((float)x, (float)y);
+	Vector2 offset((float)x, (float)y);
 	glBindTexture(GL_TEXTURE_2D, nContext);
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
@@ -59,7 +59,7 @@ void Sprite::drawCorner(const int& x, const int& y) {
 }
 
 void Sprite::draw(const int& x, const int& y) {
-	vector2 offset((float)x, (float)y);
+	Vector2 offset((float)x, (float)y);
 	glBindTexture(GL_TEXTURE_2D, nContext);
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
@@ -72,13 +72,13 @@ void Sprite::draw(const int& x, const int& y) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Sprite::getVertex(const vector2& vec) {
-	glVertex2i((GLint)vec.x, (GLint)vec.y);
+void Sprite::getVertex(const Vector2& vec) {
+	glVertex2i((GLint)vec[0], (GLint)vec[1]);
 }
 
 void Sprite::update() {
-	uX = vector2(nWidth * horizScale / 2, 0);
-	uY = vector2(0, nHeight * vertScale / 2);
+	uX = Vector2(nWidth * horizScale / 2, 0);
+	uY = Vector2(0, nHeight * vertScale / 2);
 	rotation.transformInPlace(uX);
 	rotation.transformInPlace(uY);
 }

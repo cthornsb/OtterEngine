@@ -9,6 +9,7 @@
 #include "camera.hpp"
 #include "object.hpp"
 #include "Graphics.hpp"
+#include "Shader.hpp"
 
 #define SCREEN_XLIMIT 1.0 ///< Set the horizontal clipping border as a fraction of the total screen width
 #define SCREEN_YLIMIT 1.0 ///< Set the vertical clipping border as a fraction of the total screen height
@@ -73,6 +74,9 @@ void scene::enableOpenGLRenderer() {
 	// Switch to OpenGL renderer mode
 	window->enableZDepth();
 	window->enableCulling();
+
+	// Setup the camera projection matrix
+	cam->setPerspectiveProjection(0.1f, 100.f);
 }
 
 void scene::disableOpenGLRenderer() {
@@ -184,9 +188,9 @@ bool scene::update(){
 	}
 
 	if(drawOrigin){ // Draw the origin
-		drawVector(vector3(0, 0, 0), vector3(1, 0, 0), Colors::RED);
-		drawVector(vector3(0, 0, 0), vector3(0, 1, 0), Colors::GREEN);
-		drawVector(vector3(0, 0, 0), vector3(0, 0, 1), Colors::BLUE);
+		drawVector(Vector3(0, 0, 0), Vector3(1, 0, 0), Colors::RED);
+		drawVector(Vector3(0, 0, 0), Vector3(0, 1, 0), Colors::GREEN);
+		drawVector(Vector3(0, 0, 0), Vector3(0, 0, 1), Colors::BLUE);
 	}
 
 	return render();
@@ -196,16 +200,42 @@ bool scene::updateOpenGL() {
 	// Update the timer
 	timeOfLastUpdate = hclock::now();
 
-	// Clear the vector of triangles to draw
-	polygonsToDraw.clear();
-
 	// Clear the screen with a color
 	clear(Colors::BLACK);
 
-	// Draw the vertices (using OpenGL)
-	//window->enableWireframeMode();
+	// Update projection and camera view transformation matrices
+	Matrix4* proj = cam->getProjectionMatrix();
+	Matrix4 view = Matrix4::getViewMatrixFPS(cam->getPosition(), cam->getPitchAngle(), cam->getYawAngle());
+
+	// Draw the origin
+	if (drawOrigin) { 
+		Matrix4 mvp = Matrix4::concatenate(proj, &view, &identityMatrix4);
+		window->enableShader(ShaderType::MVP);
+		window->getShader(ShaderType::MVP)->setMatrix4("MVP", &mvp);
+		window->setDrawColor(Colors::RED);
+		window->drawLine(0.f, 0.f, 0.f, 1.f, 0.f, 0.f);
+		window->setDrawColor(Colors::GREEN);
+		window->drawLine(0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
+		window->setDrawColor(Colors::BLUE);
+		window->drawLine(0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+		window->disableShader();
+	}
+
+	// Draw the vertices of all objects (using OpenGL)
+	window->enableWireframeMode();
+	window->setDrawColor(Colors::WHITE);
 	for (auto obj = objects.cbegin(); obj != objects.cend(); obj++) {
-		window->drawObject(*obj, cam->getPosition());
+		// Setup MVP matrices
+		Matrix4* model = (*obj)->getModelMatrix();
+		Matrix4 mvp = Matrix4::concatenate(proj, &view, model);
+
+		// Enable the shader
+		window->enableShader(ShaderType::MVP);
+		window->getShader(ShaderType::MVP)->setMatrix4("MVP", &mvp);
+
+		// Draw the object
+		window->drawObject(*obj);
+		window->disableShader();
 	}
 
 	return render();
@@ -336,7 +366,7 @@ bool scene::convertToPixelSpace(pixelTriplet &coords) const {
 	return retval;
 }
 
-void scene::drawPoint(const vector3 &point, const ColorRGB &color){
+void scene::drawPoint(const Vector3 &point, const ColorRGB &color){
 	float cmX, cmY;
 	if(cam->projectPoint(point, cmX, cmY)){
 		int cmpX, cmpY;
@@ -351,9 +381,9 @@ void scene::drawPoint(const vector3 &point, const ColorRGB &color){
 	}
 }
 
-void scene::drawVector(const vector3 &start, const vector3 &direction, const ColorRGB &color, const float &length/*=1*/){
+void scene::drawVector(const Vector3 &start, const Vector3 &direction, const ColorRGB &color, const float &length/*=1*/){
 	// Compute the normal vector from the center of the triangle
-	vector3 P = start + (direction * length);
+	Vector3 P = start + (direction * length);
 
 	// Draw the triangle normals
 	float cmX0, cmY0;
@@ -369,7 +399,7 @@ void scene::drawVector(const vector3 &start, const vector3 &direction, const Col
 		if(!os1 && !os2) // The line is completely off the screen
 			return;
 		/*else if(!os1){ // (cmX0, cmY0) is off screen
-			vector3 p(cmX0-cmX1, cmY0-cmY1);
+			Vector3 p(cmX0-cmX1, cmY0-cmY1);
 			double xcross, ycross;
 			double slope = 0;//p.y/p.x;
 			if(p.x >= 0) // Positive X
@@ -387,7 +417,7 @@ void scene::drawVector(const vector3 &start, const vector3 &direction, const Col
 				cmY0 = ycross;
 		}*/
 		/*else if(!os2){ // (cmX1, cmY1) is off screen
-			vector3 p(cmX1-cmX0, cmY1-cmY0);
+			Vector3 p(cmX1-cmX0, cmY1-cmY0);
 			double xcross, ycross;
 			double slope = -(cmY1-cmY0)/(cmX1-cmX0);
 			if(p.x >= 0) // Positive X

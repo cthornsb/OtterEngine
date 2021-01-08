@@ -10,6 +10,7 @@
 #include "ZBuffer.hpp"
 #include "lightSource.hpp"
 #include "PixelTriplet.hpp"
+#include "Vector.hpp"
 
 class object;
 class camera;
@@ -253,7 +254,7 @@ private:
 	  * @param point The point in 3d space to draw
 	  * @param color The color of the point
 	  */
-	void drawPoint(const vector3 &point, const ColorRGB &color);
+	void drawPoint(const Vector3 &point, const ColorRGB &color);
 
 	/** Draw a vector to the screen
 	  * @param start The start point of the vector to draw
@@ -261,7 +262,7 @@ private:
 	  * @param color The color of the vector
 	  * @param length The total length to draw
 	  */	
-	void drawVector(const vector3 &start, const vector3 &direction, const ColorRGB &color, const float &length=1);
+	void drawVector(const Vector3 &start, const Vector3 &direction, const ColorRGB &color, const float &length=1);
 	
 	/** Draw a ray to the screen
 	  * @param proj The 3d ray to draw

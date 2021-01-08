@@ -12,7 +12,7 @@ StlObject::StlObject() :
 {
 }
 
-void StlObject::convertToStandard(vector3& vec) {
+void StlObject::convertToStandard(Vector3& vec) {
 	const float in = 0.0254f;
 	const float ft = 0.3048f;
 	const float m  = 1.0f;
@@ -132,9 +132,9 @@ unsigned int StlObject::readBinary(std::ifstream* f) {
 	}
 
 	// Set the center of the bounding box
-	center.x = getSizeX() / 2 + minSize[0];
-	center.y = getSizeY() / 2 + minSize[1];
-	center.z = getSizeZ() / 2 + minSize[2];
+	center[0] = getSizeX() / 2 + minSize[0];
+	center[1] = getSizeY() / 2 + minSize[1];
+	center[2] = getSizeZ() / 2 + minSize[2];
 
 	// Offset all vertices to the center the model
 	std::vector<Vertex>::iterator iter;
@@ -161,9 +161,9 @@ unsigned int StlObject::readBinary(std::ifstream* f) {
 
 void StlObject::readStlBlock(float* array) {
 	Vertex* vertPtrs[3] = { 0, 0, 0 };
-	vector3 normal(array[0], array[1], array[2]);
+	Vector3 normal(array[0], array[1], array[2]);
 	for (int i = 1; i < 4; i++) {
-		vector3 vertex(array[3 * i], array[3 * i + 1], array[3 * i + 2]);
+		Vector3 vertex(array[3 * i], array[3 * i + 1], array[3 * i + 2]);
 		convertToStandard(vertex);
 		auto vec = std::find(vertices.begin(), vertices.end(), vertex);
 		if (vec != vertices.end())
@@ -203,13 +203,13 @@ bool StlObject::readAstBlock(const std::vector<std::string>& block) {
 	for (auto iter = block.cbegin(); iter != block.cend(); iter++) {
 		index = iter->find("normal");
 		if (index != std::string::npos) { // Normal vector (not currently used)
-			//vector3 normal = getVectorFromString(iter->substr(index + 6));
+			//Vector3 normal = getVectorFromString(iter->substr(index + 6));
 		}
 		index = iter->find("vertex");
 		if (index != std::string::npos) { // Vertex vector
 			if (vertexCount++ >= 3)
 				return false;
-			vector3 vertex = getVectorFromString(iter->substr(index + 6));
+			Vector3 vertex = getVectorFromString(iter->substr(index + 6));
 		}
 	}
 	return (isGood = (vertexCount == 3));
@@ -225,7 +225,7 @@ bool StlObject::isBinaryFile(std::ifstream* f){
 	return true;
 }
 
-vector3 StlObject::getVectorFromString(const std::string& str) {
+Vector3 StlObject::getVectorFromString(const std::string& str) {
 	return zeroVector;
 }
 

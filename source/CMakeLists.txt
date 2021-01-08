@@ -1,7 +1,5 @@
 set(CORE_SOURCES camera.cpp 
                  lightSource.cpp
-                 matrix2.cpp
-                 matrix3.cpp 
                  object.cpp                 
                  plane.cpp
                  PixelTriplet.cpp
@@ -14,8 +12,6 @@ set(CORE_SOURCES camera.cpp
                  StlObject.cpp
                  Texture.cpp
                  triangle.cpp 
-                 vector2.cpp
-                 vector3.cpp
                  Vertex.cpp
                  VertexContainer.cpp
                  WrappedValue.cpp
@@ -29,7 +25,7 @@ add_library(CORE_LIB STATIC $<TARGET_OBJECTS:CORE_OBJECTS>)
 
 #Build renderer executable.
 add_executable(render3d renderer.cpp)
-target_link_libraries(render3d CORE_LIB GRAPHICS_LIB ${GRAPHICS_LIBS})
+target_link_libraries(render3d CORE_LIB MATH_LIB GRAPHICS_LIB ${GRAPHICS_LIBS})
 install(TARGETS render3d DESTINATION bin)
 
 if(WIN32 AND INSTALL_DLLS)

@@ -7,7 +7,6 @@
 #include "Globals.hpp"
 #include "GraphicsOpenGL.hpp"
 #include "object.hpp"
-#include "Shader.hpp"
 
 std::map<int, Window*> listOfWindows;
 
@@ -168,7 +167,7 @@ void reshapeScene3D(GLint width, GLint height) {
 	glLoadIdentity();             // Reset
 
 	// Enable perspective projection with fovy, aspect, zNear and zFar
-	gluPerspective(90.f, aspect, 0.1f, 100.0f);
+	gluPerspective(90.f, aspect, 0.1f, 10.0f);
 	glMatrixMode(GL_MODELVIEW);
 
 	// Clear the window.
@@ -339,6 +338,10 @@ bool Window::processEvents(){
 	return true;
 }
 
+Shader* Window::getShader(const ShaderType& type) {
+	return shaders->get(type);
+}
+
 void Window::setScalingFactor(const int &scale){ 
 	nMult = scale; 
 	glutReshapeWindow(W*scale, H*scale);
@@ -371,6 +374,12 @@ void Window::drawPixel(const int *x, const int *y, const size_t &N){
 		drawPixel(x[i], y[i]);
 }
 
+void Window::drawPixel(const float& x, const float& y, const float& z) {
+	glBegin(GL_POINTS);
+		glVertex3f(x, y, z);
+	glEnd();
+}
+
 void Window::drawLine(const int &x1, const int &y1, const int &x2, const int &y2){
 	glBegin(GL_LINES);
 		glVertex2i(x1, y1);
@@ -383,6 +392,16 @@ void Window::drawLine(const int *x, const int *y, const size_t &N){
 		return;
 	for(size_t i = 0; i < N-1; i++)
 		drawLine(x[i], y[i], x[i+1], y[i+1]);
+}
+
+void Window::drawLine(
+	const float& x1, const float& y1, const float& z1,
+	const float& x2, const float& y2, const float& z2) 
+{
+	glBegin(GL_LINES);
+		glVertex3f(x1, y1, z1);
+		glVertex3f(x2, y2, z2);
+	glEnd();
 }
 
 void Window::drawRectangle(const int &x1, const int &y1, const int &x2, const int &y2){
@@ -405,24 +424,22 @@ void Window::drawTexture(const unsigned int& texture, const int& x1, const int& 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Window::drawVertexArray(const float* vertices, const size_t& N, const Shader* shdr/*=0x0*/) {
+void Window::drawVertexArray(const float* vertices, const std::vector<unsigned short>& indices) {
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, vertices);
-	if(shdr)
-		glUseProgram(shdr->getProgram());
-	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)N);
-	//glDrawElements(GL_TRIANGLES, N, GL_UNSIGNED_SHORT, indices);
+	glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_SHORT, indices.data());
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void Window::drawObject(const object* obj, const vector3& offset) {
-	glLoadIdentity(); // Reset model-view matrix
-	//vector3 offsetPosition = obj->getPosition() - offset;
-	//glTranslatef(offsetPosition.x, offsetPosition.y, offsetPosition.z);  // Translation
-	glTranslatef(0.f, 0.f, -2.5f); // Testing
-	glRotatef(obj->getPitchAngle() * rad2deg, 1.f, 0.f, 0.f); // Rotation about x-axis (pitch)
-	glRotatef(obj->getYawAngle() * rad2deg,   0.f, 1.f, 0.f); // Rotation about y-axis (yaw)
-	glRotatef(obj->getRollAngle() * rad2deg,  0.f, 0.f, 1.f); // Rotation about z-axis (roll)
+void Window::drawObject(const object* obj) {
+	/*std::cout << "ogl" << std::endl;
+	float m[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, m);
+	for (int i = 0; i < 16; i++) {
+		std::cout << m[i] << "\t";
+		if ((i + 1) % 4 == 0)
+			std::cout << std::endl;
+	}*/
 
 	// Bind VBOs for vertex data array and index array
 	glBindBuffer(GL_ARRAY_BUFFER, obj->getVertexVBO());
@@ -440,7 +457,6 @@ void Window::drawObject(const object* obj, const vector3& offset) {
 	//glTexCoordPointer(2, GL_FLOAT, stride, offset3);
 
 	// Draw the faces
-	glUseProgram(obj->getShader()->getProgram());
 	glDrawElements(GL_TRIANGLES, (GLsizei)(3 * obj->getNumberOfPolygons()), GL_UNSIGNED_SHORT, 0x0);
 
 	glDisableClientState(GL_VERTEX_ARRAY);            // deactivate vertex position array
@@ -493,6 +509,9 @@ void Window::initialize(const std::string& name/*="OpenGL"*/){
 		}
 		firstInit = false;
 	}
+
+	// Initialize default shaders
+	shaders.reset(new DefaultShaders::ShaderList());
 
 	init = true;
 }
@@ -571,6 +590,33 @@ void Window::enableWireframeMode() {
 
 void Window::disableWireframeMode() {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void Window::enableShader(const ShaderType& type) {
+	glUseProgram(shaders->get(type)->getProgram());
+}
+
+void Window::enableShader(const Shader* shdr) {
+	glUseProgram(shdr->getProgram());
+}
+
+void Window::disableShader() {
+	glUseProgram(0);
+}
+
+void Window::resetModelviewMatrix() {
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity(); // Reset model-view matrix
+}
+
+void Window::translateModelviewMatrix(const Vector3& pos) {
+	glTranslatef(pos[0], pos[1], -pos[2]); // Translation
+}
+
+void Window::rotateModelviewMatrix(const float& x, const float& y, const float& z) {
+	glRotatef(x * rad2deg, 1.f, 0.f, 0.f); // Rotation about x-axis (pitch)
+	glRotatef(y * rad2deg, 0.f, 1.f, 0.f); // Rotation about y-axis (yaw)
+	glRotatef(z * rad2deg, 0.f, 0.f, 1.f); // Rotation about z-axis (roll)
 }
 
 void Window::paintGL(){

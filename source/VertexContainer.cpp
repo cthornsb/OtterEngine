@@ -21,17 +21,17 @@ bool VertexContainer::findVertex(Vertex* ptr, size_t& index) const {
 
 void VertexContainer::append(const std::vector<float>& in, const object* obj) {
 	int index = 0;
-	vector3 vec;
+	Vector3 vec;
 	for (auto vert = in.cbegin(); vert != in.cend(); vert++) {
 		switch (++index % 3) {
 		case 0: // z
-			vec.z = *vert;
+			vec[2] = *vert;
 			break;
 		case 1: // y
-			vec.y = *vert;
+			vec[1] = *vert;
 			break;
 		case 2: // x
-			vec.x = *vert;
+			vec[0] = *vert;
 			vertices.push_back(Vertex(vec, obj));
 			nVertices++;
 			break;
@@ -48,12 +48,12 @@ void VertexContainer::append(const std::vector<Vertex>& in) {
 	}
 }
 
-void VertexContainer::add(const vector3& position, const object* obj) {
+void VertexContainer::add(const Vector3& position, const object* obj) {
 	vertices.push_back(Vertex(position, obj));
 	nVertices++;
 }
 
 void VertexContainer::add(const float& posX, const float& posY, const float& posZ, const object* obj) {
-	vertices.push_back(Vertex(vector3(posX, posY, posZ), obj));
+	vertices.push_back(Vertex(Vector3(posX, posY, posZ), obj));
 	nVertices++;
 }

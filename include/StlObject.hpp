@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "vector3.hpp"
+#include "Vector.hpp"
 #include "object.hpp"
 
 enum class UNITS { INCH, FOOT, METER, DECIMETER, CENTIMETER, MILLIMETER, MICROMETER, NANOMETER };
@@ -29,7 +29,7 @@ private:
 
 	UNITS conversion;
 
-	void convertToStandard(vector3& vec);
+	void convertToStandard(Vector3& vec);
 
 	void readStlBlock(float* array);
 
@@ -41,7 +41,7 @@ private:
 
 	unsigned int readBinary(std::ifstream* f);
 
-	vector3 getVectorFromString(const std::string& str);
+	Vector3 getVectorFromString(const std::string& str);
 
 	std::string getHex(const unsigned char& input);
 

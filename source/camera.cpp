@@ -1,12 +1,9 @@
 #include <iostream>
 #include <string>
-//#include <cmath>
 
 #include "camera.hpp"
 #include "object.hpp"
 #include "Globals.hpp"
-
-const vector3 upVector(0, 1, 0);
 
 camera::camera() :
 	plane(),
@@ -26,21 +23,28 @@ camera::camera() :
 	initialize();
 }
 
-camera::camera(const vector3 &pos_) :
+camera::camera(const Vector3 &pos_) :
 	camera()
 { 
 	pos = pos_;
 	initialize();
 }
 
-camera::camera(const vector3 &pos_, const vector3 &dir_) :
+camera::camera(const Vector3 &pos_, const Vector3 &dir_) :
 	camera() 
 {
-	// Fix this! uZ is not correct since we set dir manually
+	pos = pos_;
 	initialize();
+	setDirection(dir_);
 }
 
 camera::~camera(){
+}
+
+Matrix4* camera::getViewMatrix() {
+	// Update the view matrix as the camera may have moved
+	viewMatrix = Matrix4::getViewMatrixFPS(pos, pitchAngle.get(), yawAngle.get());
+	return &viewMatrix;
 }
 
 void camera::setFOV(const float &fov_){ 
@@ -77,63 +81,90 @@ void camera::moveUp(const float&dist){
 	updateViewingPlane();	
 }
 
-void camera::move(const vector3 &displacement){
+void camera::move(const Vector3 &displacement){
 	pos += displacement;
 	updateViewingPlane();
 }
 
 void camera::move(const float&x, const float&y, const float&z){
-	pos += vector3(x, y, z);
+	pos += Vector3(x, y, z);
 	updateViewingPlane();
 }
 
-void camera::moveTo(const vector3 &position){ 
+void camera::moveTo(const Vector3 &position){ 
 	pos = position; 
 	updateViewingPlane();
 }
 
 void camera::moveTo(const float&x, const float&y, const float&z){
-	pos = vector3(x, y, z);
+	pos = Vector3(x, y, z);
 	updateViewingPlane();
 }
 
-/////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 // Rotation methods
-/////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 
-void camera::rotate(const float& pitch, const float& yaw, const float& roll/*=0*/){
+void camera::rotate(const float& pitch, const float& yaw, const float& roll){
 	// Reset the camera to its original orientation
 	resetUnitVectors();
-	setRotation((pitchAngle += pitch), (rollAngle += roll), (yawAngle += yaw));
+	setRotation((pitchAngle += pitch), (yawAngle += yaw), (rollAngle += roll));
 }
 
-void camera::setRotation(const float& theta, const float& phi, const float& psi){
+void camera::setRotation(const float& pitch, const float& yaw, const float& roll){
 	// Reset the camera to its original orientation
 	resetUnitVectors();
 	
 	// Get the rotation matrix
-	matrix3 rot(theta, phi, psi);
+	rotation.setRotation(pitch, roll, yaw);
 
 	// Update the rotation of the three unit vectors
-	rot.transformInPlace(uX);
-	rot.transformInPlace(uY);
-	rot.transformInPlace(uZ);
+	rotation.transformInPlace(uX);
+	rotation.transformInPlace(uY);
+	rotation.transformInPlace(uZ);
+	uZ.invert(); // Necessary in OpenGL render mode
 
 	// Update the viewing plane
 	updateViewingPlane();
 }
 
-void camera::lookAt(const vector3 &position){
+void camera::rotateFPS(const float& pitch, const float& yaw) {
+	// Reset the camera to its original orientation
+	resetUnitVectors();
+	setRotationFPS((pitchAngle += pitch), (yawAngle += yaw));
+}
+
+void camera::setRotationFPS(const float& pitch, const float& yaw) {
+	// Reset the camera to its original orientation
+	resetUnitVectors();
+
+	// Get the rotation matrix
+	rotation = Matrix3::getFPSCameraMatrix((pitchAngle = pitch), (yawAngle = yaw));
+
+	// Update the rotation of the three unit vectors
+	rotation.transformInPlace(uX);
+	rotation.transformInPlace(uY);
+	rotation.transformInPlace(uZ);
+	uZ.invert(); // Necessary in OpenGL render mode
+
+	// Update the viewing plane
+	updateViewingPlane();
+}
+
+void camera::setDirection(const Vector3& dir, const Vector3& upVector/* = unitVectorY*/) {
+	lookAt(pos + dir, upVector);
+}
+
+void camera::lookAt(const Vector3 &position, const Vector3& upVector/* = unitVectorY*/){
 	// Point the Z axis unit vector at the point in space
 	uZ = (position - pos).normalize();
+	uZ.invert(); // Necessary in OpenGL render mode
 
-	// Compute the Y-axis unit vector  	
-	matrix3 pitch = matrix3::getPitchMatrix(std::acos(uZ.y) - pi/2);
-	uY = upVector;
-	pitch.transformInPlace(uY);
-	
-	// Get the X-axis unit vector by computing the cross product of the Y and Z vectors
-	uX = uY.cross(uZ);
+	// Compute the X-axis unit vector ("right" vector)
+	uX = unitVectorY.cross(uZ).normalize();
+		
+	// Get the Y-axis unit vector by computing the cross product of the X and Z vectors ("up" vector)
+	uY = uZ.cross(uX);
 	
 	// Update the viewing plane
 	updateViewingPlane();
@@ -145,6 +176,14 @@ void camera::resetOrientation(){
 	pitchAngle = 0;
 	rollAngle = 0;
 	yawAngle = 0;
+}
+
+void camera::setPerspectiveProjection(const float& nearPlane, const float& farPlane) {
+	projection = Matrix4::getPerspectiveMatrix(fov, A, nearPlane, farPlane);
+}
+
+void camera::setOrthographicProjection(const float& nearPlane, const float& farPlane) {
+	projection = Matrix4::getOrthographicMatrix(fov, A, nearPlane, farPlane);
 }
 
 /////////////////////////////////////////////////
@@ -163,13 +202,13 @@ bool camera::render(Vertex& vertex) {
 	return projectPoint(vertex.getPosition(), vertex.sX, vertex.sY, &vertex.zDepth);
 }
 
-bool camera::checkCulling(const vector3 &offset, const triangle &tri){
+bool camera::checkCulling(const Vector3 &offset, const triangle &tri){
 	// Check if the triangle is facing towards the camera
 	return ((tri.getCenterPoint() - pos) * tri.getNormal() <= 0);
 }
 
-bool camera::projectPoint(const vector3 &vertex, float& sX, float& sY, float* zdepth/*=0x0*/){
-	vector3 vec = pos - vertex;
+bool camera::projectPoint(const Vector3 &vertex, float& sX, float& sY, float* zdepth/*=0x0*/){
+	Vector3 vec = pos - vertex;
 	ray proj(vertex, vec);
 	
 	if (zdepth) {
@@ -181,7 +220,7 @@ bool camera::projectPoint(const vector3 &vertex, float& sX, float& sY, float* zd
 	float t;
 	if(intersects(proj, t)){
 		// Get the point at which the ray intersect the viewing plane
-		vector3 pp = proj.extend(t) - p;
+		Vector3 pp = proj.extend(t) - p;
 
 		// Convert the viewing plane point to screen space (-1, 1)
 		convertToScreenSpace(pp, sX, sY);
@@ -192,8 +231,8 @@ bool camera::projectPoint(const vector3 &vertex, float& sX, float& sY, float* zd
 	return false;
 }
 
-float camera::getZDepth(const vector3& p) const {
-	vector3 zDepth = p - pos; // Vector from focal point of camera to center of polygon
+float camera::getZDepth(const Vector3& p) const {
+	Vector3 zDepth = p - pos; // Vector from focal point of camera to center of polygon
 	return (zDepth.length() * zDepth.cosTheta(uZ));
 }
 
@@ -203,9 +242,9 @@ void camera::dump() const {
 	std::cout << " A:      " << A << "\n";
 	std::cout << " Width:  " << W << " m\n";
 	std::cout << " Height: " << H << " m\n";
-	std::cout << " unitX = (" << uX.x << ", " << uX.y << ", " << uX.z << ")\n";
-	std::cout << " unitY = (" << uY.x << ", " << uY.y << ", " << uY.z << ")\n";
-	std::cout << " unitZ = (" << uZ.x << ", " << uZ.y << ", " << uZ.z << ")\n";
+	std::cout << " unitX = (" << uX[0] << ", " << uX[1] << ", " << uX[2] << ")\n";
+	std::cout << " unitY = (" << uY[0] << ", " << uY[1] << ", " << uY[2] << ")\n";
+	std::cout << " unitZ = (" << uZ[0] << ", " << uZ[1] << ", " << uZ[2] << ")\n";
 }
 
 void camera::initialize(){
@@ -222,6 +261,8 @@ void camera::initialize(){
 void camera::computeViewingPlane(){
 	W = 2*L*std::tan(fov/2); // m
 	H = W/A; // m
+	// Update the OpenGL projection matrix
+	setPerspectiveProjection(0.1f, 100.f);
 }
 
 void camera::updateViewingPlane(){
@@ -230,17 +271,17 @@ void camera::updateViewingPlane(){
 }
 
 void camera::resetUnitVectors() {
-	uX = vector3(1, 0, 0);
-	uY = vector3(0, 1, 0);
-	uZ = vector3(0, 0, 1);
+	uX = Vector3(1, 0, 0);
+	uY = Vector3(0, 1, 0);
+	uZ = Vector3(0, 0, 1);
 }
 
-void camera::convertToScreenSpace(const vector3 &vec, float& x, float& y){
+void camera::convertToScreenSpace(const Vector3 &vec, float& x, float& y){
 	x = 2*(vec * uX)/W; // unitless
 	y = 2*(vec * uY)/H; // unitless
 }
 
-bool camera::rayTrace(const ray& cast, const pixelTriplet& pixels, vector3& P) const {
+bool camera::rayTrace(const ray& cast, const pixelTriplet& pixels, Vector3& P) const {
 	float t;
 	if(pixels.intersects(cast, t)){
 		P = cast.extend(t);

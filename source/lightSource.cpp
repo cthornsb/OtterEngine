@@ -4,7 +4,7 @@
 #include "lightSource.hpp"
 #include "Vertex.hpp"
 
-float lightSource::getIntensity(const Vertex* vert, const vector3& norm) const {
+float lightSource::getIntensity(const Vertex* vert, const Vector3& norm) const {
 	// Compute the dot-product between the triangle normal and the light direction
 	// When the normal is close to anti-parallel with the light direction, the triangle 
 	//  will receive close to the maximum light level. When the angle between the two
@@ -13,16 +13,16 @@ float lightSource::getIntensity(const Vertex* vert, const vector3& norm) const {
 	return (dp > 0 ? brightness*dp : 0);
 }
 
-float pointLight::getIntensity(const Vertex* vert, const vector3& norm) const {
-	vector3 displacement = (vert->getPosition() - pos);
+float pointLight::getIntensity(const Vertex* vert, const Vector3& norm) const {
+	Vector3 displacement = (vert->getPosition() - pos);
 	float dp = -displacement.cosTheta(norm);
 	if(dp < 0) 
 		return 0;
 	return (brightness * dp / displacement.square());
 }
 
-float coneLight::getIntensity(const Vertex* vert, const vector3& norm) const {
-	vector3 displacement = (vert->getPosition() - pos);
+float coneLight::getIntensity(const Vertex* vert, const Vector3& norm) const {
+	Vector3 displacement = (vert->getPosition() - pos);
 	float dp = -displacement.cosTheta(norm);
 	if (dp < 0)
 		return 0;

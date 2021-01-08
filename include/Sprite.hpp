@@ -2,8 +2,8 @@
 #define SPRITE_HPP
 
 #include "Texture.hpp"
-#include "matrix2.hpp"
-#include "vector2.hpp"
+#include "Matrix.hpp"
+#include "Vector.hpp"
 
 class Sprite : public Texture {
 public:
@@ -114,14 +114,14 @@ private:
 
 	float theta; ///< Current angle of rotation of the sprite (radians)
 
-	vector2 uX; ///< Psuedo-unit vector pointing from the center of the sprite to its right side
-	vector2 uY; ///< Psuedo-unit vector pointing from the center of the sprite to its top side
+	Vector2 uX; ///< Psuedo-unit vector pointing from the center of the sprite to its right side
+	Vector2 uY; ///< Psuedo-unit vector pointing from the center of the sprite to its top side
 
-	matrix2 rotation; ///< Two dimensional rotation vector for the current rotation of the sprite
+	Matrix2 rotation; ///< Two dimensional rotation vector for the current rotation of the sprite
 
 	/** Create an OpenGL vertex from an input 2d vector
 	  **/
-	void getVertex(const vector2& vec);
+	void getVertex(const Vector2& vec);
 
 	/** Update the local horizontal and vertical axes of the sprite
 	  **/

@@ -1,7 +1,7 @@
 #ifndef PIXEL_TRIPLET_HPP
 #define PIXEL_TRIPLET_HPP
 
-#include "vector3.hpp"
+#include "Vector.hpp"
 #include "colors.hpp"
 #include "ray.hpp"
 
@@ -77,7 +77,7 @@ public:
 	  */
 	bool goodToDraw() const { return (draw[0] || draw[1] || draw[2]); }
 
-	vector3 getCenterPoint() const;
+	Vector3 getCenterPoint() const;
 
 	ColorRGB getLighting(const float& x, const float& y) const;
 

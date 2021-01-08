@@ -124,10 +124,15 @@ endif()
 
 #Add the include directories.
 include_directories(graphics/include)
+include_directories(math/include)
 include_directories(include)
+
+#TEMP
+include_directories("D:/Kuras/Downloads/glm-master/glm-master/glm")
 
 #Add the graphics directory.
 add_subdirectory(graphics/source)
+add_subdirectory(math/source)
 
 #Add the source directory.
 add_subdirectory(source)

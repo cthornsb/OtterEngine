@@ -84,7 +84,7 @@ void Primitives::Cylinder::userBuild() {
 	std::vector<Vertex> copy;
 	vertices.copy(copy);
 	for (auto vert = copy.begin(); vert != copy.end(); vert++)
-		vert->offsetPosition(vector3(0, 0, -dZ));
+		vert->offsetPosition(Vector3(0, 0, -dZ));
 
 	// Must reverse the vertex order for correct winding 
 	// because the circle faces the camera by default.

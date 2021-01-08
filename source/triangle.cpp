@@ -16,18 +16,18 @@ triangle::triangle(Vertex* p0_, Vertex* p1_, Vertex* p2_, const object* obj) :
 {
 }
 
-vector3 triangle::getCenterPoint() const {
+Vector3 triangle::getCenterPoint() const {
 	return rotation->transform(p + *offset);
 }
 
-vector3 triangle::getNormal() const {
+Vector3 triangle::getNormal() const {
 	return rotation->transform(norm);
 }
 
 void triangle::update(){
 	// Update the plane of the triangle
-	vector3 p1p0 = p1->pos0 - p0->pos0; // Vector from p0 to p1
-	vector3 p2p0 = p2->pos0 - p0->pos0; // Vector from p0 to p2
+	Vector3 p1p0 = p1->pos0 - p0->pos0; // Vector from p0 to p1
+	Vector3 p2p0 = p2->pos0 - p0->pos0; // Vector from p0 to p2
 	
 	// Compute the normal to the plane
 	norm = p2p0.cross(p1p0).normalize();

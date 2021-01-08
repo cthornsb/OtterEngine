@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "Vertex.hpp"
-#include "vector3.hpp"
+#include "Vector.hpp"
 
 class object;
 
@@ -36,7 +36,7 @@ public:
 
 	Vertex* back() { return &vertices.back(); }
 
-	void add(const vector3& position, const object* obj);
+	void add(const Vector3& position, const object* obj);
 
 	void add(const float& posX, const float& posY, const float& posZ, const object* obj);
 

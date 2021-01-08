@@ -6,7 +6,8 @@
 #include <string>
 
 #include "ColorRGB.hpp"
-#include "vector3.hpp"
+#include "Shader.hpp"
+#include "Vector.hpp"
 
 class object;
 class Shader;
@@ -261,6 +262,10 @@ public:
 	  */
 	MouseState* getMouse() { return &mouse; }
 
+	/** Get a pointer to a loaded shader
+	  */
+	Shader* getShader(const ShaderType& type);
+
 	/** Set the width of the window (in pixels)
 	  */
 	void setWidth(const int &w){ width = w; }
@@ -299,7 +304,11 @@ public:
 	  * @param N The number of elements in the arrays and the number of pixels to draw
 	  */
 	static void drawPixel(const int *x, const int *y, const size_t &N);
-	
+
+	/** Draw a pixel at 3d position (x, y, z) on the screen
+	  */
+	static void drawPixel(const float& x, const float& y, const float& z);
+
 	/** Draw a line between points (x1, y1) and (x2, y2) on the screen
 	  */
 	static void drawLine(const int &x1, const int &y1, const int &x2, const int &y2);
@@ -311,6 +320,13 @@ public:
 		       in the arrays is equal to @a N, the total number of lines which will be drawn is equal to N-1
 	  */
 	static void drawLine(const int *x, const int *y, const size_t &N);
+
+	/** Draw a line between 3d points (x1, y1, z1) and (x2, y2, z2) on the screen
+	  */
+	static void drawLine(
+		const float& x1, const float& y1, const float& z1,
+		const float& x2, const float& y2, const float& z2
+	);
 
 	/** Draw a rectangle on the screen
 	  * @param x1 X coordinate of the upper left corner
@@ -331,22 +347,20 @@ public:
 
 	/** Draw an array of raw 3d vertices
 	  * @param vertices Array of raw 3d position components formatted as {x0, y0, z0, ... , xN-1, yN-1, zN-1}
-	  * @param N Number of triangle vertex indecies in index array
-	  * @param shdr Pointer to the shader program which should be used for triangle rendering
+	  * @param indicies Vector of vertex indicies representing the triangles which will be drawn
 	  */
-	static void drawVertexArray(const float* vertices, const size_t& N, const Shader* shdr=0x0);
+	static void drawVertexArray(const float* vertices, const std::vector<unsigned short>& indices);
 
 	/** Draw a 3d object on the screen
 	  * @param obj Pointer to 3d object which will be drawn
-	  * @param offset Position offset of object (camera position)
 	  */
-	void drawObject(const object* obj, const vector3& offset);
+	void drawObject(const object* obj);
 
 	/** Draw a static 3d object on the screen
 	  * @param obj Pointer to 3d object which will be drawn
 	  * @param offset Position offset of object (camera position)
 	  */
-	void drawStaticObject(const object* obj, const vector3& offset);
+	void drawStaticObject(const object* obj, const Vector3& offset);
 
 	/** Render the current frame
 	  */
@@ -408,6 +422,26 @@ public:
 	  */
 	void disableWireframeMode();
 
+	/** Enable the use of an OpenGL shader program
+	  */
+	void enableShader(const ShaderType& type);
+
+	/** Enable the use of an OpenGL shader program
+	  */
+	void enableShader(const Shader* shdr);
+
+	/** Disable the use of an OpenGL shader program
+	  */
+	void disableShader();
+
+	/** Reset the OpenGL modelview matrix to identity
+	  */
+	void resetModelviewMatrix();
+
+	void translateModelviewMatrix(const Vector3& pos);
+
+	void rotateModelviewMatrix(const float& x, const float& y, const float& z);
+
 	/** QT OpenGL callback, currently not used
 	  **/
 	virtual void paintGL();
@@ -437,5 +471,7 @@ private:
 	KeyStates keys; ///< GLUT keyboard event callback wrapper
 
 	MouseState mouse; ///< GLUT mouse event callback wrapper
+
+	std::unique_ptr<DefaultShaders::ShaderList> shaders;
 };
 #endif

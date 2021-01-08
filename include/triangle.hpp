@@ -46,15 +46,15 @@ public:
 
 	/** Get the center point of the triangle
 	  */
-	vector3 getCenterPoint() const;
+	Vector3 getCenterPoint() const;
 
-	vector3 getInitialCenterPoint() const { return p; }
+	Vector3 getInitialCenterPoint() const { return p; }
 
 	/** Get the normal vector at the center point of the triangle
 	  */
-	vector3 getNormal() const;
+	Vector3 getNormal() const;
 
-	vector3 getInitialNormal() const { return norm; }
+	Vector3 getInitialNormal() const { return norm; }
 
 	/** Update the infinite plane which bounds this triangle. This method sets the "position" of the plane to the
 	  * center-of-mass of the three triangle vertices and computes the normal to the surface of the triangle
@@ -67,9 +67,9 @@ public:
 	void dump() const ;
 
 private:
-	const vector3* offset; ///< Vertex position offset
+	const Vector3* offset; ///< Vertex position offset
 
-	const matrix3* rotation; ///< Rotation matrix of object
+	const Matrix3* rotation; ///< Rotation matrix of object
 
 	const object* parent; ///< Pointer to the parent object
 };
