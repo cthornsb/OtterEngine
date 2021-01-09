@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "triangle.hpp"
 #include "object.hpp"
 
@@ -32,11 +30,4 @@ void triangle::update(){
 	// Compute the normal to the plane
 	norm = p2p0.cross(p1p0).normalize();
 	p = (p0->pos0 + p1->pos0 + p2->pos0) * (1 / 3.0f);
-}
-
-void triangle::dump() const {
-	std::cout << " TRIANGLE::\n";
-	//p0->dump();
-	//p1->dump();
-	//p2->dump();
 }

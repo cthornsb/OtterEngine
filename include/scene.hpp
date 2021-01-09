@@ -284,6 +284,10 @@ private:
 	  * @note There must be AT LEAST three elements in each array
 	  */
 	void drawFilledTriangle(const pixelTriplet &coords, const ColorRGB &color);
+
+	/** Draw X, Y, and Z unit vector axes
+	  */
+	void drawAxes();
 };
 
 #endif

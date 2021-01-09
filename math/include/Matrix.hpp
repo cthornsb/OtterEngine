@@ -134,12 +134,12 @@ public:
 	/** Copy a matrix column into a vector (zero-indexed)
 	  * Vector must have the same dimension as the matrix
 	  */
-	void getColumn(const unsigned short& col, Vector* vec);
+	void getColumn(const unsigned short& col, Vector* vec) const;
 
 	/** Copy a matrix row into a vector (zero-indexed)
 	  * Vector must have the same dimension as the matrix
 	  */
-	void getRow(const unsigned short& row, Vector* vec);
+	void getRow(const unsigned short& row, Vector* vec) const;
 
 	/** Multiply this matrix by another matrix and return the resulting matrix
 	  */
@@ -934,6 +934,12 @@ public:
 		return retval;
 	}
 
+	/** Set a transformaton view-matrix for a FPS-style camera in 3d space
+	  * @param pos Focal point of camera
+	  * @param rot 3d rotation matrix of camera
+	  */
+	Matrix4& setViewMatrixFPS(const Vector3& pos, const Matrix3& rot);
+
 	/** Get a perspective projection transformation matrix for a given scene
 	  */
 	static Matrix4 getPerspectiveMatrix(const float& fov, const float& aspectRatio, const float& nearPlane, const float& farPlane);
@@ -971,6 +977,14 @@ public:
 	  * @param pitch The angle about the y-axis (in radians)
 	  */
 	static Matrix4 getViewMatrixFPS(const Vector3& pos, const float& pitch, const float& yaw);
+
+protected:
+	/** Copy a 3d vector into a column of this matrix
+	  * @param col The column to copy the input vector into
+	  * @param vec The 3d vector to copy
+	  * @param last The remaining value of the 4th element in the column
+	  */
+	void setSubMatrixColumn(const unsigned short& col, const Vector3& vec, const float& last = 0.f);
 };
 
 extern const Matrix2 identityMatrix2;

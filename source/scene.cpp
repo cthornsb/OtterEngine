@@ -205,29 +205,24 @@ bool scene::updateOpenGL() {
 
 	// Update projection and camera view transformation matrices
 	Matrix4* proj = cam->getProjectionMatrix();
-	Matrix4 view = Matrix4::getViewMatrixFPS(cam->getPosition(), cam->getPitchAngle(), cam->getYawAngle());
+	Matrix4* view = cam->getViewMatrix();
 
 	// Draw the origin
 	if (drawOrigin) { 
-		Matrix4 mvp = Matrix4::concatenate(proj, &view, &identityMatrix4);
+		Matrix4 mvp = Matrix4::concatenate(proj, view, &identityMatrix4);
 		window->enableShader(ShaderType::MVP);
 		window->getShader(ShaderType::MVP)->setMatrix4("MVP", &mvp);
-		window->setDrawColor(Colors::RED);
-		window->drawLine(0.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-		window->setDrawColor(Colors::GREEN);
-		window->drawLine(0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
-		window->setDrawColor(Colors::BLUE);
-		window->drawLine(0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+		drawAxes();
 		window->disableShader();
 	}
 
 	// Draw the vertices of all objects (using OpenGL)
-	window->enableWireframeMode();
+	//window->enableWireframeMode();
 	window->setDrawColor(Colors::WHITE);
 	for (auto obj = objects.cbegin(); obj != objects.cend(); obj++) {
 		// Setup MVP matrices
 		Matrix4* model = (*obj)->getModelMatrix();
-		Matrix4 mvp = Matrix4::concatenate(proj, &view, model);
+		Matrix4 mvp = Matrix4::concatenate(proj, view, model);
 
 		// Enable the shader
 		window->enableShader(ShaderType::MVP);
@@ -235,6 +230,21 @@ bool scene::updateOpenGL() {
 
 		// Draw the object
 		window->drawObject(*obj);
+
+		if (drawOrigin) { // Draw object unit vectors
+			drawAxes();
+		}
+
+		if (drawNorm) { // Draw face normals
+			std::vector<triangle>* polys = (*obj)->getPolygons();
+			window->setDrawColor(Colors::CYAN);
+			for (auto tri = polys->cbegin(); tri != polys->cend(); tri++) {
+				Vector3 base = tri->getInitialCenterPoint();
+				Vector3 tip = base + tri->getInitialNormal() * 0.25f;
+				window->drawLine(base, tip);
+			}
+		}
+
 		window->disableShader();
 	}
 
@@ -468,4 +478,13 @@ void scene::drawFilledTriangle(const pixelTriplet &coords, const ColorRGB &color
 		// Draw the scanline
 		window->drawLine(x0, scanline, x1, scanline);
 	}
+}
+
+void scene::drawAxes() {
+	window->setDrawColor(Colors::RED);
+	window->drawLine(0.f, 0.f, 0.f, 1.f, 0.f, 0.f);
+	window->setDrawColor(Colors::GREEN);
+	window->drawLine(0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
+	window->setDrawColor(Colors::BLUE);
+	window->drawLine(0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
 }

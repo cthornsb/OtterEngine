@@ -11,9 +11,9 @@ object::object() :
 	built(false),
 	reservedVertices(0),
 	reservedPolygons(0),
-	pos(),
-	pos0(),
-	rot(identityMatrix3),
+	position(),
+	position0(),
+	rotation(identityMatrix3),
 	center(),
 	pitchAngle(0, 0, 2 * pi),
 	rollAngle(0, 0, 2 * pi),
@@ -39,18 +39,12 @@ object::object() :
 object::object(const Vector3 & pos_) :
 	object()
 {
-	pos = pos_;
-	pos0 = pos_;
+	position = pos_;
+	position0 = pos_;
 }
 
 Matrix4* object::getModelMatrix() {
 	// Update the view matrix as the camera may have moved
-	Vector3 uX(1.f, 0.f, 0.f);
-	Vector3 uY(0.f, 1.f, 0.f);
-	Vector3 uZ(0.f, 0.f, 1.f);
-	rot.transformInPlace(uX);
-	rot.transformInPlace(uY);
-	rot.transformInPlace(uZ);
 	/*uX *= xScale;
 	uY *= yScale;
 	uZ *= zScale;*/
@@ -58,39 +52,39 @@ Matrix4* object::getModelMatrix() {
 		uX[0], uY[0], uZ[0], 0.f,
 		uX[1], uY[1], uZ[1], 0.f,
 		uX[2], uY[2], uZ[2], 0.f,
-		pos[0], pos[1], pos[2], 1.f
+		position[0], position[1], position[2], 1.f
 	);
 	return &modelMatrix;
 }
 
 void object::rotate(const float& theta, const float& phi, const float& psi){
 	// Update the rotation matrix
-	rot.setRotation((pitchAngle += theta), (rollAngle += psi), (yawAngle += phi));
+	rotation.setRotation((pitchAngle += theta), (rollAngle += psi), (yawAngle += phi));
 
 	// Update rotation of child objects
 	updateRotation();
 }
 
 void object::move(const Vector3 &offset){
-	pos += offset;
+	position += offset;
 	updatePosition();
 }
 
 void object::setRotation(const float& theta, const float& phi, const float& psi){
 	// Update the rotation matrix
-	rot.setRotation((pitchAngle = theta), (rollAngle = psi), (yawAngle = phi));
+	rotation.setRotation((pitchAngle = theta), (rollAngle = psi), (yawAngle = phi));
 
 	// Update rotation of child objects
 	updateRotation();
 }
 
-void object::setPosition(const Vector3 &position){
-	pos = position;
+void object::setPosition(const Vector3 &pos){
+	position = pos;
 	updatePosition();
 }
 
 void object::resetPosition(){
-	pos = pos0;
+	position = position0;
 	updatePosition();
 }
 
@@ -109,8 +103,8 @@ void object::addChild(object* child, const Vector3& offset/*=zeroVector*/) {
 		std::cout << " Object: [warning] Child object already had a parent, this may result in undefined behavior!" << std::endl;
 	}
 	child->parentOffset = offset;
-	child->updateRotationForParent(&rot);
-	child->updatePositionForParent(pos);
+	child->updateRotationForParent(&rotation);
+	child->updatePositionForParent(position);
 }
 
 void object::removeChild(object* child) {
@@ -169,23 +163,26 @@ bool object::setParent(const object* obj) {
 
 void object::updatePosition() {
 	for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
-		(*ch)->updatePositionForParent(pos);
+		(*ch)->updatePositionForParent(position);
 	}
 }
 
-void object::updatePositionForParent(const Vector3& position) {
-	pos = position + parentOffset;
+void object::updatePositionForParent(const Vector3& pos) {
+	position = pos + parentOffset;
 }
 
 void object::updateRotation() {
+	uX = rotation.transform(unitVectorX);
+	uY = rotation.transform(unitVectorY);
+	uZ = rotation.transform(unitVectorZ);
 	for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
-		(*ch)->updateRotationForParent(&rot);
-		(*ch)->updatePositionForParent(pos); // Necessary because the offset position within the parent changed
+		(*ch)->updateRotationForParent(&rotation);
+		(*ch)->updatePositionForParent(position); // Necessary because the offset position within the parent changed
 	}
 }
 
-void object::updateRotationForParent(const Matrix3* rotation) {
-	rotation->transformInPlace(parentOffset);
+void object::updateRotationForParent(const Matrix3* rot) {
+	rot->transformInPlace(parentOffset);
 }
 
 void object::reserve(const size_t& nVert, const size_t& nPoly/*=0*/) {

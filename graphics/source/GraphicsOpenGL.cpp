@@ -404,6 +404,13 @@ void Window::drawLine(
 	glEnd();
 }
 
+void Window::drawLine(const Vector3& p1, const Vector3& p2) {
+	glBegin(GL_LINES);
+		glVertex3f(p1[0], p1[1], p1[2]);
+		glVertex3f(p2[0], p2[1], p2[2]);
+	glEnd();
+}
+
 void Window::drawRectangle(const int &x1, const int &y1, const int &x2, const int &y2){
 	drawLine(x1, y1, x2, y1); // Top
 	drawLine(x2, y1, x2, y2); // Right

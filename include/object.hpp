@@ -33,11 +33,11 @@ public:
 
 	/** Get the position offset of the object
 	  */
-	Vector3 getPosition() const { return pos; }
+	Vector3 getPosition() const { return position; }
 
 	/** Get the position of the center of the object
 	  */
-	Vector3 getCenter() const { return (center + pos); }
+	Vector3 getCenter() const { return (center + position); }
 
 	/** Get the size of the object along the x-axis
 	  */
@@ -65,19 +65,19 @@ public:
 
 	/** Get a const pointer to the position vector
 	  */
-	const Vector3* getConstPositionPointer() const { return (const Vector3*)&pos; }
+	const Vector3* getConstPositionPointer() const { return (const Vector3*)&position; }
 
 	/** Get a const pointer to the position vector
 	  */
-	Vector3* getPositionPointer() { return &pos; }
+	Vector3* getPositionPointer() { return &position; }
 
 	/** Get a const pointer to the rotation matrix
 	  */
-	const Matrix3* getConstRotationMatrix() const { return (const Matrix3*)&rot; }
+	const Matrix3* getConstRotationMatrix() const { return (const Matrix3*)&rotation; }
 
 	/** Get a pointer to the rotation matrix
 	  */
-	Matrix3* getRotationMatrix() { return &rot; }
+	Matrix3* getRotationMatrix() { return &rotation; }
 
 	/** Get the number of unique vertices
 	  */
@@ -160,7 +160,7 @@ public:
 
 	/** Set the position of the object
 	  */
-	void setPosition(const Vector3 &position);
+	void setPosition(const Vector3 &pos);
 
 	/** Set the shader to use for rendering
 	  */
@@ -201,10 +201,14 @@ protected:
 	size_t reservedVertices; ///< The number of expected vertices
 	size_t reservedPolygons; ///< The number of expected polygons which will be built
 
-	Vector3 pos; ///< The position offset of the object (not necessarily the center)
-	Vector3 pos0; ///< The original position offset of the object
+	Vector3 position; ///< The position offset of the object (not necessarily the center)
+	Vector3 position0; ///< The original position offset of the object
 	
-	Matrix3 rot; ///< The rotation of the object about the offset position
+	Matrix3 rotation; ///< The rotation of the object about the offset position
+
+	Vector3 uX; ///< Unit vector for the x-axis
+	Vector3 uY; ///< Unit vector for the y-axis
+	Vector3 uZ; ///< Unit vector for the z-axis
 
 	Vector3 center; ///< Center of the box which bounds the model
 
@@ -257,7 +261,7 @@ protected:
 
 	/** Update the position based on new parent position
 	  */
-	void updatePositionForParent(const Vector3& position);
+	void updatePositionForParent(const Vector3& pos);
 
 	/** Update the rotation of all child objects to that of the parent
 	  */
@@ -265,7 +269,7 @@ protected:
 
 	/** Update the rotation based on new parent rotation
 	  */
-	void updateRotationForParent(const Matrix3* rotation);
+	void updateRotationForParent(const Matrix3* rot);
 
 	/** Reserve space in the geometry vectors so that they will not resize when being filled
 	  * @param nVert Number of expected vertices

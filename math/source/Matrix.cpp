@@ -12,7 +12,7 @@ const Matrix4 identityMatrix4(1.f);
 // class Matrix
 /////////////////////////////////////////////////////////////////////
 
-void Matrix::getColumn(const unsigned short& col, Vector* vec) {
+void Matrix::getColumn(const unsigned short& col, Vector* vec) const {
 	if (dimension != vec->dimension) // Vector size mismatch
 		return;
 	for (size_t i = 0; i < dimension; i++) {
@@ -20,7 +20,7 @@ void Matrix::getColumn(const unsigned short& col, Vector* vec) {
 	}
 }
 
-void Matrix::getRow(const unsigned short& row, Vector* vec) {
+void Matrix::getRow(const unsigned short& row, Vector* vec) const {
 	if (dimension != vec->dimension) // Vector size mismatch
 		return;
 	for (size_t i = 0; i < dimension; i++) {
@@ -271,6 +271,25 @@ Matrix3 Matrix3::getFPSCameraMatrix(const float& pitch, const float& yaw) {
 /////////////////////////////////////////////////////////////////////
 // class Matrix4
 /////////////////////////////////////////////////////////////////////
+
+void Matrix4::setSubMatrixColumn(const unsigned short& col, const Vector3& vec, const float& last/* = 0.f*/) {
+	for (size_t i = 0; i < 3; i++) { // Get column from input matrix and copy to this
+		elements[col + i * 4] = vec[i];
+	}
+	elements[col + 12] = last; // Set the remaining value in the column
+}
+
+Matrix4& Matrix4::setViewMatrixFPS(const Vector3& pos, const Matrix3& rot) {
+	Vector3 uX, uY, uZ;
+	rot.getColumn(0, &uX);
+	rot.getColumn(1, &uY);
+	rot.getColumn(2, &uZ);
+	setSubMatrixColumn(0, uX, -uX.dot(pos));
+	setSubMatrixColumn(1, uY, -uY.dot(pos));
+	setSubMatrixColumn(2, uZ, -uZ.dot(pos));
+	setSubMatrixColumn(3, zeroVector, 1.f);
+	return (*this);
+}
 
 Matrix4 Matrix4::getPerspectiveMatrix(const float& fov, const float& aspectRatio, const float& nearPlane, const float& farPlane) {
 	float cotan = 1.f / std::tan(fov / 2.f);

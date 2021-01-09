@@ -328,6 +328,10 @@ public:
 		const float& x2, const float& y2, const float& z2
 	);
 
+	/** Draw a line between 3d points p1=(x1, y1, z1) and p2=(x2, y2, z2) on the screen
+	  */
+	static void drawLine(const Vector3& p1, const Vector3& p2);
+
 	/** Draw a rectangle on the screen
 	  * @param x1 X coordinate of the upper left corner
 	  * @param y1 Y coordinate of the upper left corner

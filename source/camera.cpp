@@ -12,7 +12,7 @@ camera::camera() :
 	A(640.0f/480), 
 	W(0),
 	H(0),
-	pos(),
+	position(),
 	uX(1,0,0),
 	uY(0,1,0),
 	uZ(0,0,1),
@@ -26,14 +26,14 @@ camera::camera() :
 camera::camera(const Vector3 &pos_) :
 	camera()
 { 
-	pos = pos_;
+	position = pos_;
 	initialize();
 }
 
 camera::camera(const Vector3 &pos_, const Vector3 &dir_) :
 	camera() 
 {
-	pos = pos_;
+	position = pos_;
 	initialize();
 	setDirection(dir_);
 }
@@ -43,7 +43,7 @@ camera::~camera(){
 
 Matrix4* camera::getViewMatrix() {
 	// Update the view matrix as the camera may have moved
-	viewMatrix = Matrix4::getViewMatrixFPS(pos, pitchAngle.get(), yawAngle.get());
+	viewMatrix.setViewMatrixFPS(position, rotation); // Construct view matrix from position and rotation matrix
 	return &viewMatrix;
 }
 
@@ -67,37 +67,37 @@ void camera::setAspectRatio(const float &ratio){
 /////////////////////////////////////////////////
 
 void camera::moveForward(const float &dist){
-	pos += uZ*dist;
+	position += uZ*dist;
 	updateViewingPlane();
 }
 
 void camera::moveRight(const float&dist){
-	pos += uX*dist;
+	position += uX*dist;
 	updateViewingPlane();
 }
 
 void camera::moveUp(const float&dist){
-	pos += uY*dist;
+	position += uY*dist;
 	updateViewingPlane();	
 }
 
 void camera::move(const Vector3 &displacement){
-	pos += displacement;
+	position += displacement;
 	updateViewingPlane();
 }
 
 void camera::move(const float&x, const float&y, const float&z){
-	pos += Vector3(x, y, z);
+	position += Vector3(x, y, z);
 	updateViewingPlane();
 }
 
-void camera::moveTo(const Vector3 &position){ 
-	pos = position; 
+void camera::moveTo(const Vector3 &pos){ 
+	position = position;
 	updateViewingPlane();
 }
 
 void camera::moveTo(const float&x, const float&y, const float&z){
-	pos = Vector3(x, y, z);
+	position = Vector3(x, y, z);
 	updateViewingPlane();
 }
 
@@ -106,22 +106,18 @@ void camera::moveTo(const float&x, const float&y, const float&z){
 /////////////////////////////////////////////////////////////////////
 
 void camera::rotate(const float& pitch, const float& yaw, const float& roll){
-	// Reset the camera to its original orientation
-	resetUnitVectors();
+	// Rotate the camera relative to its current orientation
 	setRotation((pitchAngle += pitch), (yawAngle += yaw), (rollAngle += roll));
 }
 
 void camera::setRotation(const float& pitch, const float& yaw, const float& roll){
-	// Reset the camera to its original orientation
-	resetUnitVectors();
-	
 	// Get the rotation matrix
 	rotation.setRotation(pitch, roll, yaw);
 
 	// Update the rotation of the three unit vectors
-	rotation.transformInPlace(uX);
-	rotation.transformInPlace(uY);
-	rotation.transformInPlace(uZ);
+	uX = rotation.transform(unitVectorX);
+	uY = rotation.transform(unitVectorY);
+	uZ = rotation.transform(unitVectorZ);
 	uZ.invert(); // Necessary in OpenGL render mode
 
 	// Update the viewing plane
@@ -129,22 +125,18 @@ void camera::setRotation(const float& pitch, const float& yaw, const float& roll
 }
 
 void camera::rotateFPS(const float& pitch, const float& yaw) {
-	// Reset the camera to its original orientation
-	resetUnitVectors();
+	// Rotate the camera relative to its current orientation
 	setRotationFPS((pitchAngle += pitch), (yawAngle += yaw));
 }
 
 void camera::setRotationFPS(const float& pitch, const float& yaw) {
-	// Reset the camera to its original orientation
-	resetUnitVectors();
-
 	// Get the rotation matrix
 	rotation = Matrix3::getFPSCameraMatrix((pitchAngle = pitch), (yawAngle = yaw));
 
 	// Update the rotation of the three unit vectors
-	rotation.transformInPlace(uX);
-	rotation.transformInPlace(uY);
-	rotation.transformInPlace(uZ);
+	uX = rotation.transform(unitVectorX);
+	uY = rotation.transform(unitVectorY);
+	uZ = rotation.transform(unitVectorZ);
 	uZ.invert(); // Necessary in OpenGL render mode
 
 	// Update the viewing plane
@@ -152,12 +144,12 @@ void camera::setRotationFPS(const float& pitch, const float& yaw) {
 }
 
 void camera::setDirection(const Vector3& dir, const Vector3& upVector/* = unitVectorY*/) {
-	lookAt(pos + dir, upVector);
+	lookAt(position + dir, upVector);
 }
 
 void camera::lookAt(const Vector3 &position, const Vector3& upVector/* = unitVectorY*/){
 	// Point the Z axis unit vector at the point in space
-	uZ = (position - pos).normalize();
+	uZ = (position - position).normalize();
 	uZ.invert(); // Necessary in OpenGL render mode
 
 	// Compute the X-axis unit vector ("right" vector)
@@ -204,11 +196,11 @@ bool camera::render(Vertex& vertex) {
 
 bool camera::checkCulling(const Vector3 &offset, const triangle &tri){
 	// Check if the triangle is facing towards the camera
-	return ((tri.getCenterPoint() - pos) * tri.getNormal() <= 0);
+	return ((tri.getCenterPoint() - position) * tri.getNormal() <= 0);
 }
 
 bool camera::projectPoint(const Vector3 &vertex, float& sX, float& sY, float* zdepth/*=0x0*/){
-	Vector3 vec = pos - vertex;
+	Vector3 vec = position - vertex;
 	ray proj(vertex, vec);
 	
 	if (zdepth) {
@@ -232,7 +224,7 @@ bool camera::projectPoint(const Vector3 &vertex, float& sX, float& sY, float* zd
 }
 
 float camera::getZDepth(const Vector3& p) const {
-	Vector3 zDepth = p - pos; // Vector from focal point of camera to center of polygon
+	Vector3 zDepth = p - position; // Vector from focal point of camera to center of polygon
 	return (zDepth.length() * zDepth.cosTheta(uZ));
 }
 
@@ -266,14 +258,14 @@ void camera::computeViewingPlane(){
 }
 
 void camera::updateViewingPlane(){
-	p = pos + uZ*L;
+	p = position + uZ*L;
 	norm = uZ;
 }
 
 void camera::resetUnitVectors() {
-	uX = Vector3(1, 0, 0);
-	uY = Vector3(0, 1, 0);
-	uZ = Vector3(0, 0, 1);
+	uX = unitVectorX;
+	uY = unitVectorY;
+	uZ = unitVectorZ;
 }
 
 void camera::convertToScreenSpace(const Vector3 &vec, float& x, float& y){

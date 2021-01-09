@@ -34,7 +34,7 @@ public:
 
 	/** Get the current position of the focal point of the camera
 	  */
-	Vector3 getPosition() const { return pos; }
+	Vector3 getPosition() const { return position; }
 
 	/** Get the current direction the camera is facing
 	  */
@@ -64,7 +64,7 @@ public:
 	  * @param x Horizontal coordinate in screen space (-1, 1)
 	  * @param y Vertical coordinate in screen space (-1, 1)
 	  */
-	ray getRay(const float& x, const float& y) const { return ray(pos, (p + uX * x + uY * y - pos).normalize()); }
+	ray getRay(const float& x, const float& y) const { return ray(position, (p + uX * x + uY * y - position).normalize()); }
 
 	/** Set the field-of-view of the camera (in degrees)
 	  */
@@ -116,7 +116,7 @@ public:
 	
 	/** Move the camera to a position in 3d space
 	  */
-	void moveTo(const Vector3 &position);
+	void moveTo(const Vector3 &pos);
 	
 	/** Move the camera to a position in 3d space
 	  */
@@ -240,7 +240,7 @@ private:
 	float W; ///< Viewing plane width (in m)
 	float H; ///< Viewing plane height (in m)
 	
-	Vector3 pos; ///< The focal point of the camera (its position)
+	Vector3 position; ///< The focal point of the camera (its position)
 
 	Vector3 uX; ///< Unit vector for the x-axis
 	Vector3 uY; ///< Unit vector for the y-axis

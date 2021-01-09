@@ -62,10 +62,6 @@ public:
 	  */
 	void update();
 
-	/** Dump the vertex coordinates to stdout
-	  */
-	void dump() const ;
-
 private:
 	const Vector3* offset; ///< Vertex position offset
 
