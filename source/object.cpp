@@ -14,7 +14,11 @@ object::object() :
 	position(),
 	position0(),
 	rotation(identityMatrix3),
+	uX(1.f, 0.f, 0.f),
+	uY(0.f, 1.f, 0.f),
+	uZ(0.f, 0.f, 1.f),
 	center(),
+	scaleFactor(1.f, 1.f, 1.f),
 	pitchAngle(0, 0, 2 * pi),
 	rollAngle(0, 0, 2 * pi),
 	yawAngle(0, 0, 2 * pi),
@@ -26,7 +30,8 @@ object::object() :
 	children(),
 	parentOffset(),
 	parent(0x0),
-	shader(0x0)
+	shader(0x0),
+	modelMatrix()
 {
 	for (int i = 0; i < 3; i++) {
 		maxSize[i] = -FLT_MAX;
@@ -45,15 +50,10 @@ object::object(const Vector3 & pos_) :
 
 Matrix4* object::getModelMatrix() {
 	// Update the view matrix as the camera may have moved
-	/*uX *= xScale;
-	uY *= yScale;
-	uZ *= zScale;*/
-	modelMatrix = Matrix4(
-		uX[0], uY[0], uZ[0], 0.f,
-		uX[1], uY[1], uZ[1], 0.f,
-		uX[2], uY[2], uZ[2], 0.f,
-		position[0], position[1], position[2], 1.f
-	);
+	modelMatrix.setSubMatrixColumn(0, uX * scaleFactor[0], position[0]);
+	modelMatrix.setSubMatrixColumn(1, uY * scaleFactor[1], position[1]);
+	modelMatrix.setSubMatrixColumn(2, uZ * scaleFactor[2], position[2]);
+	modelMatrix.setSubMatrixColumn(3, zeroVector, 1.f);
 	return &modelMatrix;
 }
 

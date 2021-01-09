@@ -166,6 +166,34 @@ public:
 	  */
 	void setShader(const Shader* shdr) { shader = shdr; }
 
+	/** Scale object relative to its current size
+	  */
+	void scale(const float& scale_) { scaleFactor *= scale_; }
+
+	/** Set scale of all three vector axes
+	  */
+	void setScale(const float& scale_) { scaleFactor = Vector3(scale_, scale_, scale_); }
+
+	/** Set scale of all three vector axes
+	  */
+	void setScale(const Vector3& scale_) { scaleFactor = scale_; }
+
+	/** Set scale of all three vector axes
+	  */
+	void setScale(const float& xScale, const float& yScale, const float& zScale) { scaleFactor = Vector3(xScale, yScale, zScale); }
+
+	/** Set scale of object's x-axis
+	  */
+	void setScaleX(const float& scale_) { scaleFactor[0] = scale_; }
+
+	/** Set scale of object's y-axis
+	  */
+	void setScaleY(const float& scale_) { scaleFactor[1] = scale_; }
+
+	/** Set scale of object's z-axis
+	  */
+	void setScaleZ(const float& scale_) { scaleFactor[2] = scale_; }
+
 	/** Reset the offset position of the object to its original location
 	  */
 	void resetPosition();
@@ -211,6 +239,8 @@ protected:
 	Vector3 uZ; ///< Unit vector for the z-axis
 
 	Vector3 center; ///< Center of the box which bounds the model
+
+	Vector3 scaleFactor; ///< X, Y, and Z scale of object
 
 	WrappedValue pitchAngle; ///< Angle of camera tilt up or down (i.e. about the horizontal axis)
 	WrappedValue rollAngle; ///< Angle of camera roll cw or ccw (i.e. about the depth axis)

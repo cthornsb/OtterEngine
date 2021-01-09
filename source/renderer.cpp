@@ -95,8 +95,8 @@ int main(){
 	// Camera sensitivity
 	const float cameraSensitivity = 0.01f;
 
-	myShape.setPosition(Vector3(0, 0, 1.5f));
-	//myShape.setRotation(pi/2, 0, 0); // Absolute rotation
+	// Set object's scale
+	myShape.scale(0.75f);
 
 	// "Animate" the object by rotating it and moving the camera
 	int count = 0;
