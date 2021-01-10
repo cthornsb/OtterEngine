@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "triangle.hpp"
-//include "vector3.hpp"
 
 class object;
 class VertexContainer;
@@ -16,6 +15,12 @@ public:
 		indexVBO(0),
 		sizeOfVertexData(0),
 		sizeOfNormalData(0),
+		sizeOfColorData(0),
+		sizeOfTextureData(0),
+		offsetVertex(0),
+		offsetNormal(0),
+		offsetColor(0),
+		offsetTexture(0),
 		rawVertices(),
 		indicies(),
 		polys()
@@ -56,13 +61,13 @@ public:
 
 	const std::vector<triangle>* getConstPolygons() const { return &polys; }
 
-	size_t getSizeOfVertexData() const { return sizeOfVertexData; }
+	size_t getVertexDataOffset() const { return offsetVertex; }
 
-	size_t getSizeOfNormalData() const { return sizeOfNormalData; }
+	size_t getNormalDataOffset() const { return offsetNormal; }
 
-	//size_t getSizeOfColorData() const { return sizeOfColorData; }
+	size_t getTextureDataOffset() const { return offsetTexture; }
 
-	//size_t getSizeOfTextureData() const { return sizeOfTextureData; }
+	size_t getColorDataOffset() const { return offsetColor; }
 
 	void add(const triangle& tri, VertexContainer* vertices);
 
@@ -78,20 +83,27 @@ private:
 
 	size_t sizeOfVertexData;
 	size_t sizeOfNormalData;
-	//size_t sizeOfColorData;
-	//size_t sizeOfTextureData;
+	size_t sizeOfColorData;
+	size_t sizeOfTextureData;
 
-	std::vector<float> rawVertices; ///< Raw vertex information
+	size_t offsetVertex;
+	size_t offsetNormal;
+	size_t offsetColor;
+	size_t offsetTexture;
 
-	std::vector<float> rawNormals; ///< Raw vertex normal information
+	std::vector<float> rawVertices; ///< Raw vertex information (3 floats per vertex)
+
+	std::vector<float> rawNormals; ///< Raw vertex normal information (3 floats per vertex)
+
+	std::vector<float> rawTextureCoords; ///< Raw texture coordinate information (2 floats per vertex)
+
+	std::vector<float> rawColorData; ///< Raw vertex RGB color data (3 floats per vertex)
 
 	std::vector<unsigned short> indicies; ///< Polygon vertex indicies
 
 	std::vector<triangle> polys; ///< Polygon information
 
 	void addVertex(Vertex* vert);
-
-	bool addIndex(Vertex* vert, VertexContainer* vertices);
 
 	void setupVBOs();
 };

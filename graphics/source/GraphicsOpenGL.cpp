@@ -439,38 +439,31 @@ void Window::drawVertexArray(const float* vertices, const std::vector<unsigned s
 }
 
 void Window::drawObject(const object* obj) {
-	/*std::cout << "ogl" << std::endl;
-	float m[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, m);
-	for (int i = 0; i < 16; i++) {
-		std::cout << m[i] << "\t";
-		if ((i + 1) % 4 == 0)
-			std::cout << std::endl;
-	}*/
-
 	// Bind VBOs for vertex data array and index array
 	glBindBuffer(GL_ARRAY_BUFFER, obj->getVertexVBO());
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj->getIndexVBO());
-
-	glEnableClientState(GL_VERTEX_ARRAY); // Activate vertex array
-	glEnableClientState(GL_NORMAL_ARRAY); // Activate vertex normal array
-	//glEnableClientState(GL_COLOR_ARRAY); // Activate vertex color array
-	//glEnableClientState(GL_TEXTURE_COORD_ARRAY); // Activate texture coords array
-
+		
 	// do same as vertex array except pointer
-	glVertexPointer(3, GL_FLOAT, 0, (const void*)0);    // last param is offset, not ptr
-	glNormalPointer(GL_FLOAT, 0, (const void*)obj->getPolygons()->getSizeOfVertexData());
-	//glColorPointer(3, GL_FLOAT, 
-	//glTexCoordPointer(2, GL_FLOAT, stride, offset3);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (const void*)obj->getPolygons()->getVertexDataOffset());
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (const void*)obj->getPolygons()->getNormalDataOffset());
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (const void*)obj->getPolygons()->getColorDataOffset());
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, (const void*)obj->getPolygons()->getTextureDataOffset());
+
+	// Enable vertex attributes
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
 
 	// Draw the faces
 	glDrawElements(GL_TRIANGLES, (GLsizei)(3 * obj->getNumberOfPolygons()), GL_UNSIGNED_SHORT, 0x0);
 
-	glDisableClientState(GL_VERTEX_ARRAY);            // deactivate vertex position array
-	glDisableClientState(GL_NORMAL_ARRAY);            // deactivate vertex normal array
-	//glDisableClientState(GL_COLOR_ARRAY);
-	//glDisableClientState(GL_TEXTURE_COORD_ARRAY);     // deactivate vertex tex coord array
-
+	// Disable vertex attributes
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(2);
+	glDisableVertexAttribArray(3);
+		
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }

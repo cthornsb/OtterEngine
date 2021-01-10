@@ -27,6 +27,8 @@ public:
 		zDepth(0),
 		pos0(),
 		norm0(),
+		color(1.f, 1.f, 1.f),
+		texCoords(0.f, 0.f),
 		offset(&zeroVector),
 		rotation(0x0),
 		parent(0x0)
@@ -57,6 +59,22 @@ public:
 	  */
 	Vector3 getInitialNormal() const { return norm0; }
 
+	/** Get the vertex color
+	  */
+	ColorRGB getColor() const { return color; }
+
+	/** Get the vertex texture coordinates
+	  */
+	Vector2 getTextureCoordinates() const { return texCoords; }
+
+	/** Set the vertex color
+	  */
+	void setColor(const ColorRGB& col) { color = col; }
+
+	/** Set the vertex texture coordinates
+	  */
+	void setTextureCoordinates(const Vector2& texture) { texCoords = texture; }
+
 	/** Transform the vertex position by an input matrix and return the result
 	  */
 	Vector3 transform(const Matrix3* mat);
@@ -65,6 +83,10 @@ private:
 	Vector3 pos0; ///< Original vertex position
 
 	Vector3 norm0; ///< Vertex normal vector
+
+	ColorRGB color; ///< Vertex color
+
+	Vector2 texCoords; ///< Texture coordinates
 
 	const Vector3* offset; ///< Vertex position offset
 
