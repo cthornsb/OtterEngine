@@ -2,6 +2,7 @@
 #define POLYGON_CONTAINER_HPP
 
 #include <vector>
+#include <memory>
 
 #include "triangle.hpp"
 
@@ -13,18 +14,21 @@ public:
 	PolygonContainer() :
 		vertexVBO(0),
 		indexVBO(0),
-		sizeOfVertexData(0),
-		sizeOfNormalData(0),
-		sizeOfColorData(0),
-		sizeOfTextureData(0),
-		offsetVertex(0),
-		offsetNormal(0),
-		offsetColor(0),
-		offsetTexture(0),
-		rawVertices(),
+		nReservedVertices(0),
+		nTotalNumberOfBytes(0),
+		nVertexAttributes(0),
+		nVertices(0),
+		rawData(),
+		rawOffsets(),
+		rawNumElements(),
 		indicies(),
 		polys()
 	{
+		// Add vertex position to VBO
+		addVertexAttribute(3); //position
+		addVertexAttribute(3); //normal
+		addVertexAttribute(3); //color
+		addVertexAttribute(2); //texture
 	}
 
 	~PolygonContainer();
@@ -53,21 +57,19 @@ public:
 
 	triangle* back() { return &polys.back(); }
 
-	const float* getConstVertexData() const { return (const float*)rawVertices.data(); }
-
-	const unsigned short* getConstIndicies() const { return (const unsigned short*)indicies.data(); }
-
 	std::vector<triangle>* getPolygons() { return &polys; }
 
 	const std::vector<triangle>* getConstPolygons() const { return &polys; }
 
-	size_t getVertexDataOffset() const { return offsetVertex; }
+	size_t getNumberOfVertexAttributes() const { return nVertexAttributes; }
 
-	size_t getNormalDataOffset() const { return offsetNormal; }
+	size_t getRawDataLength(const size_t& index) const { return rawData.at(index).size(); }
 
-	size_t getTextureDataOffset() const { return offsetTexture; }
+	size_t getRawDataOffset(const size_t& index) const { return rawOffsets.at(index); }
 
-	size_t getColorDataOffset() const { return offsetColor; }
+	size_t getNumberOfAttributeElements(const size_t& index) const { return rawNumElements.at(index); }
+
+	size_t getNumberOfVertices() const { return nVertices; }
 
 	void add(const triangle& tri, VertexContainer* vertices);
 
@@ -81,29 +83,30 @@ private:
 	unsigned int vertexVBO;
 	unsigned int indexVBO;
 
-	size_t sizeOfVertexData;
-	size_t sizeOfNormalData;
-	size_t sizeOfColorData;
-	size_t sizeOfTextureData;
+	size_t nReservedVertices; ///< Number of vertices reserved in memory
 
-	size_t offsetVertex;
-	size_t offsetNormal;
-	size_t offsetColor;
-	size_t offsetTexture;
+	size_t nTotalNumberOfBytes; ///< Total number of bytes in object VBO
 
-	std::vector<float> rawVertices; ///< Raw vertex information (3 floats per vertex)
+	size_t nVertexAttributes; ///< Number of vertex attributes defined
 
-	std::vector<float> rawNormals; ///< Raw vertex normal information (3 floats per vertex)
+	size_t nVertices; ///< Total number of vertices
 
-	std::vector<float> rawTextureCoords; ///< Raw texture coordinate information (2 floats per vertex)
+	std::vector<std::vector<float> > rawData; ///< Raw vertex attribute information
 
-	std::vector<float> rawColorData; ///< Raw vertex RGB color data (3 floats per vertex)
+	std::vector<size_t> rawOffsets; ///< Raw vertex attribute array offsets (in Bytes)
+
+	std::vector<size_t> rawNumElements; ///< Number of elements for each vertex attribute
 
 	std::vector<unsigned short> indicies; ///< Polygon vertex indicies
 
 	std::vector<triangle> polys; ///< Polygon information
 
 	void addVertex(Vertex* vert);
+	
+	/** Add a vertex attribute
+	  * @param nElements Number of elements per vertex for this attribute (as per OpenGL requirements, must be 1, 2, 3, or 4)
+	  */
+	bool addVertexAttribute(const size_t& nElements);
 
 	void setupVBOs();
 };

@@ -12,8 +12,10 @@ PolygonContainer::~PolygonContainer() {
 }
 
 void PolygonContainer::reserve(const size_t& N) {
-	rawVertices.reserve(9 * N);
-	rawNormals.reserve(9 * N);
+	nReservedVertices = N;
+	for (size_t i = 0; i < nVertexAttributes; i++) { // Reserve raw data arrays
+		rawData[i].reserve(rawNumElements[i] * nReservedVertices);
+	}
 	indicies.reserve(3 * N);
 	polys.reserve(N);
 }
@@ -41,13 +43,8 @@ void PolygonContainer::add(const unsigned short& i0, const unsigned short& i1, c
 
 void PolygonContainer::finalize() {
 	// Setup buffer objects
-	setupVBOs();
-
-	// Data has been sent to GPU, delete raw data in conventional memory
-	rawVertices.clear();
-	rawNormals.clear();
-	rawTextureCoords.clear();
-	rawColorData.clear();
+	setupVBOs();	
+	rawData.clear();
 	indicies.clear();
 }
 
@@ -57,22 +54,37 @@ void PolygonContainer::addVertex(Vertex* vert) {
 	Vector2 text = vert->getTextureCoordinates();
 	ColorRGB color = vert->getColor();
 
-	indicies.push_back((unsigned short)(rawVertices.size() / 3));
+	// Add current vertex index
+	//indicies.push_back((unsigned short)(rawData[0].size() / 3));
 
-	rawVertices.push_back(pos[0]);
-	rawVertices.push_back(pos[1]);
-	rawVertices.push_back(pos[2]);
+	// Add vertex position
+	rawData[0].push_back(pos[0]);
+	rawData[0].push_back(pos[1]);
+	rawData[0].push_back(pos[2]);
 
-	rawNormals.push_back(norm[0]);
-	rawNormals.push_back(norm[1]);
-	rawNormals.push_back(norm[2]);
+	rawData[1].push_back(norm[0]);
+	rawData[1].push_back(norm[1]);
+	rawData[1].push_back(norm[2]);
 
-	rawColorData.push_back(color.r);
-	rawColorData.push_back(color.g);
-	rawColorData.push_back(color.b);
+	rawData[2].push_back(color.r);
+	rawData[2].push_back(color.g);
+	rawData[2].push_back(color.b);
 
-	rawTextureCoords.push_back(text[0]);
-	rawTextureCoords.push_back(text[1]);
+	rawData[3].push_back(text[0]);
+	rawData[3].push_back(text[1]);
+
+	// Increment number of vertices
+	nVertices++;
+}
+
+bool PolygonContainer::addVertexAttribute(const size_t& nElements) {
+	if (nElements == 0 || nElements > 4) // As per OpenGL requirements
+		return false;
+	rawData.push_back(std::vector<float>());
+	rawOffsets.push_back(0);
+	rawNumElements.push_back(nElements);
+	nVertexAttributes++;
+	return true;
 }
 
 void PolygonContainer::setupVBOs() {
@@ -81,34 +93,33 @@ void PolygonContainer::setupVBOs() {
 	glCreateBuffers(1, &indexVBO);
 
 	std::cout << " [debug] vertexVBO=" << vertexVBO << ", indexVBO=" << indexVBO << std::endl;
-
-	sizeOfVertexData = rawVertices.size() * sizeof(float);
-	sizeOfNormalData = rawNormals.size() * sizeof(float);
-	sizeOfColorData = rawColorData.size() * sizeof(float);
-	sizeOfTextureData = rawTextureCoords.size() * sizeof(float);
-		
-	size_t totalSize = sizeOfVertexData + sizeOfNormalData + sizeOfColorData + sizeOfTextureData;
-	offsetVertex = 0;
-	offsetNormal = sizeOfVertexData;
-	offsetColor = sizeOfVertexData + sizeOfNormalData;
-	offsetTexture = sizeOfVertexData + sizeOfNormalData + sizeOfColorData;
 	
+	// Compute the total
+	nTotalNumberOfBytes = 0;
+	std::vector<size_t> rawLengths(nVertexAttributes, 0);
+	for (size_t i = 0; i < nVertexAttributes; i++) {
+		rawLengths[i] = rawData[i].size() * sizeof(float);
+		rawOffsets[i] = nTotalNumberOfBytes;
+		nTotalNumberOfBytes += rawLengths[i];
+	}
+	
+	// Bind buffer and reserve vertex buffer memory
 	glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
-	glNamedBufferData(vertexVBO, totalSize, 0x0, GL_STATIC_DRAW); // Reserve vertex buffer memory
-	glNamedBufferSubData(vertexVBO, 0, sizeOfVertexData, rawVertices.data()); // Copy vertices
-	glNamedBufferSubData(vertexVBO, offsetNormal, sizeOfNormalData, rawNormals.data()); // Copy normals after vertices
-	glNamedBufferSubData(vertexVBO, offsetColor, sizeOfColorData, rawColorData.data()); // Copy colors after norms
-	glNamedBufferSubData(vertexVBO, offsetTexture, sizeOfTextureData, rawTextureCoords.data()); // Copy texture coordinates after normals
+	glNamedBufferData(vertexVBO, nTotalNumberOfBytes, 0x0, GL_STATIC_DRAW);
+
+	// Copy data to GPU
+	for (size_t i = 0; i < nVertexAttributes; i++) {
+		glNamedBufferSubData(vertexVBO, (GLintptr)rawOffsets[i], (GLsizeiptr)rawLengths[i], (const void*)rawData[i].data());
+		std::cout << " [debug]  (location = " << i <<") elements=" << rawNumElements[i] << ", size=" << rawLengths[i] << " B" << std::endl;
+	}
+
+	// Unbind buffer
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	std::cout << " [debug] VBO: triangles=" << polys.size() << ", indices=" << indicies.size() << ", vertices=" << rawVertices.size()/3 << std::endl;
-	std::cout << " [debug] Size=" << totalSize << " B" << std::endl;
-	std::cout << " [debug]  Vertices=" << sizeOfVertexData << " B" << std::endl;
-	std::cout << " [debug]  Normals =" << sizeOfNormalData << " B" << std::endl;
-	std::cout << " [debug]  Colors  =" << sizeOfColorData << " B" << std::endl;
-	std::cout << " [debug]  Texture =" << sizeOfTextureData << " B" << std::endl;
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVBO);
+	// Bind indices buffer
+	/*glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVBO);
 	glNamedBufferData(indexVBO, indicies.size() * sizeof(unsigned short), indicies.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);*/
+
+	std::cout << " [debug] VBO: triangles=" << polys.size() << ", vertices=" << nVertices << std::endl;
 }

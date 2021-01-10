@@ -443,26 +443,24 @@ void Window::drawObject(const object* obj) {
 	glBindBuffer(GL_ARRAY_BUFFER, obj->getVertexVBO());
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj->getIndexVBO());
 		
-	// do same as vertex array except pointer
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (const void*)obj->getPolygons()->getVertexDataOffset());
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (const void*)obj->getPolygons()->getNormalDataOffset());
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (const void*)obj->getPolygons()->getColorDataOffset());
-	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, (const void*)obj->getPolygons()->getTextureDataOffset());
+	// Add vertex attribute pointers
+	const PolygonContainer* polys = obj->getPolygons();
+	for (size_t i = 0; i < polys->getNumberOfVertexAttributes(); i++) {
+		// Unfortunately we have to do this messy pointer cast with the offsets
+		glVertexAttribPointer((GLuint)i, (GLint)polys->getNumberOfAttributeElements(i), GL_FLOAT, GL_FALSE, 0, (const void*)polys->getRawDataOffset(i));
 
-	// Enable vertex attributes
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
-	glEnableVertexAttribArray(3);
+		// Enable the attribute
+		glEnableVertexAttribArray((GLuint)i);
+	}
 
 	// Draw the faces
-	glDrawElements(GL_TRIANGLES, (GLsizei)(3 * obj->getNumberOfPolygons()), GL_UNSIGNED_SHORT, 0x0);
+	//glDrawElements(GL_TRIANGLES, (GLsizei)(polys->getNumberOfVertices()), GL_UNSIGNED_SHORT, 0x0);
+	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)(polys->getNumberOfVertices()));
 
-	// Disable vertex attributes
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(2);
-	glDisableVertexAttribArray(3);
+	for (size_t i = 0; i < polys->getNumberOfVertexAttributes(); i++) {
+		// Disable vertex attributes
+		glDisableVertexAttribArray((GLuint)i);
+	}
 		
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

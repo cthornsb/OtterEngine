@@ -273,7 +273,7 @@ Matrix3 Matrix3::getFPSCameraMatrix(const float& pitch, const float& yaw) {
 /////////////////////////////////////////////////////////////////////
 
 void Matrix4::setSubMatrixColumn(const unsigned short& col, const Vector3& vec, const float& last/* = 0.f*/) {
-	for (size_t i = 0; i < 3; i++) { // Get column from input matrix and copy to this
+	for (unsigned short i = 0; i < 3; i++) { // Get column from input matrix and copy to this
 		elements[col + i * 4] = vec[i];
 	}
 	elements[col + 12] = last; // Set the remaining value in the column

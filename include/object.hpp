@@ -112,10 +112,6 @@ public:
 	  */
 	const PolygonContainer* getPolygons() const { return &polys; }
 
-	/** Get the array of raw vertex position data
-	  */
-	const float* getRawVertexData() const { return polys.getConstVertexData(); }
-
 	/** Get OpenGL VBO id number corresponding to object vertices
 	  */
 	unsigned int getVertexVBO() const { return polys.getVertexVBO(); }
