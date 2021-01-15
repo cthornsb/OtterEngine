@@ -41,6 +41,16 @@ void PolygonContainer::add(const unsigned short& i0, const unsigned short& i1, c
 	addVertex((*vertices)[i0]);
 }
 
+void PolygonContainer::modifyTextureMap(const Vector2& uv0, const Vector2& uv1, const Vector2& uv2) {
+	auto iter = rawData[3].end() - 6;
+	*iter = uv0[0]; iter++;
+	*iter = uv0[1]; iter++;
+	*iter = uv1[0]; iter++;
+	*iter = uv1[1]; iter++;
+	*iter = uv2[0]; iter++;
+	*iter = uv2[1]; iter++;
+}
+
 void PolygonContainer::finalize() {
 	// Setup buffer objects
 	setupVBOs();	
@@ -51,11 +61,8 @@ void PolygonContainer::finalize() {
 void PolygonContainer::addVertex(Vertex* vert) {
 	Vector3 pos  = vert->getInitialPosition();
 	Vector3 norm = back()->getInitialNormal();
-	Vector2 text = vert->getTextureCoordinates();
+	Vector2 uv = vert->getTextureCoordinates();
 	ColorRGB color = vert->getColor();
-
-	// Add current vertex index
-	//indicies.push_back((unsigned short)(rawData[0].size() / 3));
 
 	// Add vertex position
 	rawData[0].push_back(pos[0]);
@@ -70,8 +77,8 @@ void PolygonContainer::addVertex(Vertex* vert) {
 	rawData[2].push_back(color.g);
 	rawData[2].push_back(color.b);
 
-	rawData[3].push_back(text[0]);
-	rawData[3].push_back(text[1]);
+	rawData[3].push_back(uv[0]);
+	rawData[3].push_back(uv[1]);
 
 	// Increment number of vertices
 	nVertices++;
@@ -115,11 +122,6 @@ void PolygonContainer::setupVBOs() {
 
 	// Unbind buffer
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	// Bind indices buffer
-	/*glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexVBO);
-	glNamedBufferData(indexVBO, indicies.size() * sizeof(unsigned short), indicies.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);*/
 
 	std::cout << " [debug] VBO: triangles=" << polys.size() << ", vertices=" << nVertices << std::endl;
 }

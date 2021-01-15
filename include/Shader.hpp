@@ -7,15 +7,18 @@
 #include "Vector.hpp"
 #include "Matrix.hpp"
 
+class object;
+
 /// <summary>
 /// Default shader types
 /// </summary>
 enum class ShaderType {
 	NONE,    ///< No shader
-	DEFAULT, ///< Simple vertex and fragment shader. Objects appear solid white
-	MVP,     ///< Model, view, and projection matrix transformation shader
+	DEFAULT, ///< Simple vertex and fragment shader. Object color taken from gl_Color
+	COLOR,   ///< Fragment color interpolated from vertex colors
 	NORMAL,  ///< Shader showing differences in polygon normals
-	ZDEPTH   ///< Shader showing differences in pixel Z-depth computed by OpenGL
+	ZDEPTH,  ///< Shader showing differences in pixel Z-depth computed by OpenGL
+	TEXTURE  ///< Use object texture
 };
 
 class Shader {
@@ -37,7 +40,9 @@ public:
 
 	~Shader();
 
-	void useShader();
+	void enableShader(const object* obj) const;
+
+	void disableShader(const object* obj) const;
 
 	unsigned int getProgram() const { return nProgram; }
 
@@ -84,32 +89,37 @@ protected:
 	bool compileShader(const unsigned int& nShader, const std::string& sBody);
 
 	bool generateProgram();
+
+	virtual void onShaderEnable(const object*) const { }
+
+	virtual void onShaderDisable(const object*) const { }
 };
 
 namespace DefaultShaders {
-	extern const size_t vertexDefaultLength;
-	extern const size_t fragmentDefaultLength;
+	typedef void (*shaderStateFunction)(const object*);
 
-	extern const std::string vertexDefault[];
-	extern const std::string fragmentDefault[];
+	extern const std::vector<std::string> vertexDefault;
+	extern const std::vector<std::string> fragmentDefault;
 
-	extern const size_t vertexMVPLength;
-	extern const size_t fragmentMVPLength;
+	extern const std::vector<std::string> vertexColor;
+	extern const std::vector<std::string> fragmentColor;
 
-	extern const std::string vertexMVP[];
-	extern const std::string fragmentMVP[];
+	extern const std::vector<std::string> vertexNormal;
+	extern const std::vector<std::string> fragmentNormal;
 
-	extern const size_t vertexNormalLength;
-	extern const size_t fragmentNormalLength;
+	extern const std::vector<std::string> vertexZDepth;
+	extern const std::vector<std::string> fragmentZDepth;
 
-	extern const std::string vertexNormal[];
-	extern const std::string fragmentNormal[];
+	extern const std::vector<std::string> vertexTexture;
+	extern const std::vector<std::string> fragmentTexture;
 
-	extern const size_t vertexZDepthLength;
-	extern const size_t fragmentZDepthLength;
+	void defaultShaderEnable(const object*);
 
-	extern const std::string vertexZDepth[];
-	extern const std::string fragmentZDepth[];
+	void defaultShaderDisable(const object*);
+
+	void bindObjectTexture(const object* obj);
+
+	void unbindObjectTexture(const object*);
 
 	class DefaultShader : public Shader {
 	public:
@@ -117,7 +127,9 @@ namespace DefaultShaders {
 			Shader(),
 			good(false),
 			type(ShaderType::NONE),
-			name("none")
+			name("none"),
+			enableFunc(&defaultShaderEnable),
+			disableFunc(&defaultShaderDisable)
 		{
 		}
 
@@ -134,7 +146,19 @@ namespace DefaultShaders {
 
 		std::string name;
 
-		bool generate(const std::string* vert, const size_t& nLinesVert, const std::string* frag, const size_t& nLinesFrag);
+		shaderStateFunction enableFunc;
+
+		shaderStateFunction disableFunc;
+
+		bool generate(const std::vector<std::string>& vert, const std::vector<std::string>& frag);
+
+		virtual void onShaderEnable(const object* obj) const { 
+			(*enableFunc)(obj);
+		}
+
+		virtual void onShaderDisable(const object* obj) const {
+			(*disableFunc)(obj);
+		}
 	};
 
 	class ShaderList {

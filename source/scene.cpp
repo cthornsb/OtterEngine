@@ -86,6 +86,8 @@ void scene::disableOpenGLRenderer() {
 
 void scene::addObject(object* obj) { 
 	obj->build(); // Construct the object
+	if(!obj->getShader()) // Set default shader
+		obj->setShader(window->getShader(ShaderType::DEFAULT));
 	objects.push_back(obj); // Add it to the list of objects to draw
 }
 
@@ -210,42 +212,53 @@ bool scene::updateOpenGL() {
 	// Draw the origin
 	if (drawOrigin) { 
 		Matrix4 mvp = Matrix4::concatenate(proj, view, &identityMatrix4);
-		window->enableShader(ShaderType::MVP);
-		window->getShader(ShaderType::MVP)->setMatrix4("MVP", &mvp);
+		window->enableShader(ShaderType::DEFAULT);
+		window->getShader(ShaderType::DEFAULT)->setMatrix4("MVP", &mvp);
 		drawAxes();
 		window->disableShader();
 	}
 
 	// Draw the vertices of all objects (using OpenGL)
 	//window->enableWireframeMode();
-	window->setDrawColor(Colors::WHITE);
+	window->setDrawColor(Colors::WHITE); // Set draw color (for default shader)
 	for (auto obj = objects.cbegin(); obj != objects.cend(); obj++) {
 		// Setup MVP matrices
 		Matrix4* model = (*obj)->getModelMatrix();
 		Matrix4 mvp = Matrix4::concatenate(proj, view, model);
 
 		// Enable the shader
-		window->enableShader(ShaderType::MVP);
-		window->getShader(ShaderType::MVP)->setMatrix4("MVP", &mvp);
+		const Shader* shdr = (*obj)->getShader();
+		shdr->enableShader(*obj);
+		shdr->setMatrix4("MVP", &mvp);
+		Vector3 camPos = cam->getPosition();
+		Vector3 camDir = cam->getDirection();
+		shdr->setVector3("camPos", &camPos);
+		shdr->setVector3("camDir", &camDir);
 
 		// Draw the object
 		window->drawObject(*obj);
 
-		if (drawOrigin) { // Draw object unit vectors
-			drawAxes();
-		}
+		// Disable object shader
+		shdr->disableShader(*obj);
 
-		if (drawNorm) { // Draw face normals
-			std::vector<triangle>* polys = (*obj)->getPolygons();
-			window->setDrawColor(Colors::CYAN);
-			for (auto tri = polys->cbegin(); tri != polys->cend(); tri++) {
-				Vector3 base = tri->getInitialCenterPoint();
-				Vector3 tip = base + tri->getInitialNormal() * 0.25f;
-				window->drawLine(base, tip);
+		// Debugging
+		if (drawOrigin || drawNorm) {
+			window->enableShader(ShaderType::DEFAULT);
+			window->getShader(ShaderType::DEFAULT)->setMatrix4("MVP", &mvp);
+			if (drawOrigin) { // Draw object unit vectors
+				drawAxes();
 			}
+			if (drawNorm) { // Draw face normals
+				std::vector<triangle>* polys = (*obj)->getPolygons();
+				window->setDrawColor(Colors::CYAN);
+				for (auto tri = polys->cbegin(); tri != polys->cend(); tri++) {
+					Vector3 base = tri->getInitialCenterPoint();
+					Vector3 tip = base + tri->getInitialNormal() * 0.25f;
+					window->drawLine(base, tip);
+				}
+			}
+			window->disableShader();
 		}
-
-		window->disableShader();
 	}
 
 	return render();

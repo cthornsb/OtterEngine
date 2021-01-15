@@ -430,10 +430,6 @@ public:
 	  */
 	void enableShader(const ShaderType& type);
 
-	/** Enable the use of an OpenGL shader program
-	  */
-	void enableShader(const Shader* shdr);
-
 	/** Disable the use of an OpenGL shader program
 	  */
 	void disableShader();

@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 
 #include "Shader.hpp"
+#include "object.hpp"
 
 Shader::~Shader() {
 	glDeleteShader(nVertShader);
@@ -11,8 +12,14 @@ Shader::~Shader() {
 	glDeleteProgram(nProgram);
 }
 
-void Shader::useShader() {
+void Shader::enableShader(const object* obj) const {
 	glUseProgram(nProgram);
+	onShaderEnable(obj);
+}
+
+void Shader::disableShader(const object* obj) const {
+	glUseProgram(0);
+	onShaderDisable(obj);
 }
 
 bool Shader::generate(const std::string& vert, const std::string& frag) {
@@ -40,6 +47,14 @@ bool Shader::generateProgram() {
 	// Create the shader program
 	int retval;
 	nProgram = glCreateProgram();
+
+	// Bind default attribtue locations (equivalent to "layout (location = N)")
+	glBindAttribLocation(nProgram, 0, "vPosition");
+	glBindAttribLocation(nProgram, 1, "vNormal");
+	glBindAttribLocation(nProgram, 2, "vColor");
+	glBindAttribLocation(nProgram, 3, "vTexture");
+
+	// Link shader program
 	glAttachShader(nProgram, nVertShader);
 	glAttachShader(nProgram, nFragShader);
 	glLinkProgram(nProgram);
@@ -157,37 +172,45 @@ DefaultShaders::DefaultShader::DefaultShader(const ShaderType& stype_) :
 	Shader(),
 	good(false),
 	type(stype_),
-	name("none")
+	name("none"),
+	enableFunc(&defaultShaderEnable),
+	disableFunc(&defaultShaderDisable)
 {
 	switch (stype_) {
 	case ShaderType::NONE:
 		break;
 	case ShaderType::DEFAULT:
 		name = "default";
-		good = generate(vertexDefault, vertexDefaultLength, fragmentDefault, fragmentDefaultLength);
+		good = generate(vertexDefault, fragmentDefault);
 		break;
-	case ShaderType::MVP:
-		name = "mvp";
-		good = generate(vertexMVP, vertexMVPLength, fragmentMVP, fragmentMVPLength);
+	case ShaderType::COLOR:
+		name = "color";
+		good = generate(vertexColor, fragmentColor);
 		break;
 	case ShaderType::NORMAL:
 		name = "normal";
-		good = generate(vertexNormal, vertexNormalLength, fragmentNormal, fragmentNormalLength);
+		good = generate(vertexNormal, fragmentNormal);
 		break;
 	case ShaderType::ZDEPTH:
 		name = "zdepth";
-		good = generate(vertexZDepth, vertexZDepthLength, fragmentZDepth, fragmentZDepthLength);
+		good = generate(vertexZDepth, fragmentZDepth);
+		break;
+	case ShaderType::TEXTURE:
+		name = "texture";
+		good = generate(vertexTexture, fragmentTexture);
+		enableFunc = &bindObjectTexture;
+		disableFunc = &unbindObjectTexture;
 		break;
 	default:
 		break;
 	}
 }
 
-bool DefaultShaders::DefaultShader::generate(const std::string* vert, const size_t& nLinesVert, const std::string* frag, const size_t& nLinesFrag) {
+bool DefaultShaders::DefaultShader::generate(const std::vector<std::string>& vert, const std::vector<std::string>& frag) {
 	// Create the vertex shader
 	std::string vertBody;
-	for (size_t i = 0; i < nLinesVert; i++)
-		vertBody += vert[i];
+	for (auto line = vert.cbegin(); line != vert.cend(); line++)
+		vertBody += *line;
 	nVertShader = glCreateShader(GL_VERTEX_SHADER);
 	if (!compileShader(nVertShader, vertBody)) {
 		std::cout << " [debug] Failed to generate vertex shader for default shader name=" << name << std::endl;
@@ -196,8 +219,8 @@ bool DefaultShaders::DefaultShader::generate(const std::string* vert, const size
 
 	// Create the fragment shader
 	std::string fragBody;
-	for (size_t i = 0; i < nLinesFrag; i++)
-		fragBody += frag[i];
+	for (auto line = frag.cbegin(); line != frag.cend(); line++)
+		fragBody += *line;
 	nFragShader = glCreateShader(GL_FRAGMENT_SHADER);
 	if (!compileShader(nFragShader, fragBody)) {
 		std::cout << " [debug] Failed to generate fragment shader for default shader name=" << name << std::endl;
@@ -208,83 +231,112 @@ bool DefaultShaders::DefaultShader::generate(const std::string* vert, const size
 	return generateProgram();
 }
 
-const size_t DefaultShaders::vertexDefaultLength = 5;
-const size_t DefaultShaders::fragmentDefaultLength = 4;
-
-const std::string DefaultShaders::vertexDefault[vertexDefaultLength] = {
-	"void main()\n",
-	"{\n",
-	"	gl_FrontColor = gl_Color;\n",
-	"	gl_Position = ftransform();\n",
-	"}\n"
-};
-
-const std::string DefaultShaders::fragmentDefault[fragmentDefaultLength] = {
-	"void main()\n",
-	"{\n",
-	"	gl_FragColor = gl_Color;\n",
-	"}\n"
-};
-
-const size_t DefaultShaders::vertexMVPLength = 8;
-const size_t DefaultShaders::fragmentMVPLength = 4;
-
-const std::string DefaultShaders::vertexMVP[vertexMVPLength] = {
-	"#version 430 core\n",
-	"layout (location = 0) in vec3 position;\n",
+const std::vector<std::string> DefaultShaders::vertexDefault = {
+	"in vec3 vPosition;\n",
 	"uniform mat4 MVP;\n",
-	"void main()\n",
-	"{\n",
-	"	gl_FrontColor = gl_Color;\n",
-	"	gl_Position = MVP * vec4(position, 1.f);\n",
-	"}\n"
-};
-
-const std::string DefaultShaders::fragmentMVP[fragmentMVPLength] = {
-	"void main()\n",
-	"{\n",
-	"	gl_FragColor = gl_Color;\n",
-	"}\n"
-};
-
-const size_t DefaultShaders::vertexNormalLength = 5;
-const size_t DefaultShaders::fragmentNormalLength = 4;
-
-const std::string DefaultShaders::vertexNormal[vertexNormalLength] = {
-	"varying vec3 vertex_color;\n",
+	"varying vec3 vertexColor;",
 	"void main() {\n",
-	"	gl_Position = ftransform(); // Transform coordinates to clip space\n",
-	"	vertex_color = vec3(gl_Normal);\n",
+	"	vertexColor = gl_Color;\n",
+	"	gl_Position = MVP * vec4(vPosition, 1.f);\n",
 	"}\n"
 };
 
-const std::string DefaultShaders::fragmentNormal[fragmentNormalLength] = {
-	"varying vec3 vertex_color;\n",
+const std::vector<std::string> DefaultShaders::fragmentDefault = {
+	"varying vec3 vertexColor;",
 	"void main() {\n",
-	"	gl_FragColor = vec4(vertex_color, 1.0); // Example of how to use a constructor.\n",
+	"	gl_FragColor = vec4(vertexColor, 1.f);\n",
 	"}\n"
 };
 
-const size_t DefaultShaders::vertexZDepthLength = 3;
-const size_t DefaultShaders::fragmentZDepthLength = 12;
-
-const std::string DefaultShaders::vertexZDepth[vertexZDepthLength] = {
+const std::vector<std::string> DefaultShaders::vertexColor = {
+	"in vec3 vPosition;\n",
+	"in vec3 vColor;\n",
+	"uniform mat4 MVP;\n",
+	"varying vec3 vertexColor;",
 	"void main() {\n",
-	"	gl_Position = ftransform();\n",
+	"	vertexColor = vColor;\n",
+	"	gl_Position = MVP * vec4(vPosition, 1.f);\n",
 	"}\n"
 };
 
-const std::string DefaultShaders::fragmentZDepth[fragmentZDepthLength] = {
-	"float near = 0.1;\n",
-	"float far = 10.0;\n",
-	"float LinearizeDepth(float depth)\n",
-	"{\n",
-	"	float z = depth * 2.0 - 1.0;\n",
-	"	return (2.0 * near * far) / (far + near - z * (far - near));\n",
+const std::vector<std::string> DefaultShaders::fragmentColor = {
+	"varying vec3 vertexColor;",
+	"void main() {\n",
+	"	gl_FragColor = vec4(vertexColor, 1.f);\n",
+	"}\n"
+};
+
+const std::vector<std::string> DefaultShaders::vertexNormal = {
+	"in vec3 vPosition;\n",
+	"in vec3 vNormal;\n",
+	"uniform mat4 MVP;\n",
+	"varying vec3 vertexColor;",
+	"void main() {\n",
+	"	vertexColor = vNormal;\n",
+	"	gl_Position = MVP * vec4(vPosition, 1.f);\n",
+	"}\n"
+};
+
+const std::vector<std::string> DefaultShaders::fragmentNormal = {
+	"varying vec3 vertexColor;\n",
+	"void main() {\n",
+	"	gl_FragColor = vec4(vertexColor, 1.0);\n",
+	"}\n"
+};
+
+const std::vector<std::string> DefaultShaders::vertexZDepth = {
+	"in vec3 vPosition;\n",
+	"uniform mat4 MVP;\n",
+	"void main() {\n",
+	"	gl_Position = MVP * vec4(vPosition, 1.f);\n",
+	"}\n"
+};
+
+const std::vector<std::string> DefaultShaders::fragmentZDepth = {
+	"float near = 0.1f;\n",
+	"float far = 10.0f;\n",
+	"float LinearizeDepth(float depth) {\n",
+	"	float z = 2.0 * depth - 1.0;\n",
+	"	return (2.0 * near * far / (far + near - z * (far - near)));\n",
 	"}\n",
-	"void main()\n",
-	"{\n",
-	"	float depth = LinearizeDepth(gl_FragCoord.z) / far;\n",
-	"	gl_FragColor = vec4(vec3(depth), 1.0);\n",
+	"void main() {\n",
+	"	float depth = LinearizeDepth(gl_FragCoord.z) / (far-near);\n",
+	"	gl_FragColor = vec4(vec3(1.f-depth), 1.0);\n",
 	"}\n"
 };
+
+const std::vector<std::string> DefaultShaders::vertexTexture = {
+	"in vec3 vPosition;\n",
+	"in vec2 vTexture;\n",
+	"varying vec2 uvCoords;",
+	"uniform mat4 MVP;\n",
+	"void main() {\n",
+	"	uvCoords = vTexture;\n",
+	"	gl_Position = MVP * vec4(vPosition, 1.f);\n",
+	"}\n"
+};
+
+const std::vector<std::string> DefaultShaders::fragmentTexture = {
+	"varying vec2 uvCoords;\n",
+	"uniform sampler2D sampler;\n",
+	"void main() {\n",
+	"	gl_FragColor = vec4(texture(sampler, vec3(uvCoords, 0.f)).rgb, 1.f);\n",
+	"}\n"
+};
+
+void DefaultShaders::defaultShaderEnable(const object*) {
+}
+
+void DefaultShaders::defaultShaderDisable(const object*) {
+}
+
+void DefaultShaders::bindObjectTexture(const object* obj) {
+	// Bind object texture (if available)
+	if (obj->getTexture())
+		glBindTexture(GL_TEXTURE_2D, obj->getTexture());
+}
+
+void DefaultShaders::unbindObjectTexture(const object*) {
+	// Unbind OpenGL texture
+	glBindTexture(GL_TEXTURE_2D, 0);
+}

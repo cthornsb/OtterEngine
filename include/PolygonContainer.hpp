@@ -77,6 +77,10 @@ public:
 
 	void add(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2, VertexContainer* vertices, const object* obj);
 
+	/** Set UV texture mapping coordinates for the most recently added triangle
+	  */
+	void modifyTextureMap(const Vector2& uv0, const Vector2& uv1, const Vector2& uv2);
+
 	void finalize();
 
 private:

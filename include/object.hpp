@@ -13,6 +13,7 @@
 
 class camera;
 class Shader;
+class Texture;
 
 /// <summary>
 /// 3d object geometry class
@@ -124,6 +125,10 @@ public:
 	  */
 	Matrix4* getModelMatrix();
 
+	/** Get the OpenGL texture ID
+	  */
+	unsigned int getTexture() const { return textureID; }
+
 	/** Return true if this object has a parent object and return false otherwise
 	  */
 	bool isChild() const { return (parent != 0x0); }
@@ -189,6 +194,10 @@ public:
 	/** Set scale of object's z-axis
 	  */
 	void setScaleZ(const float& scale_) { scaleFactor[2] = scale_; }
+
+	/** Set object's texture
+	  */
+	void setTexture(Texture* txt);
 
 	/** Reset the offset position of the object to its original location
 	  */
@@ -261,6 +270,8 @@ protected:
 
 	Matrix4 modelMatrix; ///< Model rotation and translation matrix used by OpenGL
 
+	unsigned int textureID; ///< OpenGL texture ID
+
 	/** Update the physical size of the object along the x-axis
 	  * @note The size is only for informational purposes and does not change the scale of the object
 	  */
@@ -307,23 +318,40 @@ protected:
 	  */
 	void transform(const Matrix3* mat);
 	
-	/** Add a unique vertex to the vector of vertices
+	/** Add a unique vertex to the vector of vertices and UV texture map coordinates (if specified)
+	  * @param x X position of vertex
+	  * @param y Y position of vertex
+	  * @param z Z position of vertex
+	  * @param u Horizontal UV texture map coordinate
+	  * @param v Vertical UV texture map coordinate
 	  * @return Pointer to the vertex vector
 	  */
-	Vertex* addVertex(const float &x, const float&y, const float&z);
+	Vertex* addVertex(const float &x, const float& y, const float& z, const float& u=0.f, const float& v=0.f);
 
-	/** Add a unique vertex to the vector of vertices
+	/** Add a unique vertex to the vector of vertices and UV texture map coordinates (if specified)
+	  * @param vec Position of vertex
+	  * @param uv UV texture map coordinates
 	  * @return Pointer to the vertex vector
 	  */
-	Vertex* addVertex(const Vector3& vec);
+	Vertex* addVertex(const Vector3& vec, const Vector2& uv=Vector2(0.f, 0.f));
 
 	/** Add a unique polygon to the vector of polygons
 	  */
 	void addTriangle(const unsigned short &i0, const unsigned short &i1, const unsigned short &i2);
 
+	/** Add a unique polygon with UV texture mapping to the vector of polygons
+	  */
+	void addTriangle(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2,
+		const Vector2& uv0, const Vector2& uv1, const Vector2& uv2);
+
 	/** Add two unique polygons (representing a quadrilateral) to the vector of polygons
 	  */
 	void addQuad(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2, const unsigned short& i3);
+
+	/** Add two unique polygons with UV texture mapping (representing a textured quadrilateral) to the vector of polygons
+	  */
+	void addQuad(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2, const unsigned short& i3,
+		const Vector2& uv0, const Vector2& uv1, const Vector2& uv2, const Vector2& uv3);
 
 	/** Add a unique static triangle to the vector of polygons
 	  * @note Static triangles cannot be moved or rotated

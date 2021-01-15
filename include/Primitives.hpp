@@ -96,7 +96,7 @@ namespace Primitives {
 
 		int nVertices; ///< Number of vertices used to approximate the circumference of the circle (not counting the central vertex)
 
-		void approximate(const float& zoffset=0);
+		void approximate(std::vector<Vector2>& coords);
 	};
 
 	class Cylinder : public Circle {

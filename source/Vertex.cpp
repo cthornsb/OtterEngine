@@ -10,6 +10,8 @@ Vertex::Vertex(const Vector3& position, const object* obj) :
 	zDepth(0),
 	pos0(position),
 	norm0(),
+	color(1.f, 1.f, 1.f),
+	texCoords(0.f, 0.f),
 	offset(obj->getConstPositionPointer()),
 	rotation(obj->getConstRotationMatrix()),
 	parent(obj)

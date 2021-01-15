@@ -594,10 +594,6 @@ void Window::enableShader(const ShaderType& type) {
 	glUseProgram(shaders->get(type)->getProgram());
 }
 
-void Window::enableShader(const Shader* shdr) {
-	glUseProgram(shdr->getProgram());
-}
-
 void Window::disableShader() {
 	glUseProgram(0);
 }

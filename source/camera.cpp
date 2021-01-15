@@ -254,7 +254,7 @@ void camera::computeViewingPlane(){
 	W = 2*L*std::tan(fov/2); // m
 	H = W/A; // m
 	// Update the OpenGL projection matrix
-	setPerspectiveProjection(0.1f, 100.f);
+	setPerspectiveProjection(0.1f, 10.f);
 }
 
 void camera::updateViewingPlane(){

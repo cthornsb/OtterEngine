@@ -6,6 +6,7 @@
 #include "object.hpp"
 #include "camera.hpp"
 #include "Vector.hpp"
+#include "Texture.hpp"
 
 object::object() :
 	built(false),
@@ -31,7 +32,8 @@ object::object() :
 	parentOffset(),
 	parent(0x0),
 	shader(0x0),
-	modelMatrix()
+	modelMatrix(),
+	textureID(0)
 {
 	for (int i = 0; i < 3; i++) {
 		maxSize[i] = -FLT_MAX;
@@ -81,6 +83,10 @@ void object::setRotation(const float& theta, const float& phi, const float& psi)
 void object::setPosition(const Vector3 &pos){
 	position = pos;
 	updatePosition();
+}
+
+void object::setTexture(Texture* txt) {
+	textureID = txt->getContext();
 }
 
 void object::resetPosition(){
@@ -208,11 +214,11 @@ void object::transform(const Matrix3* mat){
 		tri->update();
 }
 
-Vertex* object::addVertex(const float&x, const float&y, const float&z){
-	return addVertex(Vector3(x, y, z));
+Vertex* object::addVertex(const float&x, const float&y, const float&z, const float& u, const float& v){
+	return addVertex(Vector3(x, y, z), Vector2(u, v));
 }
 
-Vertex* object::addVertex(const Vector3& vec) {
+Vertex* object::addVertex(const Vector3& vec, const Vector2& uv) {
 	if (vertices.size() > reservedVertices){
 		std::cout << " Object: [warning] Not enough memory reserved for vertex vector, this may result in undefined behavior!" << std::endl;
 	}
@@ -223,6 +229,7 @@ Vertex* object::addVertex(const Vector3& vec) {
 		if (vec[i] < minSize[i])
 			minSize[i] = vec[i];
 	}
+	vertices.back()->setTextureCoordinates(uv);
 	return vertices.back();
 }
 
@@ -233,10 +240,24 @@ void object::addTriangle(const unsigned short& i0, const unsigned short& i1, con
 	polys.add(i0, i1, i2, &vertices, this);
 }
 
+void object::addTriangle(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2,
+	const Vector2& uv0, const Vector2& uv1, const Vector2& uv2)
+{
+	addTriangle(i0, i1, i2);
+	polys.modifyTextureMap(uv0, uv1, uv2);
+}
+
 void object::addQuad(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2, const unsigned short& i3) {
 	// Eventually this will use a quad face, but for now we get two triangles
 	addTriangle(i0, i1, i2);
 	addTriangle(i2, i3, i0);
+}
+
+void object::addQuad(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2, const unsigned short& i3,
+	const Vector2& uv0, const Vector2& uv1, const Vector2& uv2, const Vector2& uv3)
+{
+	addTriangle(i0, i1, i2, uv0, uv1, uv2);
+	addTriangle(i2, i3, i0, uv2, uv3, uv0);
 }
 
 void object::addStaticTriangle(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2) {
