@@ -4,6 +4,10 @@
 #include "object.hpp"
 
 namespace Primitives {
+	typedef Vector3 (*vertexPositionFunction)(const float& px, const float& py, const float& pz);
+
+	Vector3 defaultVertexPosition(const float& px, const float& py, const float& pz);
+
 	class Plane : public object {
 	public:
 		Plane() :
@@ -95,8 +99,6 @@ namespace Primitives {
 		float dR; ///< Radius of the circle
 
 		int nVertices; ///< Number of vertices used to approximate the circumference of the circle (not counting the central vertex)
-
-		void approximate(std::vector<Vector2>& coords);
 	};
 
 	class Cylinder : public Circle {
@@ -157,7 +159,29 @@ namespace Primitives {
 
 	class Sphere : public object {
 	public:
-		Sphere();
+		Sphere() :
+			object(),
+			dR(0.5f),
+			nDivLatitude(8),
+			nDivLongitude(8)
+		{
+		}
+
+		Sphere(const Vector3& pos_) :
+			object(pos_),
+			dR(0.5f),
+			nDivLatitude(8),
+			nDivLongitude(8)
+		{
+		}
+
+		Sphere(const Vector3& pos_, const float& R, const int& divLat=8, const int& divLong=8) :
+			object(pos_),
+			dR(R / 2),
+			nDivLatitude(divLat),
+			nDivLongitude(divLong)
+		{
+		}
 
 		/** Build this object by adding polygons to the vector of polygons
 		 */
@@ -165,6 +189,77 @@ namespace Primitives {
 
 	protected:
 		float dR;
+
+		int nDivLatitude;
+		int nDivLongitude;
+
+		Vector2 computeUV(const Vector3& surfPos) const;
+
+		void addLatitudePoints(const float& dR, const float& dY, std::vector<Vector2>& uvCoords);
+	};
+
+	class Mesh : public object {
+	public:
+		/** Default constructor
+		  */
+		Mesh() :
+			object(),
+			dX(10.f),
+			dZ(10.f),
+			nDivX(10),
+			nDivZ(10),
+			pfunc(defaultVertexPosition)
+		{
+		}
+
+		/** Default constructor
+		  */
+		Mesh(const Vector3& pos_) :
+			object(pos_),
+			dX(10.f),
+			dZ(10.f),
+			nDivX(10),
+			nDivZ(10),
+			pfunc(defaultVertexPosition)
+		{
+		}
+
+		/** Square mesh constructor
+		  */
+		Mesh(const Vector3& pos_, const float& length, const int& div, vertexPositionFunction fptr = defaultVertexPosition) :
+			object(pos_),
+			dX(length),
+			dZ(length),
+			nDivX(div),
+			nDivZ(div),
+			pfunc(fptr)
+		{
+		}
+
+		/** Rectangular mesh constructor
+		  */
+		Mesh(const Vector3& pos_, const float& X, const float& Z, const int& divX, const int& divZ, vertexPositionFunction fptr = defaultVertexPosition) :
+			object(pos_),
+			dX(X),
+			dZ(Z),
+			nDivX(divX),
+			nDivZ(divZ),
+			pfunc(fptr)
+		{
+		}
+
+		/** Build this object by adding polygons to the vector of polygons
+		 */
+		virtual void userBuild();
+
+	private:
+		float dX; ///< Length of mesh plane along the x-axis
+		float dZ; ///< Length of mesh plane along the z-axis
+
+		int nDivX; ///< Number of divisions along the x-axis
+		int nDivZ; ///< Number of divisions along the z-axis
+
+		vertexPositionFunction pfunc;
 	};
 
 } // namespace primitives
