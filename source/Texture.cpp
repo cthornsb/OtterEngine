@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <memory>
+#include <vector>
 
 #include <SOIL/SOIL.h>
 #include <GL/freeglut.h>
@@ -24,22 +24,7 @@ unsigned int Texture::getTexture() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	switch (nChannels) {
-	case 1:
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, nWidth, nHeight, 0, GL_RED, GL_UNSIGNED_BYTE, getConstData());
-		break;
-	case 2:
-		// Not supported (no GL_RG defined?)
-		break;
-	case 3:
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, nWidth, nHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, getConstData());
-		break;
-	case 4:
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, nWidth, nHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, getConstData());
-		break;
-	default:
-		break;
-	}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, nWidth, nHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, getConstData());
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Return the OpenGL texture id
@@ -159,8 +144,44 @@ void Texture::processImage(imageManipulationFunc func) {
 
 bool Texture::read(const std::string& fname) {
 	data.reset(SOIL_load_image(fname.c_str(), &nWidth, &nHeight, &nChannels, SOIL_LOAD_AUTO));
+	nBytes = nWidth * nHeight * 4;
 	dptr = data.get();
-	nBytes = nWidth * nHeight * nChannels;
+	if (nChannels != 4) { // Up-convert to RGBA
+		std::vector<unsigned char> newData(nBytes, 0);
+		switch (nChannels) {
+		case 1: // R (grayscale)
+			for (int i = 0; i < nWidth * nHeight; i++) { // Over all pixels
+				newData[4 * i + 0] = dptr[i];
+				newData[4 * i + 1] = dptr[i];
+				newData[4 * i + 2] = dptr[i];
+				newData[4 * i + 3] = 255;
+			}
+			break;
+		case 2: // RG (rare)
+			for (int i = 0; i < nWidth * nHeight; i++) { // Over all pixels
+				newData[4 * i + 0] = dptr[2 * i];
+				newData[4 * i + 1] = dptr[2 * i + 1];
+				newData[4 * i + 2] = 0;
+				newData[4 * i + 3] = 255;
+			}
+			break;
+		case 3: // RGB
+			for (int i = 0; i < nWidth * nHeight; i++) { // Over all pixels
+				newData[4 * i + 0] = dptr[3 * i];
+				newData[4 * i + 1] = dptr[3 * i + 1];
+				newData[4 * i + 2] = dptr[3 * i + 2];
+				newData[4 * i + 3] = 255;
+			}
+			break;
+		default:
+			std::cout << " [error] Input image has invalid number of channels (" << nChannels << ")" << std::endl;
+			return false;
+		}
+		// Replace image data
+		data.reset(new unsigned char[nBytes]);
+		memcpy(data.get(), newData.data(), nBytes);
+		dptr = data.get();
+	}
 	std::cout << " [debug] Loaded image, W=" << nWidth << ", H=" << nHeight << ", with " << nChannels << " channels (" << nBytes/1E3 << " kB)" << std::endl;
 	return (bGood = (nBytes > 0));
 }

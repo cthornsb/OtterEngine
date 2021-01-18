@@ -320,7 +320,10 @@ const std::vector<std::string> DefaultShaders::fragmentTexture = {
 	"varying vec2 uvCoords;\n",
 	"uniform sampler2D sampler;\n",
 	"void main() {\n",
-	"	gl_FragColor = vec4(texture(sampler, vec3(uvCoords, 0.f)).rgb, 1.f);\n",
+	"	vec4 sampleColor = texture(sampler, uvCoords);\n",
+	"	if (sampleColor.a == 0.f)\n",
+	"		discard;\n",
+	"	gl_FragColor = sampleColor;\n",
 	"}\n"
 };
 

@@ -74,6 +74,7 @@ void scene::enableOpenGLRenderer() {
 	// Switch to OpenGL renderer mode
 	window->enableZDepth();
 	window->enableCulling();
+	window->enableAlphaBlending();
 
 	// Setup the camera projection matrix
 	cam->setPerspectiveProjection(0.1f, 100.f);
