@@ -65,7 +65,7 @@ int main(){
 	myScene.addLight(&myLight);
 
 	// Load the (default) shader
-	myShape.setShader(myScene.getWindow()->getShader(ShaderType::MVP));
+	myShape.setShader(myScene.getWindow()->getShader(ShaderType::COLOR));
 
 	// Set the camera to draw surface normal vectors
 	//myScene.setDrawNormals();

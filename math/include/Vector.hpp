@@ -3,7 +3,7 @@
 
 #include <ostream>
 #include <vector>
-#include <cmath>
+#include <math.h>
 
 class Vector {
 public:
@@ -238,7 +238,7 @@ public:
 	/** Return the length of this vector
 	  */
 	float length() const {
-		return std::sqrtf(square());
+		return sqrtf(square());
 	}
 
 	/** Return the sum of the squares of the elements of this vector

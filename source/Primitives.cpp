@@ -1,4 +1,4 @@
-#include <cmath>
+#include <cmath> // sqrtf
 #include <iostream> // TEMP
 
 #include "Globals.hpp"
@@ -283,7 +283,7 @@ Vector2 Primitives::Sphere::computeUV(const Vector3& surfPos) const {
 
 void Primitives::Sphere::addLatitudePoints(const float& dR, const float& dY, std::vector<Vector2>& uvCoords) {
 	std::vector<Vector2> coords;
-	float r = std::sqrtf(dR * dR - dY * dY);
+	float r = sqrtf(dR * dR - dY * dY);
 	approximateCircle(coords, nDivLongitude, r);
 	for (auto point = coords.cbegin(); point != coords.cend(); point++) {
 		Vector3 vpos((*point)[0], dY, (*point)[1]);

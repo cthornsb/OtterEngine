@@ -1,5 +1,7 @@
 #include <sstream>
 #include <iostream>
+#include <algorithm> // find
+#include <cstring> // strcmp
 #include <fstream>
 
 #include "StlObject.hpp"

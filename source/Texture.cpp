@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <cstring> // memcpy
 
 #include <SOIL/SOIL.h>
 #include <GL/freeglut.h>

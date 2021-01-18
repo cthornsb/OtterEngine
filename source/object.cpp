@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm> // find
 #include <float.h>
 #include <map>
 

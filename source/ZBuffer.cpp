@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include "ZBuffer.hpp"
-#include "pixelTriplet.hpp"
+#include "PixelTriplet.hpp"
 
 bool BufferBit::set(const float& depth, const pixelTriplet* t) {
 	if (depth < zdepth) {

@@ -5,6 +5,7 @@
 #include "colors.hpp"
 
 class Matrix3;
+class object;
 
 class Vertex {
 public:

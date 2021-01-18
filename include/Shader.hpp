@@ -1,6 +1,7 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
+#include <memory> // unique_ptr
 #include <string>
 #include <map>
 
