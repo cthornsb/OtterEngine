@@ -1,6 +1,7 @@
 #ifndef MATH_VECTOR_HPP
 #define MATH_VECTOR_HPP
 
+#include <ostream>
 #include <vector>
 #include <cmath>
 
@@ -54,6 +55,12 @@ public:
 		elements(other.elements),
 		dimension(other.dimension)
 	{
+	}
+
+	/** Stream insertion operator
+	  */
+	friend std::ostream& operator << (std::ostream& out, const Vector& vec) {
+		return vec.__stream(out);
 	}
 
 	/** Const vector element access
@@ -339,6 +346,17 @@ protected:
 	/** Negate all elements of a vector and store the result in an output vector
 	  */
 	void __negate(const Vector* in, Vector* out) const;
+
+	/** Stream insertion
+	  */
+	std::ostream& __stream(std::ostream& out) const {
+		out << "(" << elements[0];
+		for (unsigned short i = 1; i < dimension; i++) {
+			out << ", " << elements[i];
+		}
+		out << ")";
+		return out;
+	}
 };
 
 class Vector2 : public Vector {
@@ -368,6 +386,12 @@ public:
 	{
 		elements[0] = a0; 
 		elements[1] = a1;
+	}
+
+	/** Stream insertion operator
+	  */
+	friend std::ostream& operator << (std::ostream& out, const Vector2& vec) {
+		return vec.__stream(out);
 	}
 
 	/** Equality operator
@@ -543,6 +567,12 @@ public:
 		elements[0] = a0;
 		elements[1] = a1;
 		elements[2] = a2;
+	}
+
+	/** Stream insertion operator
+	  */
+	friend std::ostream& operator << (std::ostream& out, const Vector3& vec) {
+		return vec.__stream(out);
 	}
 
 	/** Equality operator
@@ -727,6 +757,12 @@ public:
 		elements[1] = a1;
 		elements[2] = a2;
 		elements[3] = a3;
+	}
+
+	/** Stream insertion operator
+	  */
+	friend std::ostream& operator << (std::ostream& out, const Vector4& vec) {
+		return vec.__stream(out);
 	}
 
 	/** Equality operator
