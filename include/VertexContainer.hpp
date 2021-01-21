@@ -26,6 +26,8 @@ public:
 	
 	size_t size() const { return nVertices; }
 
+	size_t capacity() const { return vertices.capacity(); }
+
 	std::vector<Vertex>::iterator begin() { return vertices.begin(); }
 
 	std::vector<Vertex>::iterator end() { return vertices.end(); }
@@ -39,6 +41,8 @@ public:
 	void add(const Vector3& position, const object* obj);
 
 	void add(const float& posX, const float& posY, const float& posZ, const object* obj);
+
+	void free();
 
 private:
 	size_t nVertices; ///< Number of vertices

@@ -441,10 +441,10 @@ void Window::drawVertexArray(const float* vertices, const std::vector<unsigned s
 void Window::drawObject(const object* obj) {
 	// Bind VBOs for vertex data array and index array
 	glBindBuffer(GL_ARRAY_BUFFER, obj->getVertexVBO());
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj->getIndexVBO());
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj->getIndexVBO());
 		
 	// Add vertex attribute pointers
-	const PolygonContainer* polys = obj->getPolygons();
+	const PolygonContainer* polys = obj->getConstPolygonContainer();
 	for (size_t i = 0; i < polys->getNumberOfVertexAttributes(); i++) {
 		// Unfortunately we have to do this messy pointer cast with the offsets
 		glVertexAttribPointer((GLuint)i, (GLint)polys->getNumberOfAttributeElements(i), GL_FLOAT, GL_FALSE, 0, (const void*)polys->getRawDataOffset(i));
@@ -463,7 +463,7 @@ void Window::drawObject(const object* obj) {
 	}
 		
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void Window::render(){

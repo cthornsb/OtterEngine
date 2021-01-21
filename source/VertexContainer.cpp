@@ -57,3 +57,9 @@ void VertexContainer::add(const float& posX, const float& posY, const float& pos
 	vertices.push_back(Vertex(Vector3(posX, posY, posZ), obj));
 	nVertices++;
 }
+
+void VertexContainer::free() {
+	vertices.clear(); 
+	vertices.shrink_to_fit();
+	nVertices = 0;
+}

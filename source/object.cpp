@@ -27,7 +27,6 @@ object::object() :
 	maxSize(),
 	minSize(),
 	vertices(),
-	verticesToDraw(),
 	polys(),
 	children(),
 	parentOffset(),
@@ -86,8 +85,18 @@ void object::setPosition(const Vector3 &pos){
 	updatePosition();
 }
 
+void object::setShader(const Shader* shdr) { 
+	shader = shdr; 
+	/*for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
+		(*ch)->setShader(shdr);
+	}*/
+}
+
 void object::setTexture(Texture* txt) {
 	textureID = txt->getContext();
+	for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
+		(*ch)->setTexture(txt);
+	}
 }
 
 void object::resetPosition(){
@@ -129,10 +138,12 @@ void object::removeChild(object* child) {
 void object::build() {
 	if (built)
 		return;
-	this->userBuild();
+
 	// Finalize the object geometry
-	// Compute the average normal vector at all vertices
-	for (std::vector<triangle>::iterator tri = polys.begin(); tri != polys.end(); tri++) {
+	this->userBuild();
+
+	// Compute average normal vector at all vertices (very slow and not really needed)
+	/*for (std::vector<triangle>::iterator tri = polys.begin(); tri != polys.end(); tri++) {
 		for (std::vector<Vertex>::iterator vert = vertices.begin(); vert != vertices.end(); vert++) {
 			if (tri->hasVertex(&(*vert)))
 				vert->norm0 += tri->getNormal();
@@ -141,10 +152,35 @@ void object::build() {
 	// Normalize vertex normals
 	for (std::vector<Vertex>::iterator vert = vertices.begin(); vert != vertices.end(); vert++) {
 		vert->norm0.normInPlace();
-	}
+	}*/
+
+	// Transfer geometry to the gpu
 	polys.finalize();
-	verticesToDraw.reserve(vertices.size());
+
+	// Free geometry memory
+	vertices.free();
+	polys.free();
+
 	built = true;
+}
+
+void object::draw(Window* win) {
+	if (shader) {
+		shader->enableObjectShader(this);
+		win->drawObject(this);
+		shader->disableObjectShader(this);
+		for (std::vector<object*>::const_iterator ch = children.cbegin(); ch != children.cend(); ch++) {
+			shader->enableObjectShader(*ch);
+			win->drawObject(*ch);
+			shader->disableObjectShader(*ch);
+		}
+	}
+	else { // No defined shader
+		win->drawObject(this);
+		for (std::vector<object*>::const_iterator ch = children.cbegin(); ch != children.cend(); ch++) {
+			win->drawObject(*ch);
+		}
+	}
 }
 
 void object::setSizeX(const float& min_, const float& max_) {
@@ -193,16 +229,23 @@ void object::updateRotationForParent(const Matrix3* rot) {
 }
 
 void object::reserve(const size_t& nVert, const size_t& nPoly/*=0*/) {
-	reservedVertices = nVert;
-	vertices.reserve(nVert);
+	reserveVertices(nVert);
 	if (nPoly == 0) {
-		reservedPolygons = nVert;
-		polys.reserve(nVert);
+		reservePolygons(nVert);
 	}
 	else {
-		reservedPolygons = nPoly;
-		polys.reserve(nPoly);
+		reservePolygons(nPoly);
 	}
+}
+
+void object::reserveVertices(const size_t& nVert) {
+	reservedVertices = nVert;
+	vertices.reserve(nVert);
+}
+
+void object::reservePolygons(const size_t& nPoly) {
+	reservedPolygons = nPoly;
+	polys.reserve(nPoly);
 }
 
 void object::transform(const Matrix3* mat){
@@ -234,31 +277,41 @@ Vertex* object::addVertex(const Vector3& vec, const Vector2& uv) {
 	return vertices.back();
 }
 
-void object::addTriangle(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2){
+void object::addTriangle(Vertex* v0, Vertex* v1, Vertex* v2) {
 	if (polys.size() > reservedPolygons) {
 		std::cout << " Object: [warning] Not enough memory reserved for polygon vector, this may result in undefined behavior!" << std::endl;
 	}
-	polys.add(i0, i1, i2, &vertices, this);
+	polys.add(v0, v1, v2, this);
+}
+
+void object::addTriangle(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2){
+	addTriangle(vertices[i0], vertices[i1], vertices[i2]);
 }
 
 void object::addTriangle(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2,
 	const Vector2& uv0, const Vector2& uv1, const Vector2& uv2)
 {
-	addTriangle(i0, i1, i2);
+	addTriangle(vertices[i0], vertices[i1], vertices[i2]);
 	polys.modifyTextureMap(uv0, uv1, uv2);
 }
 
+void object::addQuad(Vertex* v0, Vertex* v1, Vertex* v2, Vertex* v3) {
+	addTriangle(v0, v1, v2);
+	addTriangle(v2, v3, v0);
+}
+
 void object::addQuad(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2, const unsigned short& i3) {
-	// Eventually this will use a quad face, but for now we get two triangles
-	addTriangle(i0, i1, i2);
-	addTriangle(i2, i3, i0);
+	addTriangle(vertices[i0], vertices[i1], vertices[i2]);
+	addTriangle(vertices[i2], vertices[i3], vertices[i0]);
 }
 
 void object::addQuad(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2, const unsigned short& i3,
 	const Vector2& uv0, const Vector2& uv1, const Vector2& uv2, const Vector2& uv3)
 {
-	addTriangle(i0, i1, i2, uv0, uv1, uv2);
-	addTriangle(i2, i3, i0, uv2, uv3, uv0);
+	addTriangle(vertices[i0], vertices[i1], vertices[i2]);
+	polys.modifyTextureMap(uv0, uv1, uv2);
+	addTriangle(vertices[i2], vertices[i3], vertices[i0]);
+	polys.modifyTextureMap(uv2, uv3, uv0);
 }
 
 void object::addStaticTriangle(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2) {
@@ -269,4 +322,13 @@ void object::addStaticQuad(const unsigned short& i0, const unsigned short& i1, c
 	// Eventually this will use a quad face, but for now we get two triangles
 	polys.add(i0, i1, i2, &vertices, this);
 	polys.add(i2, i3, i0, &vertices, this);
+}
+
+void SubObject::addSubGeometry(Vertex* v0, Vertex* v1, Vertex* v2) {
+	addTriangle(v0, v1, v2);
+}
+
+void SubObject::addSubGeometry(Vertex* v0, Vertex* v1, Vertex* v2, Vertex* v3) {
+	addTriangle(v0, v1, v2);
+	addTriangle(v2, v3, v0);
 }

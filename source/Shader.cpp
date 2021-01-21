@@ -12,13 +12,19 @@ Shader::~Shader() {
 	glDeleteProgram(nProgram);
 }
 
-void Shader::enableShader(const object* obj) const {
+void Shader::enableShader() const {
 	glUseProgram(nProgram);
+}
+
+void Shader::enableObjectShader(const object* obj) const {
 	onShaderEnable(obj);
 }
 
-void Shader::disableShader(const object* obj) const {
+void Shader::disableShader() const {
 	glUseProgram(0);
+}
+
+void Shader::disableObjectShader(const object* obj) const {
 	onShaderDisable(obj);
 }
 

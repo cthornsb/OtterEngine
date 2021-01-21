@@ -4,30 +4,27 @@
 #include <string>
 #include <vector>
 
+#include "Model.hpp"
 #include "Vector.hpp"
 #include "object.hpp"
 
-enum class UNITS { INCH, FOOT, METER, DECIMETER, CENTIMETER, MILLIMETER, MICROMETER, NANOMETER };
-
-class StlObject : public object {
+class StlObject : public Model {
 public:
 	StlObject();
 
 	StlObject(const std::string& fname, const UNITS& unit = UNITS::INCH) :
-		StlObject()
+		Model("stl", unit),
+		reversed(false)
 	{
 		read(fname);
 	}
 
-	unsigned int read(const std::string& fname, const UNITS& unit = UNITS::INCH);
-
 	virtual void userBuild();
 
-private:
-	bool isGood;
+protected:
 	bool reversed;
 
-	UNITS conversion;
+	virtual unsigned int userRead(std::ifstream&);
 
 	void convertToStandard(Vector3& vec);
 
@@ -42,8 +39,6 @@ private:
 	unsigned int readBinary(std::ifstream* f);
 
 	Vector3 getVectorFromString(const std::string& str);
-
-	std::string getHex(const unsigned char& input);
 
 	std::string readString(std::ifstream* f, const size_t& nBytes);
 

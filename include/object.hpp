@@ -30,7 +30,7 @@ public:
 	
 	/** Get a pointer to the vector of polygons which comprise this 3d object
 	  */
-	std::vector<triangle>* getPolygons() { return polys.getPolygons(); }
+	std::vector<triangle>* getPolygonVector() { return polys.getPolygons(); }
 
 	/** Get the position offset of the object
 	  */
@@ -111,7 +111,7 @@ public:
 
 	/** Get a pointer to the polygon container object
 	  */
-	const PolygonContainer* getPolygons() const { return &polys; }
+	const PolygonContainer* getConstPolygonContainer() const { return &polys; }
 
 	/** Get OpenGL VBO id number corresponding to object vertices
 	  */
@@ -165,7 +165,7 @@ public:
 
 	/** Set the shader to use for rendering
 	  */
-	void setShader(const Shader* shdr) { shader = shdr; }
+	void setShader(const Shader* shdr);
 
 	/** Scale object relative to its current size
 	  */
@@ -226,7 +226,11 @@ public:
 
 	/** Build this object by adding polygons to the vector of polygons
 	  */
-	virtual void userBuild() = 0;
+	virtual void userBuild() { };
+
+	/** Draw all sub-objects
+	  */
+	void draw(Window* win);
 	
 protected:
 	bool built; ///< Flag indicating that the geometry has been constructed
@@ -256,8 +260,6 @@ protected:
 
 	VertexContainer vertices; ///< Vector of all unique vertices
 	
-	std::vector<Vertex*> verticesToDraw; ///< List of vertices which will be drawn
-
 	PolygonContainer polys; ///< Vector of all unique polygons which make up this 3d object
 
 	std::vector<object*> children; ///< Vector of pointers to child objects
@@ -314,6 +316,16 @@ protected:
 	  */
 	void reserve(const size_t& nVert, const size_t& nPoly=0);
 
+	/** Reserve space in the vertex vector so that it will not resize when being filled
+	  * @param nVert Number of expected vertices
+	  */
+	void reserveVertices(const size_t& nVert);
+
+	/** Reserve space in the polygon vector so that it will not resize when being filled
+	  * @param nPoly Number of expected polygons
+	  */
+	void reservePolygons(const size_t& nPoly);
+
 	/** Rotate all vertices using the object's internal rotation matrix
 	  */
 	void transform(const Matrix3* mat);
@@ -337,12 +349,20 @@ protected:
 
 	/** Add a unique polygon to the vector of polygons
 	  */
+	void addTriangle(Vertex* v0, Vertex* v1, Vertex* v2);
+
+	/** Add a unique polygon to the vector of polygons
+	  */
 	void addTriangle(const unsigned short &i0, const unsigned short &i1, const unsigned short &i2);
 
 	/** Add a unique polygon with UV texture mapping to the vector of polygons
 	  */
 	void addTriangle(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2,
 		const Vector2& uv0, const Vector2& uv1, const Vector2& uv2);
+
+	/** Add two unique polygons (representing a quadrilateral) to the vector of polygons
+	  */
+	void addQuad(Vertex* v0, Vertex* v1, Vertex* v2, Vertex* v3);
 
 	/** Add two unique polygons (representing a quadrilateral) to the vector of polygons
 	  */
@@ -362,6 +382,33 @@ protected:
 	  * @note Static triangles cannot be moved or rotated
 	  */
 	void addStaticQuad(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2, const unsigned short& i3);
+};
+
+/// <summary>
+/// Sub-object of 3d object used to organize geometry groups
+/// </summary>
+class SubObject : public object {
+public:
+	SubObject() :
+		object(),
+		parent(0x0)
+	{
+	}
+
+	SubObject(object* parent_) :
+		object(),
+		parent(parent_)
+	{
+	}
+
+	void addSubGeometry(Vertex* v0, Vertex* v1, Vertex* v2);
+
+	void addSubGeometry(Vertex* v0, Vertex* v1, Vertex* v2, Vertex* v3);
+
+	PolygonContainer* getPolygonContainer() { return &polys; }
+
+private:
+	object* parent;
 };
 
 #endif

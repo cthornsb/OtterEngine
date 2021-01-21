@@ -8,7 +8,7 @@
 PolygonContainer::~PolygonContainer() {
 	// Delete VBOs
 	glDeleteBuffers(1, &vertexVBO);
-	glDeleteBuffers(1, &indexVBO);
+	//glDeleteBuffers(1, &indexVBO);
 }
 
 void PolygonContainer::reserve(const size_t& N) {
@@ -20,14 +20,14 @@ void PolygonContainer::reserve(const size_t& N) {
 	polys.reserve(N);
 }
 
-void PolygonContainer::add(const triangle& tri, VertexContainer* vertices) {
+void PolygonContainer::add(const triangle& tri) {
 	polys.push_back(tri);
 	addVertex(tri.p2);
 	addVertex(tri.p1);
 	addVertex(tri.p0);
 }
 
-void PolygonContainer::add(Vertex* v0, Vertex* v1, Vertex* v2, VertexContainer* vertices, const object* obj) {
+void PolygonContainer::add(Vertex* v0, Vertex* v1, Vertex* v2, const object* obj) {
 	polys.push_back(triangle(v0, v1, v2, obj));
 	addVertex(v2);
 	addVertex(v1);
@@ -49,6 +49,19 @@ void PolygonContainer::modifyTextureMap(const Vector2& uv0, const Vector2& uv1, 
 	*iter = uv1[1]; iter++;
 	*iter = uv2[0]; iter++;
 	*iter = uv2[1]; iter++;
+}
+
+void PolygonContainer::modifyNormalVector(const Vector3& n0, const Vector3& n1, const Vector3& n2) {
+	auto iter = rawData[1].end() - 9;
+	*iter = n0[0]; iter++;
+	*iter = n0[1]; iter++;
+	*iter = n0[2]; iter++;
+	*iter = n1[0]; iter++;
+	*iter = n1[1]; iter++;
+	*iter = n1[2]; iter++;
+	*iter = n2[0]; iter++;
+	*iter = n2[1]; iter++;
+	*iter = n2[2]; iter++;
 }
 
 void PolygonContainer::finalize() {
@@ -97,7 +110,7 @@ bool PolygonContainer::addVertexAttribute(const size_t& nElements) {
 void PolygonContainer::setupVBOs() {
 	// Generate vertex VBO
 	glCreateBuffers(1, &vertexVBO);
-	glCreateBuffers(1, &indexVBO);
+	//glCreateBuffers(1, &indexVBO);
 
 	std::cout << " [debug] vertexVBO=" << vertexVBO << ", indexVBO=" << indexVBO << std::endl;
 	
@@ -111,7 +124,7 @@ void PolygonContainer::setupVBOs() {
 	}
 	
 	// Bind buffer and reserve vertex buffer memory
-	glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
+	//glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
 	glNamedBufferData(vertexVBO, nTotalNumberOfBytes, 0x0, GL_STATIC_DRAW);
 
 	// Copy data to GPU
@@ -121,7 +134,13 @@ void PolygonContainer::setupVBOs() {
 	}
 
 	// Unbind buffer
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	std::cout << " [debug] VBO: triangles=" << polys.size() << ", vertices=" << nVertices << std::endl;
+}
+
+void PolygonContainer::free() {
+	polys.clear();
+	polys.shrink_to_fit();
+	nReservedVertices = 0;
 }

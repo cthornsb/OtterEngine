@@ -45,7 +45,11 @@ public:
 
 	unsigned int getIndexVBO() const { return indexVBO; }
 
+	bool empty() const { return polys.empty(); }
+
 	size_t size() const { return polys.size(); }
+
+	size_t capacity() const { return polys.capacity(); }
 
 	std::vector<triangle>::iterator begin() { return polys.begin(); }
 
@@ -71,9 +75,9 @@ public:
 
 	size_t getNumberOfVertices() const { return nVertices; }
 
-	void add(const triangle& tri, VertexContainer* vertices);
+	void add(const triangle& tri);
 
-	void add(Vertex* v0, Vertex* v1, Vertex* v2, VertexContainer* vertices, const object* obj);
+	void add(Vertex* v0, Vertex* v1, Vertex* v2, const object* obj);
 
 	void add(const unsigned short& i0, const unsigned short& i1, const unsigned short& i2, VertexContainer* vertices, const object* obj);
 
@@ -81,7 +85,13 @@ public:
 	  */
 	void modifyTextureMap(const Vector2& uv0, const Vector2& uv1, const Vector2& uv2);
 
+	/** Set vertex normals for the most recently added triangle
+	  */
+	void modifyNormalVector(const Vector3& n0, const Vector3& n1, const Vector3& n2);
+
 	void finalize();
+
+	void free();
 
 private:
 	unsigned int vertexVBO;

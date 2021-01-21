@@ -15,8 +15,8 @@ Texture::~Texture() {
 }
 
 unsigned int Texture::getTexture() {
-	if (!nBytes)
-		return 0;
+	if (nContext || !nBytes)
+		return nContext;
 
 	// Generate an OpenGL texture
 	glGenTextures(1, &nContext);

@@ -227,20 +227,20 @@ bool scene::updateOpenGL() {
 		Matrix4* model = (*obj)->getModelMatrix();
 		Matrix4 mvp = Matrix4::concatenate(proj, view, model);
 
-		// Enable the shader
+		// Setup object shader
 		const Shader* shdr = (*obj)->getShader();
-		shdr->enableShader(*obj);
+		shdr->enableShader();
 		shdr->setMatrix4("MVP", &mvp);
 		Vector3 camPos = cam->getPosition();
 		Vector3 camDir = cam->getDirection();
 		shdr->setVector3("camPos", &camPos);
 		shdr->setVector3("camDir", &camDir);
 
-		// Draw the object
-		window->drawObject(*obj);
+		// Draw all sub-objects
+		(*obj)->draw(window.get());
 
 		// Disable object shader
-		shdr->disableShader(*obj);
+		shdr->disableShader();
 
 		// Debugging
 		if (drawOrigin || drawNorm) {
@@ -250,7 +250,7 @@ bool scene::updateOpenGL() {
 				drawAxes();
 			}
 			if (drawNorm) { // Draw face normals
-				std::vector<triangle>* polys = (*obj)->getPolygons();
+				std::vector<triangle>* polys = (*obj)->getPolygonVector();
 				window->setDrawColor(Colors::CYAN);
 				for (auto tri = polys->cbegin(); tri != polys->cend(); tri++) {
 					Vector3 base = tri->getInitialCenterPoint();
@@ -328,7 +328,7 @@ void scene::processPolygons(object* obj) {
 	// Render all vertices
 	obj->renderAllVertices(cam);
 	// Process all visible polygons
-	std::vector<triangle>* polys = obj->getPolygons();
+	std::vector<triangle>* polys = obj->getPolygonVector();
 	for (std::vector<triangle>::iterator iter = polys->begin(); iter != polys->end(); iter++) {
 		// Do backface culling
 		if (mode != drawMode::WIREFRAME && !cam->checkCulling(obj->getPosition(), (*iter))) // The triangle is facing away from the camera

@@ -1,5 +1,8 @@
 set(CORE_SOURCES camera.cpp 
                  lightSource.cpp
+                 Model.cpp
+                 Model3ds.cpp
+                 ModelObj.cpp
                  object.cpp                 
                  plane.cpp
                  PixelTriplet.cpp

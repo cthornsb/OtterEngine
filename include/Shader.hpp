@@ -41,9 +41,13 @@ public:
 
 	~Shader();
 
-	void enableShader(const object* obj) const;
+	void enableShader() const;
 
-	void disableShader(const object* obj) const;
+	void enableObjectShader(const object* obj) const;
+
+	void disableShader() const;
+
+	void disableObjectShader(const object* obj) const;
 
 	unsigned int getProgram() const { return nProgram; }
 

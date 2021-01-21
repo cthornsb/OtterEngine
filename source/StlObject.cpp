@@ -1,4 +1,3 @@
-#include <sstream>
 #include <iostream>
 #include <algorithm> // find
 #include <cstring> // strcmp
@@ -7,68 +6,23 @@
 #include "StlObject.hpp"
 
 StlObject::StlObject() :
-	object(),
-	isGood(false),
-	reversed(false),
-	conversion(UNITS::INCH)
+	Model("stl"),
+	reversed(false)
 {
-}
-
-void StlObject::convertToStandard(Vector3& vec) {
-	const float in = 0.0254f;
-	const float ft = 0.3048f;
-	const float m  = 1.0f;
-	const float dm = 1E-1f;
-	const float cm = 1E-2f;
-	const float mm = 1E-3f;
-	const float um = 1E-6f;
-	const float nm = 1E-9f;
-	switch (conversion) {
-	case UNITS::INCH:
-		vec *= in;
-		break;
-	case UNITS::FOOT:
-		vec *= ft;
-		break;
-	case UNITS::METER:
-		vec *= m;
-		break;
-	case UNITS::DECIMETER:
-		vec *= dm;
-		break;
-	case UNITS::CENTIMETER:
-		vec *= cm;
-		break;
-	case UNITS::MILLIMETER:
-		vec *= mm;
-		break;
-	case UNITS::MICROMETER:
-		vec *= um;
-		break;
-	case UNITS::NANOMETER:
-		vec *= nm;
-		break;
-	default:
-		break;
-	}
 }
 
 void StlObject::userBuild() {
 }
 
-unsigned int StlObject::read(const std::string& fname, const UNITS& unit/*=UNITS::INCH*/) {
-	std::ifstream file(fname.c_str(), std::ios::binary);
-	if (!file.good())
-		return 0;
-	conversion = unit;
-	bool binary = isBinaryFile(&file);
-	file.seekg(0, file.beg);
+unsigned int StlObject::userRead(std::ifstream& f) {
+	bool binary = isBinaryFile(&f);
+	f.seekg(0, f.beg);
 	unsigned int retval = 0;
 	if (binary)
-		retval = readBinary(&file);
+		retval = readBinary(&f);
 	else
-		retval = readAscii(&file);
-	file.close();
+		retval = readAscii(&f);
+	f.close();
 	return retval;
 }
 
@@ -184,15 +138,15 @@ void StlObject::readStlBlock(float* array) {
 					tri = triangle(vertPtrs[0], vertPtrs[2], vertPtrs[1], this);
 					reversed = true;
 				}
-				polys.add(tri, &vertices);
+				polys.add(tri);
 			}
 			else { // Reversed vertices
 				triangle tri(vertPtrs[0], vertPtrs[2], vertPtrs[1], this);
-				polys.add(tri, &vertices);
+				polys.add(tri);
 			}
 		}
 		else
-			polys.add(vertPtrs[0], vertPtrs[1], vertPtrs[2], &vertices, this);
+			polys.add(vertPtrs[0], vertPtrs[1], vertPtrs[2], this);
 	}
 	else {
 		std::cout << " error\n";
@@ -231,15 +185,6 @@ Vector3 StlObject::getVectorFromString(const std::string& str) {
 	return zeroVector;
 }
 
-std::string StlObject::getHex(const unsigned char& input) {
-	std::stringstream stream;
-	stream << std::hex << (int)input;
-	std::string output = stream.str();
-	if (output.length() < 2)
-		output = "0" + output;
-	return output;
-}
-
 std::string StlObject::readString(std::ifstream* f, const size_t& nBytes) {
 	std::string str(nBytes, 0);
 	f->read(&str[0], nBytes);
@@ -247,7 +192,7 @@ std::string StlObject::readString(std::ifstream* f, const size_t& nBytes) {
 	for (auto c = str.rbegin(); c != str.rend(); c++) { // Convert the string to hex and reverse it (little-endian to big-endian)
 		if (std::isspace(static_cast<unsigned char>(*c))) // Strip invalid whitespace out of the number
 			continue;
-		retval += getHex(*c);
+		retval += getHex8(*c);
 	}
 	return retval;
 }
