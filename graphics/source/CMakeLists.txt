@@ -1,15 +1,64 @@
-if(GRAPHICS_LIBRARY MATCHES "OpenGL")
-	# To install OpenGL:
-	#sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev
-	set(GRAPHICS_SOURCES ColorRGB.cpp LogicalColor.cpp GraphicsOpenGL.cpp)
-elseif(GRAPHICS_LIBRARY MATCHES "SDL")
-	# To install SDL:
-	#sudo apt-get install libsdl2-dev
-	set(GRAPHICS_SOURCES ColorRGB.cpp LogicalColor.cpp GraphicsSDL.cpp)
-else()
-	message(STATUS "Unsupported renderer (${GRAPHICS_LIBRARY})")
-endif()
+# Complile graphics sources
+add_library(
+	OtterCoreObj 
+	OBJECT 
+	ColorRGB.cpp
+	OTTImageBuffer.cpp
+	OTTKeyboard.cpp
+	OTTMouse.cpp
+	OTTWindow.cpp
+)
+add_library(
+	OtterGraphicsObj
+	OBJECT
+	OTTLogicalColor.cpp
+	OTTShader.cpp
+	OTTSprite.cpp
+	OTTTexture.cpp
+	OTTWindow3D.cpp
+)
 
-# Generate the graphics library
-add_library(GRAPHICS_OBJECTS OBJECT ${GRAPHICS_SOURCES})
-add_library(GRAPHICS_LIB STATIC $<TARGET_OBJECTS:GRAPHICS_OBJECTS>)
+# Generate the libraries
+add_library(
+	OtterCoreStatic 
+	STATIC 
+	$<TARGET_OBJECTS:OtterCoreObj>
+)
+add_library(
+	OtterGraphicsStatic 
+	STATIC 
+	$<TARGET_OBJECTS:OtterGraphicsObj>
+)
+
+# Install static libraries
+if(INSTALL_STATIC)
+	install(
+		TARGETS 
+		OtterCoreStatic 
+		OtterGraphicsStatic 
+		DESTINATION 
+		lib
+	)
+endif(INSTALL_STATIC)
+
+# Build and install shared libraries
+if(INSTALL_SHARED)
+	add_library(
+		OtterCore 
+		SHARED 
+		$<TARGET_OBJECTS:OtterCoreObj>
+	)
+	add_library(
+		OtterGraphics
+		SHARED 
+		$<TARGET_OBJECTS:OtterGraphicsObj>
+	)
+	install(
+		TARGETS 
+		OtterCore
+		OtterGraphics
+		DESTINATION 
+		lib
+	)
+endif(INSTALL_SHARED)
+

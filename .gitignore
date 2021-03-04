@@ -1,6 +1,10 @@
 install/
 build/
 
+# Doxygen
+html/
+latex/
+
 # Visual Studio
 .vs/
 out/

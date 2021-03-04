@@ -3,32 +3,32 @@
 #include <vector>
 #include <GL/glew.h>
 
-#include "Shader.hpp"
+#include "OTTShader.hpp"
 #include "object.hpp"
 
-Shader::~Shader() {
+OTTShader::~OTTShader() {
 	glDeleteShader(nVertShader);
 	glDeleteShader(nFragShader);
 	glDeleteProgram(nProgram);
 }
 
-void Shader::enableShader() const {
+void OTTShader::enableShader() const {
 	glUseProgram(nProgram);
 }
 
-void Shader::enableObjectShader(const object* obj) const {
+void OTTShader::enableObjectShader(const object* obj) const {
 	onShaderEnable(obj);
 }
 
-void Shader::disableShader() const {
+void OTTShader::disableShader() const {
 	glUseProgram(0);
 }
 
-void Shader::disableObjectShader(const object* obj) const {
+void OTTShader::disableObjectShader(const object* obj) const {
 	onShaderDisable(obj);
 }
 
-bool Shader::generate(const std::string& vert, const std::string& frag) {
+bool OTTShader::generate(const std::string& vert, const std::string& frag) {
 	std::string sBody;
 
 	// Create the vertex shader
@@ -49,7 +49,7 @@ bool Shader::generate(const std::string& vert, const std::string& frag) {
 	return generateProgram();
 }
 
-bool Shader::generateProgram() {
+bool OTTShader::generateProgram() {
 	// Create the shader program
 	int retval;
 	nProgram = glCreateProgram();
@@ -80,67 +80,67 @@ bool Shader::generateProgram() {
 	return true;
 }
 
-void Shader::setBool(const std::string& name, const bool& value) const {
+void OTTShader::setBool(const std::string& name, const bool& value) const {
 	glUniform1i(glGetUniformLocation(nProgram, name.c_str()), (int)value);
 }
 
-void Shader::setInt(const std::string& name, const int& value) const {
+void OTTShader::setInt(const std::string& name, const int& value) const {
 	glUniform1i(glGetUniformLocation(nProgram, name.c_str()), value);
 }
 
-void Shader::setFloat(const std::string& name, const float& value) const {
+void OTTShader::setFloat(const std::string& name, const float& value) const {
 	glUniform1f(glGetUniformLocation(nProgram, name.c_str()), value);
 }
 
-void Shader::setVector2(const std::string& name, const Vector2* vec) const {
+void OTTShader::setVector2(const std::string& name, const Vector2* vec) const {
 	glUniform2fv(glGetUniformLocation(nProgram, name.c_str()), 1, vec->getConstData());
 }
 
-void Shader::setVector2(const std::string& name, const float& x, const float& y) const {
+void OTTShader::setVector2(const std::string& name, const float& x, const float& y) const {
 	glUniform2f(glGetUniformLocation(nProgram, name.c_str()), x, y);
 }
 
-void Shader::setVector3(const std::string& name, const Vector3* vec) const {
+void OTTShader::setVector3(const std::string& name, const Vector3* vec) const {
 	glUniform3fv(glGetUniformLocation(nProgram, name.c_str()), 1, vec->getConstData());
 }
 
-void Shader::setVector3(const std::string& name, const float& x, const float& y, const float& z) const {
+void OTTShader::setVector3(const std::string& name, const float& x, const float& y, const float& z) const {
 	glUniform3f(glGetUniformLocation(nProgram, name.c_str()), x, y, z);
 }
 
-void Shader::setVector4(const std::string& name, const Vector4* vec) const {
+void OTTShader::setVector4(const std::string& name, const Vector4* vec) const {
 	glUniform4fv(glGetUniformLocation(nProgram, name.c_str()), 1, vec->getConstData());
 }
 
-void Shader::setVector4(const std::string& name, const float& x, const float& y, const float& z, const float& w) {
+void OTTShader::setVector4(const std::string& name, const float& x, const float& y, const float& z, const float& w) {
 	glUniform4f(glGetUniformLocation(nProgram, name.c_str()), x, y, z, w);
 }
 
-void Shader::setMatrix2(const std::string& name, const Matrix2* mat) const {
+void OTTShader::setMatrix2(const std::string& name, const Matrix2* mat) const {
 	glUniformMatrix2fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat->getConstData());
 }
 
-void Shader::setMatrix2(const std::string& name, const float* mat) const {
+void OTTShader::setMatrix2(const std::string& name, const float* mat) const {
 	glUniformMatrix2fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat);
 }
 
-void Shader::setMatrix3(const std::string& name, const Matrix3* mat) const {
+void OTTShader::setMatrix3(const std::string& name, const Matrix3* mat) const {
 	glUniformMatrix3fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat->getConstData());
 }
 
-void Shader::setMatrix3(const std::string& name, const float* mat) const {
+void OTTShader::setMatrix3(const std::string& name, const float* mat) const {
 	glUniformMatrix3fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat);
 }
 
-void Shader::setMatrix4(const std::string& name, const Matrix4* mat) const {
+void OTTShader::setMatrix4(const std::string& name, const Matrix4* mat) const {
 	glUniformMatrix4fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat->getConstData());
 }
 
-void Shader::setMatrix4(const std::string& name, const float* mat) const {
+void OTTShader::setMatrix4(const std::string& name, const float* mat) const {
 	glUniformMatrix4fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat);
 }
 
-bool Shader::readShader(const std::string& fname, std::string& retval) {
+bool OTTShader::readShader(const std::string& fname, std::string& retval) {
 	retval = "";
 	std::string line;
 	std::ifstream input(fname.c_str());
@@ -156,7 +156,7 @@ bool Shader::readShader(const std::string& fname, std::string& retval) {
 	return true;
 }
 
-bool Shader::compileShader(const unsigned int& nShader, const std::string& sBody) {
+bool OTTShader::compileShader(const unsigned int& nShader, const std::string& sBody) {
 	int retval;
 	const char* cptr = sBody.data();
 	int nLength = (int)sBody.length();
@@ -174,8 +174,8 @@ bool Shader::compileShader(const unsigned int& nShader, const std::string& sBody
 	return true;
 }
 
-DefaultShaders::DefaultShader::DefaultShader(const ShaderType& stype_) :
-	Shader(),
+OTTDefaultShaders::DefaultShader::DefaultShader(const ShaderType& stype_) :
+	OTTShader(),
 	good(false),
 	type(stype_),
 	name("none"),
@@ -212,7 +212,7 @@ DefaultShaders::DefaultShader::DefaultShader(const ShaderType& stype_) :
 	}
 }
 
-bool DefaultShaders::DefaultShader::generate(const std::vector<std::string>& vert, const std::vector<std::string>& frag) {
+bool OTTDefaultShaders::DefaultShader::generate(const std::vector<std::string>& vert, const std::vector<std::string>& frag) {
 	// Create the vertex shader
 	std::string vertBody;
 	for (auto line = vert.cbegin(); line != vert.cend(); line++)
@@ -237,7 +237,7 @@ bool DefaultShaders::DefaultShader::generate(const std::vector<std::string>& ver
 	return generateProgram();
 }
 
-const std::vector<std::string> DefaultShaders::vertexDefault = {
+const std::vector<std::string> OTTDefaultShaders::vertexDefault = {
 	"in vec3 vPosition;\n",
 	"uniform mat4 MVP;\n",
 	"varying vec3 vertexColor;",
@@ -247,14 +247,14 @@ const std::vector<std::string> DefaultShaders::vertexDefault = {
 	"}\n"
 };
 
-const std::vector<std::string> DefaultShaders::fragmentDefault = {
+const std::vector<std::string> OTTDefaultShaders::fragmentDefault = {
 	"varying vec3 vertexColor;",
 	"void main() {\n",
 	"	gl_FragColor = vec4(vertexColor, 1.f);\n",
 	"}\n"
 };
 
-const std::vector<std::string> DefaultShaders::vertexColor = {
+const std::vector<std::string> OTTDefaultShaders::vertexColor = {
 	"in vec3 vPosition;\n",
 	"in vec3 vColor;\n",
 	"uniform mat4 MVP;\n",
@@ -265,14 +265,14 @@ const std::vector<std::string> DefaultShaders::vertexColor = {
 	"}\n"
 };
 
-const std::vector<std::string> DefaultShaders::fragmentColor = {
+const std::vector<std::string> OTTDefaultShaders::fragmentColor = {
 	"varying vec3 vertexColor;",
 	"void main() {\n",
 	"	gl_FragColor = vec4(vertexColor, 1.f);\n",
 	"}\n"
 };
 
-const std::vector<std::string> DefaultShaders::vertexNormal = {
+const std::vector<std::string> OTTDefaultShaders::vertexNormal = {
 	"in vec3 vPosition;\n",
 	"in vec3 vNormal;\n",
 	"uniform mat4 MVP;\n",
@@ -283,14 +283,14 @@ const std::vector<std::string> DefaultShaders::vertexNormal = {
 	"}\n"
 };
 
-const std::vector<std::string> DefaultShaders::fragmentNormal = {
+const std::vector<std::string> OTTDefaultShaders::fragmentNormal = {
 	"varying vec3 vertexColor;\n",
 	"void main() {\n",
 	"	gl_FragColor = vec4(vertexColor, 1.0);\n",
 	"}\n"
 };
 
-const std::vector<std::string> DefaultShaders::vertexZDepth = {
+const std::vector<std::string> OTTDefaultShaders::vertexZDepth = {
 	"in vec3 vPosition;\n",
 	"uniform mat4 MVP;\n",
 	"void main() {\n",
@@ -298,7 +298,7 @@ const std::vector<std::string> DefaultShaders::vertexZDepth = {
 	"}\n"
 };
 
-const std::vector<std::string> DefaultShaders::fragmentZDepth = {
+const std::vector<std::string> OTTDefaultShaders::fragmentZDepth = {
 	"float near = 0.1f;\n",
 	"float far = 10.0f;\n",
 	"float LinearizeDepth(float depth) {\n",
@@ -311,7 +311,7 @@ const std::vector<std::string> DefaultShaders::fragmentZDepth = {
 	"}\n"
 };
 
-const std::vector<std::string> DefaultShaders::vertexTexture = {
+const std::vector<std::string> OTTDefaultShaders::vertexTexture = {
 	"in vec3 vPosition;\n",
 	"in vec2 vTexture;\n",
 	"varying vec2 uvCoords;",
@@ -322,7 +322,7 @@ const std::vector<std::string> DefaultShaders::vertexTexture = {
 	"}\n"
 };
 
-const std::vector<std::string> DefaultShaders::fragmentTexture = {
+const std::vector<std::string> OTTDefaultShaders::fragmentTexture = {
 	"varying vec2 uvCoords;\n",
 	"uniform sampler2D sampler;\n",
 	"void main() {\n",
@@ -333,19 +333,19 @@ const std::vector<std::string> DefaultShaders::fragmentTexture = {
 	"}\n"
 };
 
-void DefaultShaders::defaultShaderEnable(const object*) {
+void OTTDefaultShaders::defaultShaderEnable(const object*) {
 }
 
-void DefaultShaders::defaultShaderDisable(const object*) {
+void OTTDefaultShaders::defaultShaderDisable(const object*) {
 }
 
-void DefaultShaders::bindObjectTexture(const object* obj) {
+void OTTDefaultShaders::bindObjectTexture(const object* obj) {
 	// Bind object texture (if available)
 	if (obj->getTexture())
 		glBindTexture(GL_TEXTURE_2D, obj->getTexture());
 }
 
-void DefaultShaders::unbindObjectTexture(const object*) {
+void OTTDefaultShaders::unbindObjectTexture(const object*) {
 	// Unbind OpenGL texture
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

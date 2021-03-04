@@ -3,18 +3,18 @@
 #include <cstring> // strcmp
 #include <fstream>
 
-#include "StlObject.hpp"
+#include "ModelStl.hpp"
 
-StlObject::StlObject() :
+ModelStl::ModelStl() :
 	Model("stl"),
 	reversed(false)
 {
 }
 
-void StlObject::userBuild() {
+void ModelStl::userBuild() {
 }
 
-unsigned int StlObject::userRead(std::ifstream& f) {
+unsigned int ModelStl::userRead(std::ifstream& f) {
 	bool binary = isBinaryFile(&f);
 	f.seekg(0, f.beg);
 	unsigned int retval = 0;
@@ -26,7 +26,7 @@ unsigned int StlObject::userRead(std::ifstream& f) {
 	return retval;
 }
 
-unsigned int StlObject::readAscii(std::ifstream* f) {
+unsigned int ModelStl::readAscii(std::ifstream* f) {
 	// Reserve enough space in the geometry vectors to avoid them resizing
 	//reserve(nTriangles, nTriangles);
 	std::vector<std::string> block;
@@ -53,7 +53,7 @@ unsigned int StlObject::readAscii(std::ifstream* f) {
 	return (unsigned int)polys.size();
 }
 
-unsigned int StlObject::readBinary(std::ifstream* f) {
+unsigned int ModelStl::readBinary(std::ifstream* f) {
 	// Read the file header
 	std::string header(80, 0);
 	f->read(&header[0], 80);
@@ -62,8 +62,8 @@ unsigned int StlObject::readBinary(std::ifstream* f) {
 	// programs stupidly insert whitespace when writing numbers to the stl file.
 	unsigned int nTriangles = readUIntFromFile(f);
 
-	std::cout << " StlObject: [debug] Stl header \"" << header << "\"" << std::endl;
-	std::cout << " StlObject: [debug] N=" << nTriangles << " triangles" << std::endl;
+	std::cout << " ModelStl: [debug] Stl header \"" << header << "\"" << std::endl;
+	std::cout << " ModelStl: [debug] N=" << nTriangles << " triangles" << std::endl;
 
 	// Reserve enough space in the geometry vectors to avoid them resizing
 	reserve(nTriangles, nTriangles);
@@ -103,19 +103,19 @@ unsigned int StlObject::readBinary(std::ifstream* f) {
 	}
 
 	if (!invalidRead) {
-		std::cout << " StlObject: [debug] Read " << nTriangles << " triangles from input .stl files" << std::endl;
-		std::cout << " StlObject: [debug]  Generated " << vertices.size() << " unique vertices and " << polys.size() << " triangles" << std::endl;
-		std::cout << " StlObject: [debug]  Model has size (x=" << getSizeX() << ", y=" << getSizeY() << ", z=" << getSizeZ() << ")" << std::endl;
-		std::cout << " StlObject: [debug]  x=(" << minSize[0] << ", " << maxSize[0] << ") y=(" << minSize[1] << ", " << maxSize[1] << ") z=(" << minSize[2] << ", " << maxSize[2] << ")" << std::endl;
+		std::cout << " ModelStl: [debug] Read " << nTriangles << " triangles from input .stl files" << std::endl;
+		std::cout << " ModelStl: [debug]  Generated " << vertices.size() << " unique vertices and " << polys.size() << " triangles" << std::endl;
+		std::cout << " ModelStl: [debug]  Model has size (x=" << getSizeX() << ", y=" << getSizeY() << ", z=" << getSizeZ() << ")" << std::endl;
+		std::cout << " ModelStl: [debug]  x=(" << minSize[0] << ", " << maxSize[0] << ") y=(" << minSize[1] << ", " << maxSize[1] << ") z=(" << minSize[2] << ", " << maxSize[2] << ")" << std::endl;
 	}
 	else{
-		std::cout << " StlObject: [warning] Failed to read all " << nTriangles << " triangles specified in header!" << std::endl;
+		std::cout << " ModelStl: [warning] Failed to read all " << nTriangles << " triangles specified in header!" << std::endl;
 	}
 
 	return (unsigned int)polys.size();
 }
 
-void StlObject::readStlBlock(float* array) {
+void ModelStl::readStlBlock(float* array) {
 	Vertex* vertPtrs[3] = { 0, 0, 0 };
 	Vector3 normal(array[0], array[1], array[2]);
 	for (int i = 1; i < 4; i++) {
@@ -133,8 +133,8 @@ void StlObject::readStlBlock(float* array) {
 			if (!reversed) { // Normal vertices (right-hand rule)
 				triangle tri(vertPtrs[0], vertPtrs[1], vertPtrs[2], this);
 				if (normal.angle(tri.getNormal()) > 0.01f) {
-					std::cout << " StlObject: [debug] Stl normal is anti-parallel to computed normal (angle=" << normal.angle(tri.getNormal()) << ")" << std::endl;
-					std::cout << " StlObject: [debug]  Switching to reverse vertex winding" << std::endl;
+					std::cout << " ModelStl: [debug] Stl normal is anti-parallel to computed normal (angle=" << normal.angle(tri.getNormal()) << ")" << std::endl;
+					std::cout << " ModelStl: [debug]  Switching to reverse vertex winding" << std::endl;
 					tri = triangle(vertPtrs[0], vertPtrs[2], vertPtrs[1], this);
 					reversed = true;
 				}
@@ -153,7 +153,7 @@ void StlObject::readStlBlock(float* array) {
 	}
 }
 
-bool StlObject::readAstBlock(const std::vector<std::string>& block) {
+bool ModelStl::readAstBlock(const std::vector<std::string>& block) {
 	int vertexCount = 0;
 	size_t index;
 	for (auto iter = block.cbegin(); iter != block.cend(); iter++) {
@@ -171,7 +171,7 @@ bool StlObject::readAstBlock(const std::vector<std::string>& block) {
 	return (isGood = (vertexCount == 3));
 }
 
-bool StlObject::isBinaryFile(std::ifstream* f){
+bool ModelStl::isBinaryFile(std::ifstream* f){
 	char solidStr[6] = "";
 	f->read(solidStr, 5);
 	solidStr[5] = '\0';
@@ -181,11 +181,11 @@ bool StlObject::isBinaryFile(std::ifstream* f){
 	return true;
 }
 
-Vector3 StlObject::getVectorFromString(const std::string& str) {
+Vector3 ModelStl::getVectorFromString(const std::string& str) {
 	return zeroVector;
 }
 
-std::string StlObject::readString(std::ifstream* f, const size_t& nBytes) {
+std::string ModelStl::readString(std::ifstream* f, const size_t& nBytes) {
 	std::string str(nBytes, 0);
 	f->read(&str[0], nBytes);
 	std::string retval = "";
@@ -197,20 +197,20 @@ std::string StlObject::readString(std::ifstream* f, const size_t& nBytes) {
 	return retval;
 }
 
-float StlObject::readFloatFromFile(std::ifstream* f) {
+float ModelStl::readFloatFromFile(std::ifstream* f) {
 	float dummy = 0;
 	f->read(reinterpret_cast<char*>(&dummy), 4);
 	return dummy;
 }
 
-unsigned int StlObject::readUIntFromFile(std::ifstream* f) {
+unsigned int ModelStl::readUIntFromFile(std::ifstream* f) {
 	std::string revStr = readString(f, 4);
 	if (revStr.empty())
 		return 0;
 	return std::stoul(revStr, 0, 16);
 }
 
-unsigned short StlObject::readUShortFromFile(std::ifstream* f) {
+unsigned short ModelStl::readUShortFromFile(std::ifstream* f) {
 	std::string revStr = readString(f, 2);
 	if (revStr.empty())
 		return 0;

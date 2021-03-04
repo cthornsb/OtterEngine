@@ -2,7 +2,7 @@
 #define PIXEL_TRIPLET_HPP
 
 #include "Vector.hpp"
-#include "colors.hpp"
+#include "ColorRGB.hpp"
 #include "ray.hpp"
 
 class triangle;

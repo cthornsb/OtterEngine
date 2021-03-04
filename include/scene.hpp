@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "Graphics.hpp"
-#include "ZBuffer.hpp"
 #include "lightSource.hpp"
 #include "PixelTriplet.hpp"
 #include "Vector.hpp"
@@ -15,6 +14,7 @@
 class object;
 class camera;
 class triangle;
+class OTTWindow3D;
 
 // Make a typedef for clarity when working with chrono.
 typedef std::chrono::high_resolution_clock hclock;
@@ -69,7 +69,7 @@ public:
 	camera *getCamera(){ return cam; }
 
 	/* Get a pointer to the main rendering window */
-	Window* getWindow() { return window.get(); }
+	OTTWindow3D* getWindow() { return window.get(); }
 
 	/** Get a pointer to the world light source
 	  */
@@ -89,11 +89,11 @@ public:
 	
 	/** Get a pointer to the last user keypress event
 	  */
-	KeyStates* getKeypress();
+	OTTKeyboard* getKeypress();
 	
 	/** Get a pointer to the last user mouse event
 	  */
-	MouseState* getMouse();
+	OTTMouse* getMouse();
 
 	/** Get the drawing mode to use when drawing the object to the screen
 	  */
@@ -193,14 +193,12 @@ private:
 
 	drawMode mode; ///< Current rendering mode
 
-	ZBuffer buffer;
-
 	hclock::time_point timeOfInitialization; ///< The time that the scene was initialized
 	hclock::time_point timeOfLastUpdate; ///< The last time that update() was called by the user
 
 	camera *cam;
 	
-	std::unique_ptr<Window> window; ///< Pointer to the main renderer window
+	std::unique_ptr<OTTWindow3D> window; ///< Pointer to the main renderer window
 	
 	directionalLight worldLight; ///< Global light source
 	

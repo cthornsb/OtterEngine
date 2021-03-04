@@ -1,5 +1,5 @@
-#ifndef STL_OBJECT_HPP
-#define STL_OBJECT_HPP
+#ifndef MODEL_STL_HPP
+#define MODEL_STL_HPP
 
 #include <string>
 #include <vector>
@@ -8,11 +8,11 @@
 #include "Vector.hpp"
 #include "object.hpp"
 
-class StlObject : public Model {
+class ModelStl : public Model {
 public:
-	StlObject();
+	ModelStl();
 
-	StlObject(const std::string& fname, const UNITS& unit = UNITS::INCH) :
+	ModelStl(const std::string& fname, const UNITS& unit = UNITS::INCH) :
 		Model("stl", unit),
 		reversed(false)
 	{

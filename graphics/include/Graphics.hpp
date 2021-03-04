@@ -1,5 +1,6 @@
 #ifndef USE_SDL_RENDERER
-	#include "GraphicsOpenGL.hpp"
+	#include "OTTWindow.hpp"
+	#include "OTTWindow3D.hpp"
 #else
 	#include "GraphicsSDL.hpp"
 #endif

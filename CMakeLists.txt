@@ -21,8 +21,7 @@ if(NOT WIN32) # Unix systems (Ubuntu)
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=auto")
 		endif()
 
-		#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -fPIC")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -fPIC")
 	endif()
 else()
 	message(STATUS "Building for Windows")
@@ -60,6 +59,13 @@ if(WIN32)
 	option(INSTALL_DLLS "Install required DLLs when installing executable." ON)
 endif(WIN32)
 
+option(INSTALL_STATIC "Install static libraries." OFF)
+option(INSTALL_SHARED "Build and install shared libraries." OFF)
+
+#if(SHARED_LIBS)
+#	option(SHARED_
+#endif(SHARED_LIBS)
+
 #------------------------------------------------------------------------------
 
 #Find required packages.
@@ -76,31 +82,20 @@ endif()
 
 if(GRAPHICS_LIBRARY MATCHES "OpenGL")
 	if(NOT WIN32)
-		# To install OpenGL and freeglut:
-		#(Ubuntu) sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev libsoil-dev libglew-dev
-		set(GRAPHICS_LIBS -lglut -lGLU -lGL -lSOIL -lGLEW)
+		# To install OpenGL and glfw:
+		#(Ubuntu) sudo apt-get install libglu1-mesa-dev libglfw3-dev mesa-common-dev libsoil-dev libglew-dev
+		set(GRAPHICS_LIBS -lglfw -lGLU -lGL -lSOIL -lGLEW)
 	else()
 		#Find OpenGL install on Windows (eventually make a CMake module for this)
-		#Precompiled freeglut libs from https://www.transmissionzero.co.uk/software/freeglut-devel/
-		if(NOT FREEGLUT_DIRECTORY)
-			set(FREEGLUT_DIRECTORY "" CACHE STRING "Freeglut install directory" FORCE)
-		endif(NOT FREEGLUT_DIRECTORY)
-		set(FREEGLUT_INCLUDE ${FREEGLUT_DIRECTORY}/include)
-		if(CMAKE_CL_64)
-			set(FREEGLUT_LIBRARY ${FREEGLUT_DIRECTORY}/lib/x64/freeglut.lib)
-			set(WINDOWS_DLL_LIST ${FREEGLUT_DIRECTORY}/bin/x64/freeglut.dll)
-		else()
-			set(FREEGLUT_LIBRARY ${FREEGLUT_DIRECTORY}/lib/freeglut.lib)
-			set(WINDOWS_DLL_LIST ${FREEGLUT_DIRECTORY}/bin/freeglut.dll)
-		endif(CMAKE_CL_64)
-		include_directories(${FREEGLUT_INCLUDE})
-		#Set SOIL directory
-		if(NOT SOIL_DIRECTORY)
-			set(SOIL_DIRECTORY "" CACHE STRING "SOIL install directory" FORCE)
-		endif(NOT SOIL_DIRECTORY)
-		set(SOIL_INCLUDE ${SOIL_DIRECTORY}/inc)
-		set(SOIL_LIBRARY ${SOIL_DIRECTORY}/lib/soil.lib)
-		include_directories(${SOIL_INCLUDE})
+		#Precompiled glfw libs from 
+		if(NOT GLFW_DIRECTORY)
+			set(GLFW_DIRECTORY "" CACHE STRING "GLFW install directory" FORCE)
+		endif(NOT GLFW_DIRECTORY)
+		set(GLFW_INCLUDE ${GLFW_DIRECTORY}/include)
+		set(GLFW_LIBRARY ${GLFW_DIRECTORY}/lib/x64/freeglut.lib)
+		set(WINDOWS_DLL_LIST ${GLFW_DIRECTORY}/bin/x64/freeglut.dll)
+		include_directories(${GLFW_INCLUDE})
+
 		#Set GLEW directory
 		if(NOT GLEW_DIRECTORY)
 			set(GLEW_DIRECTORY "" CACHE STRING "GLEW install directory" FORCE)
@@ -109,15 +104,19 @@ if(GRAPHICS_LIBRARY MATCHES "OpenGL")
 		set(GLEW_LIBRARY ${GLEW_DIRECTORY}/lib/Debug/x64/glew32d.lib)
 		set(WINDOWS_DLL_LIST ${WINDOWS_DLL_LIST} ${GLEW_DIRECTORY}/bin/Debug/x64/glew32d.dll)
 		include_directories(${GLEW_INCLUDE})
-		set(GRAPHICS_LIBS ${FREEGLUT_LIBRARY} ${SOIL_LIBRARY} ${GLEW_LIBRARY} opengl32.lib)
-		#It is necessary to copy freeglut.dll to the build directory containing the executable.
-		#Alternatively it may be copied to the Windows system directory.
-		#This is necessary so that the freeglut headers point to the correct library
-		add_definitions(-DNDEBUG)
-	endif()
+		set(GRAPHICS_LIBS ${GLFW_LIBRARY} ${SOIL_LIBRARY} ${GLEW_LIBRARY} opengl32.lib)
+		
+		#Set SOIL directory
+		if(NOT SOIL_DIRECTORY)
+			set(SOIL_DIRECTORY "" CACHE STRING "SOIL install directory" FORCE)
+		endif(NOT SOIL_DIRECTORY)
+		set(SOIL_INCLUDE ${SOIL_DIRECTORY}/inc)
+		set(SOIL_LIBRARY ${SOIL_DIRECTORY}/lib/soil.lib)
+		include_directories(${SOIL_INCLUDE})
+	endif(NOT WIN32)
 	
 elseif(GRAPHICS_LIBRARY MATCHES "SDL")
-	#Fix this at some point for Windows!
+	# Support for SDL is heavily deprecated at this point and needs fixed.
 	set(GRAPHICS_LIBS -lSDL2)
 	add_definitions(-DUSE_SDL_RENDERER)
 endif()
@@ -126,9 +125,6 @@ endif()
 include_directories(graphics/include)
 include_directories(math/include)
 include_directories(include)
-
-#TEMP
-include_directories("D:/Kuras/Downloads/glm-master/glm-master/glm")
 
 #Add the graphics directory.
 add_subdirectory(graphics/source)

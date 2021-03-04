@@ -3,7 +3,6 @@
 
 #include <vector>
 
-#include "scene.hpp"
 #include "Matrix.hpp"
 #include "triangle.hpp"
 #include "Vertex.hpp"
@@ -12,8 +11,9 @@
 #include "PolygonContainer.hpp"
 
 class camera;
-class Shader;
-class Texture;
+class OTTShader;
+class OTTTexture;
+class OTTWindow3D;
 
 /// <summary>
 /// 3d object geometry class
@@ -30,96 +30,142 @@ public:
 	
 	/** Get a pointer to the vector of polygons which comprise this 3d object
 	  */
-	std::vector<triangle>* getPolygonVector() { return polys.getPolygons(); }
+	std::vector<triangle>* getPolygonVector() {
+		return polys.getPolygons();
+	}
 
 	/** Get the position offset of the object
 	  */
-	Vector3 getPosition() const { return position; }
+	Vector3 getPosition() const {
+		return position;
+	}
 
 	/** Get the position of the center of the object
 	  */
-	Vector3 getCenter() const { return (center + position); }
+	Vector3 getCenter() const {
+		return (center + position);
+	}
 
 	/** Get the size of the object along the x-axis
 	  */
-	float getSizeX() const { return (maxSize[0] - minSize[0]); }
+	float getSizeX() const {
+		return (maxSize[0] - minSize[0]);
+	}
 
 	/** Get the size of the object along the y-axis
 	  */
-	float getSizeY() const { return (maxSize[1] - minSize[1]); }
+	float getSizeY() const {
+		return (maxSize[1] - minSize[1]);
+	}
 
 	/** Get the size of the object along the z-axis
 	  */
-	float getSizeZ() const { return (maxSize[2] - minSize[2]); }
+	float getSizeZ() const {
+		return (maxSize[2] - minSize[2]);
+	}
 
 	/** Get the current pitch angle (angle about the x-axis) (in radians)
 	  */
-	float getPitchAngle() const { return pitchAngle.get(); }
+	float getPitchAngle() const {
+		return pitchAngle.get();
+	}
 
 	/** Get the current roll angle (angle about the z-axis) (in radians)
 	  */
-	float getRollAngle() const { return rollAngle.get(); }
+	float getRollAngle() const {
+		return rollAngle.get();
+	}
 
 	/** Get the current yaw angle (angle about the y-axis) (in radians)
 	  */
-	float getYawAngle() const { return yawAngle.get(); }
+	float getYawAngle() const {
+		return yawAngle.get();
+	}
 
 	/** Get a const pointer to the position vector
 	  */
-	const Vector3* getConstPositionPointer() const { return (const Vector3*)&position; }
+	const Vector3* getConstPositionPointer() const {
+		return (const Vector3*)&position;
+	}
 
 	/** Get a const pointer to the position vector
 	  */
-	Vector3* getPositionPointer() { return &position; }
+	Vector3* getPositionPointer() {
+		return &position;
+	}
 
 	/** Get a const pointer to the rotation matrix
 	  */
-	const Matrix3* getConstRotationMatrix() const { return (const Matrix3*)&rotation; }
+	const Matrix3* getConstRotationMatrix() const {
+		return (const Matrix3*)&rotation;
+	}
 
 	/** Get a pointer to the rotation matrix
 	  */
-	Matrix3* getRotationMatrix() { return &rotation; }
+	Matrix3* getRotationMatrix() {
+		return &rotation;
+	}
 
 	/** Get the number of unique vertices
 	  */
-	size_t getNumberOfVertices() const { return vertices.size(); }
+	size_t getNumberOfVertices() const {
+		return vertices.size();
+	}
 	
 	/** Get the number of unique polygons
 	  */
-	size_t getNumberOfPolygons() const { return polys.size(); }
+	size_t getNumberOfPolygons() const {
+		return polys.size();
+	}
 
 	/** Get the number of expected vertices
 	  */
-	size_t getNumberOfReservedVertices() const { return reservedVertices; }
+	size_t getNumberOfReservedVertices() const {
+		return reservedVertices;
+	}
 
 	/** Get the number of expected polygons
 	  */
-	size_t getNumberOfReservedPolygons() const { return reservedPolygons; }
+	size_t getNumberOfReservedPolygons() const {
+		return reservedPolygons;
+	}
 
 	/** Get a const pointer to this object's parent
 	  * @return Pointer to this object's parent object, or (this) if object has no parent
 	  */
-	const object* getParent() const { return (parent ? parent : this); }
+	const object* getParent() const {
+		return (parent ? parent : this);
+	}
 
 	/** Get a const pointer to the shader used to render the object
 	  */
-	const Shader* getShader() const { return shader; }
+	const OTTShader* getShader() const {
+		return shader;
+	}
 
 	/** Get a pointer to the vertex container object
 	  */
-	const VertexContainer* getVertices() const { return &vertices; }
+	const VertexContainer* getVertices() const {
+		return &vertices;
+	}
 
 	/** Get a pointer to the polygon container object
 	  */
-	const PolygonContainer* getConstPolygonContainer() const { return &polys; }
+	const PolygonContainer* getConstPolygonContainer() const {
+		return &polys;
+	}
 
 	/** Get OpenGL VBO id number corresponding to object vertices
 	  */
-	unsigned int getVertexVBO() const { return polys.getVertexVBO(); }
+	unsigned int getVertexVBO() const {
+		return polys.getVertexVBO();
+	}
 
 	/** Get OpenGL VBO id number corresponding to object vertex indicies
 	  */
-	unsigned int getIndexVBO() const { return polys.getIndexVBO(); }
+	unsigned int getIndexVBO() const {
+		return polys.getIndexVBO();
+	}
 
 	/** Get the OpenGL modelview matrix
 	  */
@@ -127,23 +173,33 @@ public:
 
 	/** Get the OpenGL texture ID
 	  */
-	unsigned int getTexture() const { return textureID; }
+	unsigned int getTexture() const {
+		return textureID;
+	}
 
 	/** Return true if this object has a parent object and return false otherwise
 	  */
-	bool isChild() const { return (parent != 0x0); }
+	bool isChild() const {
+		return (parent != 0x0);
+	}
 
 	/** Return true if this object has child objects and return false otherwise
 	  */
-	bool hasChildren() const { return !children.empty(); }
+	bool hasChildren() const {
+		return !children.empty();
+	}
 
 	/** Get const iterator at the start of the child objects vector
 	  */
-	std::vector<object*>::const_iterator beginChildren() const { return children.cbegin(); }
+	std::vector<object*>::const_iterator beginChildren() const {
+		return children.cbegin();
+	}
 
 	/** Get const iterator at the end of the child objects vector
 	  */
-	std::vector<object*>::const_iterator endChildren() const { return children.cend(); }
+	std::vector<object*>::const_iterator endChildren() const {
+		return children.cend();
+	}
 
 	/** Rotate the object by a given amount about the X, Y, and Z, axes (all in radians)
 	  * @note This method will rotate vertices from their current position. Use setRotation() to specify the rotation explicitly
@@ -165,39 +221,53 @@ public:
 
 	/** Set the shader to use for rendering
 	  */
-	void setShader(const Shader* shdr);
+	void setShader(const OTTShader* shdr);
 
 	/** Scale object relative to its current size
 	  */
-	void scale(const float& scale_) { scaleFactor *= scale_; }
+	void scale(const float& scale_) {
+		scaleFactor *= scale_;
+	}
 
 	/** Set scale of all three vector axes
 	  */
-	void setScale(const float& scale_) { scaleFactor = Vector3(scale_, scale_, scale_); }
+	void setScale(const float& scale_) {
+		scaleFactor = Vector3(scale_, scale_, scale_);
+	}
 
 	/** Set scale of all three vector axes
 	  */
-	void setScale(const Vector3& scale_) { scaleFactor = scale_; }
+	void setScale(const Vector3& scale_) {
+		scaleFactor = scale_;
+	}
 
 	/** Set scale of all three vector axes
 	  */
-	void setScale(const float& xScale, const float& yScale, const float& zScale) { scaleFactor = Vector3(xScale, yScale, zScale); }
+	void setScale(const float& xScale, const float& yScale, const float& zScale) {
+		scaleFactor = Vector3(xScale, yScale, zScale);
+	}
 
 	/** Set scale of object's x-axis
 	  */
-	void setScaleX(const float& scale_) { scaleFactor[0] = scale_; }
+	void setScaleX(const float& scale_) {
+		scaleFactor[0] = scale_;
+	}
 
 	/** Set scale of object's y-axis
 	  */
-	void setScaleY(const float& scale_) { scaleFactor[1] = scale_; }
+	void setScaleY(const float& scale_) {
+		scaleFactor[1] = scale_;
+	}
 
 	/** Set scale of object's z-axis
 	  */
-	void setScaleZ(const float& scale_) { scaleFactor[2] = scale_; }
+	void setScaleZ(const float& scale_) {
+		scaleFactor[2] = scale_;
+	}
 
 	/** Set object's texture
 	  */
-	void setTexture(Texture* txt);
+	void setTexture(OTTTexture* txt);
 
 	/** Reset the offset position of the object to its original location
 	  */
@@ -230,7 +300,7 @@ public:
 
 	/** Draw all sub-objects
 	  */
-	void draw(Window* win);
+	void draw(OTTWindow3D* win);
 	
 protected:
 	bool built; ///< Flag indicating that the geometry has been constructed
@@ -268,7 +338,7 @@ protected:
 
 	const object* parent; ///< Pointer to parent object
 
-	const Shader* shader; ///< Pointer to an OpenGL shader to use for rendering
+	const OTTShader* shader; ///< Pointer to an OpenGL shader to use for rendering
 
 	Matrix4 modelMatrix; ///< Model rotation and translation matrix used by OpenGL
 
@@ -405,7 +475,9 @@ public:
 
 	void addSubGeometry(Vertex* v0, Vertex* v1, Vertex* v2, Vertex* v3);
 
-	PolygonContainer* getPolygonContainer() { return &polys; }
+	PolygonContainer* getPolygonContainer() { 
+		return &polys; 
+	}
 
 private:
 	object* parent;

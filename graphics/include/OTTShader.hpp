@@ -22,16 +22,16 @@ enum class ShaderType {
 	TEXTURE  ///< Use object texture
 };
 
-class Shader {
+class OTTShader {
 public:
-	Shader() :
+	OTTShader() :
 		nVertShader(0),
 		nFragShader(0),
 		nProgram(0)
 	{ 
 	}
 
-	Shader(const std::string& vert, const std::string& frag) :
+	OTTShader(const std::string& vert, const std::string& frag) :
 		nVertShader(0),
 		nFragShader(0),
 		nProgram(0)
@@ -39,7 +39,7 @@ public:
 		generate(vert, frag);
 	}
 
-	~Shader();
+	~OTTShader();
 
 	void enableShader() const;
 
@@ -100,7 +100,7 @@ protected:
 	virtual void onShaderDisable(const object*) const { }
 };
 
-namespace DefaultShaders {
+namespace OTTDefaultShaders {
 	typedef void (*shaderStateFunction)(const object*);
 
 	extern const std::vector<std::string> vertexDefault;
@@ -126,10 +126,10 @@ namespace DefaultShaders {
 
 	void unbindObjectTexture(const object*);
 
-	class DefaultShader : public Shader {
+	class DefaultShader : public OTTShader {
 	public:
 		DefaultShader() :
-			Shader(),
+			OTTShader(),
 			good(false),
 			type(ShaderType::NONE),
 			name("none"),
@@ -182,7 +182,7 @@ namespace DefaultShaders {
 		/** Get a pointer to a shader in the list of defined shaders
 		  * If the shader does not exist, attempt to create it
 		  */
-		Shader* get(const ShaderType& type) {
+		OTTShader* get(const ShaderType& type) {
 			ShaderMapIterator iter = shaders.find(type);
 			if (iter != shaders.end())
 				return (iter->second.get());
@@ -194,6 +194,6 @@ namespace DefaultShaders {
 	private:
 		ShaderMap shaders;
 	};
-};
+}
 
 #endif

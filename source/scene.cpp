@@ -8,8 +8,8 @@
 #include "scene.hpp"
 #include "camera.hpp"
 #include "object.hpp"
-#include "Graphics.hpp"
-#include "Shader.hpp"
+#include "OTTWindow3D.hpp"
+#include "OTTShader.hpp"
 
 #define SCREEN_XLIMIT 1.0 ///< Set the horizontal clipping border as a fraction of the total screen width
 #define SCREEN_YLIMIT 1.0 ///< Set the vertical clipping border as a fraction of the total screen height
@@ -31,11 +31,10 @@ scene::scene() :
 	maxPixelsX(640), 
 	maxPixelsY(480),
 	mode(drawMode::WIREFRAME),
-	buffer(640, 480),
 	timeOfInitialization(hclock::now()),
 	timeOfLastUpdate(),
 	cam(0x0),
-	window(new Window(screenWidthPixels, screenHeightPixels, 1)),
+	window(new OTTWindow3D(screenWidthPixels, screenHeightPixels, 1)),
 	worldLight(),
 	objects(),
 	lights(),
@@ -56,8 +55,8 @@ scene::~scene(){
 void scene::initialize(){
 	// Setup the window
 	window->initialize("Render3d");
-	window->setupMouseHandler(); // Set mouse support
-	window->setupKeyboardHandler(); // Set keyboard support
+	window->enableMouse(); // Set mouse support
+	window->enableKeyboard(); // Set keyboard support
 	window->getMouse()->setLockPointer();
 
 	// Set the pixel coordinate bounds
@@ -121,7 +120,7 @@ bool scene::update(){
 	}
 
 	if (mode == drawMode::RENDER) { // Compute pixel z-depth
-		buffer.reset();
+		/*buffer.reset();
 		int x0, x1;
 		float realy;
 		const float farDistance = 10.f;
@@ -175,7 +174,7 @@ bool scene::update(){
 					window->drawPixel(x1, scanline);
 				}
 			}
-		}
+		}*/
 	}
 	else {
 		// Draw polygons
@@ -228,7 +227,7 @@ bool scene::updateOpenGL() {
 		Matrix4 mvp = Matrix4::concatenate(proj, view, model);
 
 		// Setup object shader
-		const Shader* shdr = (*obj)->getShader();
+		const OTTShader* shdr = (*obj)->getShader();
 		shdr->enableShader();
 		shdr->setMatrix4("MVP", &mvp);
 		Vector3 camPos = cam->getPosition();
@@ -308,11 +307,11 @@ double scene::getTimeElapsed() const {
 	return std::chrono::duration_cast<std::chrono::duration<double>>(hclock::now() - timeOfInitialization).count();
 }
 
-KeyStates* scene::getKeypress(){
+OTTKeyboard* scene::getKeypress(){
 	return window->getKeypress();
 }
 
-MouseState* scene::getMouse(){
+OTTMouse* scene::getMouse(){
 	return window->getMouse();
 }
 

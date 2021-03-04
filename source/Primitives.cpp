@@ -1,5 +1,4 @@
 #include <cmath> // sqrtf
-#include <iostream> // TEMP
 
 #include "Globals.hpp"
 #include "Primitives.hpp"

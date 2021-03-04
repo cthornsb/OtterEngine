@@ -1,37 +1,77 @@
-set(CORE_SOURCES camera.cpp 
-                 lightSource.cpp
-                 Model.cpp
-                 Model3ds.cpp
-                 ModelObj.cpp
-                 object.cpp                 
-                 plane.cpp
-                 PixelTriplet.cpp
-                 PolygonContainer.cpp
-                 Primitives.cpp
-                 ray.cpp 
-                 scene.cpp
-                 Shader.cpp
-                 Sprite.cpp
-                 StlObject.cpp
-                 Texture.cpp
-                 triangle.cpp 
-                 Vertex.cpp
-                 VertexContainer.cpp
-                 WrappedValue.cpp
-                 ZBuffer.cpp)
+# 3d classes
+add_library(
+	Otter3dCoreObj 
+	OBJECT
+	camera.cpp 
+	lightSource.cpp
+	plane.cpp
+	PixelTriplet.cpp
+	ray.cpp 
+	scene.cpp
+	triangle.cpp
+	Vertex.cpp
+)
 
-#Add the sources to the library.
-add_library(CORE_OBJECTS OBJECT ${CORE_SOURCES})
+# 3d geometry classes
+add_library(
+	Otter3dGeomObj 
+	OBJECT
+	Model.cpp
+	Model3ds.cpp
+	ModelObj.cpp
+	ModelStl.cpp
+	object.cpp
+	VertexContainer.cpp
+	PolygonContainer.cpp
+	Primitives.cpp
+)
 
-#Generate a static library.
-add_library(CORE_LIB STATIC $<TARGET_OBJECTS:CORE_OBJECTS>)
+# Build static libraries.
+add_library(
+	Otter3dCoreStatic 
+	STATIC 
+	$<TARGET_OBJECTS:Otter3dCoreObj>
+)
+add_library(
+	Otter3dGeomStatic 
+	STATIC 
+	$<TARGET_OBJECTS:Otter3dGeomObj>
+)
 
-#Build renderer executable.
+# Install static libraries.
+if(INSTALL_STATIC)
+	install(TARGETS Otter3dCoreStatic Otter3dGeomStatic DESTINATION lib)
+endif(INSTALL_STATIC)
+
+# Build renderer executable.
 add_executable(render3d renderer.cpp)
-target_link_libraries(render3d CORE_LIB MATH_LIB GRAPHICS_LIB ${GRAPHICS_LIBS})
+target_link_libraries(
+	render3d 
+	OtterCoreStatic
+	OtterGraphicsStatic
+	Otter3dCoreStatic 
+	Otter3dGeomStatic 
+	OtterMathStatic 
+	${GRAPHICS_LIBS}
+)
 install(TARGETS render3d DESTINATION bin)
 
+# Build and install shared libraries.
+if(INSTALL_SHARED)
+	add_library(
+		Otter3dCore 
+		SHARED 
+		$<TARGET_OBJECTS:Otter3dCoreObj>
+	)
+	add_library(
+		Otter3dGeom 
+		SHARED 
+		$<TARGET_OBJECTS:Otter3dGeomObj>
+	)
+	install(TARGETS Otter3dCore Otter3dGeom DESTINATION lib)
+endif(INSTALL_SHARED)
+
+#Install required dlls (windows)
 if(WIN32 AND INSTALL_DLLS)
-	#Install required dlls
 	install(FILES ${WINDOWS_DLL_LIST} DESTINATION bin)
 endif(WIN32 AND INSTALL_DLLS)

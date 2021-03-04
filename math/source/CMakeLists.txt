@@ -1,8 +1,31 @@
-set(MATH_SOURCES Matrix.cpp
-                 Vector.cpp)
+# Compile source files
+add_library(
+	OtterMathObj 
+	OBJECT
+	Matrix.cpp
+	Vector.cpp
+	WrappedValue.cpp
+)
 
-#Add the sources to the library.
-add_library(MATH_OBJECTS OBJECT ${MATH_SOURCES})
+# Generate a static library.
+add_library(
+	OtterMathStatic 
+	STATIC 
+	$<TARGET_OBJECTS:OtterMathObj>
+)
 
-#Generate a static library.
-add_library(MATH_LIB STATIC $<TARGET_OBJECTS:MATH_OBJECTS>)
+# Install static libraries.
+if(INSTALL_STATIC)
+	install(TARGETS OtterMathStatic DESTINATION lib)
+endif(INSTALL_STATIC)
+
+# Install shared libraries.
+if(INSTALL_SHARED)
+	add_library(
+		OtterMath 
+		SHARED 
+		$<TARGET_OBJECTS:OtterMathObj>
+	)
+	install(TARGETS OtterMath DESTINATION lib)
+endif(INSTALL_SHARED)
+

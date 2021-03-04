@@ -9,7 +9,7 @@
 #include "Model.hpp"
 #include "Vector.hpp"
 
-class Texture;
+class OTTTexture;
 
 enum class OBJ_TYPE {
 	NONE,
@@ -70,9 +70,9 @@ protected:
 		float indexOfRefraction;
 		float opacity;
 
-		std::unique_ptr<Texture> ambientTextureMap;
-		std::unique_ptr<Texture> diffuseTextureMap;
-		std::unique_ptr<Texture> specularTextureMap;
+		std::unique_ptr<OTTTexture> ambientTextureMap;
+		std::unique_ptr<OTTTexture> diffuseTextureMap;
+		std::unique_ptr<OTTTexture> specularTextureMap;
 
 		unsigned int nAssociatedFaces;
 

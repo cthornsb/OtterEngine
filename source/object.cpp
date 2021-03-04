@@ -1,13 +1,14 @@
 #include <iostream>
 #include <algorithm> // find
 #include <float.h>
-#include <map>
 
 #include "Globals.hpp"
 #include "object.hpp"
 #include "camera.hpp"
 #include "Vector.hpp"
-#include "Texture.hpp"
+#include "OTTTexture.hpp"
+#include "OTTShader.hpp"
+#include "OTTWindow3D.hpp"
 
 object::object() :
 	built(false),
@@ -85,14 +86,14 @@ void object::setPosition(const Vector3 &pos){
 	updatePosition();
 }
 
-void object::setShader(const Shader* shdr) { 
+void object::setShader(const OTTShader* shdr) { 
 	shader = shdr; 
 	/*for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
 		(*ch)->setShader(shdr);
 	}*/
 }
 
-void object::setTexture(Texture* txt) {
+void object::setTexture(OTTTexture* txt) {
 	textureID = txt->getContext();
 	for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
 		(*ch)->setTexture(txt);
@@ -164,7 +165,7 @@ void object::build() {
 	built = true;
 }
 
-void object::draw(Window* win) {
+void object::draw(OTTWindow3D* win) {
 	if (shader) {
 		shader->enableObjectShader(this);
 		win->drawObject(this);

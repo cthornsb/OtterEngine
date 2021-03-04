@@ -1,7 +1,7 @@
 #ifndef LIGHT_SOURCE_HPP
 #define LIGHT_SOURCE_HPP
 
-#include "colors.hpp"
+#include "ColorRGB.hpp"
 #include "ray.hpp"
 #include "PixelTriplet.hpp"
 

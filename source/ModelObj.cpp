@@ -4,7 +4,7 @@
 
 #include "ModelObj.hpp"
 #include "ColorRGB.hpp"
-#include "Texture.hpp"
+#include "OTTTexture.hpp"
 
 ModelObj::~ModelObj() {
 }
@@ -159,6 +159,10 @@ unsigned int ModelObj::userRead(std::ifstream& f) {
 		if (cmd == OBJ_TYPE::NONE)
 			continue;
 		switch (cmd) {
+		case OBJ_TYPE::NONE:
+			break;
+		case OBJ_TYPE::MTLLIB:
+			break;
 		case OBJ_TYPE::USEMTL:
 			currentMaterial = findMaterial(args[1]);
 			if (currentMaterial) {
@@ -379,7 +383,7 @@ bool ModelObj::readMaterialFile(const std::string& filename) {
 			for (auto str = args.cbegin() + 1; str != args.cend(); str++) {
 				path += *str;
 			}
-			currentMaterial->ambientTextureMap.reset(new Texture(path)); // Load texture image
+			currentMaterial->ambientTextureMap.reset(new OTTTexture(path)); // Load texture image
 		}
 		else if (args[0] == "map_Kd") { // Diffuse texture map
 			/*std::string path;

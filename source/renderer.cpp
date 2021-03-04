@@ -8,11 +8,11 @@
 #include "triangle.hpp"
 #include "camera.hpp"
 #include "Primitives.hpp"
-#include "StlObject.hpp"
-#include "colors.hpp"
+#include "ModelStl.hpp"
+#include "ColorRGB.hpp"
 #include "scene.hpp"
-#include "Texture.hpp"
-#include "Shader.hpp"
+#include "OTTTexture.hpp"
+#include "OTTShader.hpp"
 #include "Matrix.hpp"
 #include "Vector.hpp"
 
@@ -103,8 +103,8 @@ int main(){
 	int dX, dY;
 	float timeElapsed = 0;
 	bool isDone = false;
-	KeyStates *keys = myScene.getKeypress();
-	MouseState* mouse = myScene.getWindow()->getMouse();
+	OTTKeyboard *keys = myScene.getKeypress();
+	OTTMouse* mouse = myScene.getWindow()->getMouse();
 	while(!isDone && myScene.updateOpenGL()){
 		// Check for keypresses 
 		if(!keys->empty()){
@@ -115,11 +115,12 @@ int main(){
 			// Pressed keys (toggles)
 			if(keys->poll('p'))
 				cam.resetOrientation();
-			if (keys->poll('f')) // Flashlight
+			if (keys->poll('f')){ // Flashlight
 				if (myLight.isEnabled())
 					myLight.disable();
 				else
 					myLight.enable();
+			}
 
 			// Held keys
 			// Movement in the horizontal plane

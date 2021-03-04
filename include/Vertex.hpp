@@ -2,7 +2,7 @@
 #define VERTEX_HPP
 
 #include "Vector.hpp"
-#include "colors.hpp"
+#include "ColorRGB.hpp"
 
 class Matrix3;
 class object;

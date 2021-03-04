@@ -1,16 +1,16 @@
-#ifndef SPRITE_HPP
-#define SPRITE_HPP
+#ifndef OTT_SPRITE_HPP
+#define OTT_SPRITE_HPP
 
-#include "Texture.hpp"
+#include "OTTTexture.hpp"
 #include "Matrix.hpp"
 #include "Vector.hpp"
 
-class Sprite : public Texture {
+class OTTSprite : public OTTTexture {
 public:
 	/** Default constructor
 	  **/
-	Sprite() :
-		Texture(),
+	OTTSprite() :
+		OTTTexture(),
 		horizScale(1.f),
 		vertScale(1.f),
 		theta(0.f),
@@ -22,8 +22,8 @@ public:
 
 	/** Texture constructor
 	  **/
-	Sprite(const Texture& tex) :
-		Texture(tex),
+	OTTSprite(const OTTTexture& tex) :
+		OTTTexture(tex),
 		horizScale(1.f),
 		vertScale(1.f),
 		theta(0.f),
@@ -39,8 +39,8 @@ public:
 	  * @param fname Path to input image file (png, bmp, etc)
 	  * @param name The name of the sprite
 	  **/
-	Sprite(const std::string& fname, const std::string& name = "") :
-		Texture(fname, name),
+	OTTSprite(const std::string& fname, const std::string& name = "") :
+		OTTTexture(fname, name),
 		horizScale(1.f),
 		vertScale(1.f),
 		theta(0.f),
@@ -51,7 +51,7 @@ public:
 		getTexture(); // Convert the image to an OpenGL texture
 	}
 
-	~Sprite() { }
+	~OTTSprite() { }
 
 	/** Set the scaling factor of the horizontal and vertical axes of the sprite relative to its current scale
 	  * @note The original aspect ratio of the sprite is preserved

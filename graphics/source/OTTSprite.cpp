@@ -1,50 +1,50 @@
 #include <GL/freeglut.h>
 
-#include "Sprite.hpp"
+#include "OTTSprite.hpp"
 
-void Sprite::scale(const float& scale) {
+void OTTSprite::scale(const float& scale) {
 	horizScale *= scale;
 	vertScale *= scale;
 	update();
 }
 
-void Sprite::setScale(const float& scale) {
+void OTTSprite::setScale(const float& scale) {
 	horizScale = scale;
 	vertScale = scale;
 	update();
 }
 
-void Sprite::setHorizontalScale(const float& scale) {
+void OTTSprite::setHorizontalScale(const float& scale) {
 	horizScale = scale;
 	update();
 }
 
-void Sprite::setVerticalScale(const float& scale) {
+void OTTSprite::setVerticalScale(const float& scale) {
 	vertScale = scale;
 	update();
 }
 
-void Sprite::rotate(const float& angle) {
+void OTTSprite::rotate(const float& angle) {
 	rotation.setRotation(theta += angle);
 	update();
 }
 
-void Sprite::setRotation(const float& angle) {
+void OTTSprite::setRotation(const float& angle) {
 	rotation.setRotation(theta = angle);
 	update();
 }
 
-void Sprite::flipHorizontal() { 
+void OTTSprite::flipHorizontal() { 
 	horizScale *= -1; 
 	update();
 }
 
-void Sprite::flipVertical() {
+void OTTSprite::flipVertical() {
 	vertScale *= -1; 
 	update();
 }
 
-void Sprite::drawCorner(const int& x, const int& y) {
+void OTTSprite::drawCorner(const int& x, const int& y) {
 	Vector2 offset((float)x, (float)y);
 	glBindTexture(GL_TEXTURE_2D, nContext);
 	glEnable(GL_TEXTURE_2D);
@@ -58,7 +58,7 @@ void Sprite::drawCorner(const int& x, const int& y) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Sprite::draw(const int& x, const int& y) {
+void OTTSprite::draw(const int& x, const int& y) {
 	Vector2 offset((float)x, (float)y);
 	glBindTexture(GL_TEXTURE_2D, nContext);
 	glEnable(GL_TEXTURE_2D);
@@ -72,11 +72,11 @@ void Sprite::draw(const int& x, const int& y) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Sprite::getVertex(const Vector2& vec) {
+void OTTSprite::getVertex(const Vector2& vec) {
 	glVertex2i((GLint)vec[0], (GLint)vec[1]);
 }
 
-void Sprite::update() {
+void OTTSprite::update() {
 	uX = Vector2(nWidth * horizScale / 2, 0);
 	uY = Vector2(0, nHeight * vertScale / 2);
 	rotation.transformInPlace(uX);

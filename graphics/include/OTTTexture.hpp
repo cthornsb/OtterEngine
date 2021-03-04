@@ -1,58 +1,32 @@
-#ifndef TEXTURE_HPP
-#define TEXTURE_HPP
+#ifndef OTT_TEXTURE_HPP
+#define OTT_TEXTURE_HPP
 
 #include <memory>
 #include <string>
 
 #include "ColorRGB.hpp"
-#include "LogicalColor.hpp"
+#include "OTTImageBuffer.hpp"
 
-typedef void (*imageManipulationFunc)(LogicalColor*, const int&, const int&);
-
-/** Layer blending modes
-  **/
-enum class BlendMode {
-	NORMAL,  ///< The bottom layer is completely overwritten by the top layer, alpha values are ignored
-	ADD,     ///< Components of top layer are added to components of bottom layer
-	SUB,     ///< Components of top layer are subtracted from components of bottom layer
-	DIFF,    ///< Difference is computed between top and bottom colors, ensuring a positive result
-	MULT,    ///< Components of bottom color are multiplied by components of top color
-	DIVIDE,  ///< Components of bottom color are divided by components of top color
-	DARKEN,  ///< The minimum value is taken for each of the color components of the top and bottom layers
-	LIGHTEN, ///< The maximum value is taken for each of the color components of the top and bottom layers
-	REPLACE  ///< Functionally the same as NORMAL
-};
-
-class Texture {
+class OTTTexture : public OTTImageBuffer {
 public:
 	/** Default constructor
 	  **/
-	Texture() :
-		nWidth(0),
-		nHeight(0),
-		nChannels(0),
-		nBytes(0),
+	OTTTexture() :
+		OTTImageBuffer(),
 		nContext(0),
-		bGood(false),
 		sName(),
-		data(),
-		dptr(0x0)
+		data()
 	{
 	}
 
 	/** Copy constructor
 	  * @note The pointer to image data is set, but no data is copied
 	  **/
-	Texture(const Texture& tex) :
-		nWidth(tex.nWidth),
-		nHeight(tex.nHeight),
-		nChannels(tex.nChannels),
-		nBytes(tex.nBytes),
+	OTTTexture(const OTTTexture& tex) :
+		OTTImageBuffer(tex),
 		nContext(tex.nContext),
-		bGood(tex.bGood),
 		sName(tex.sName),
-		data(),
-		dptr(tex.dptr)
+		data()
 	{
 	}
 
@@ -60,16 +34,11 @@ public:
 	  * @param fname Path to input image file (png, bmp, etc)
 	  * @param name The name of the texture
 	  **/
-	Texture(const std::string& fname, const std::string& name="") :
-		nWidth(0),
-		nHeight(0),
-		nChannels(0),
-		nBytes(0),
+	OTTTexture(const std::string& fname, const std::string& name="") :
+		OTTImageBuffer(),
 		nContext(0),
-		bGood(false),
 		sName(name),
-		data(),
-		dptr(0x0)
+		data()
 	{
 		read(fname);
 	}
@@ -80,39 +49,24 @@ public:
 	  * @param name The name of the texture
 	  * @param color The color to fill the blank image with
 	  **/
-	Texture(const int& W, const int& H, const std::string& name = "", const ColorRGB& color=Colors::WHITE) :
-		nWidth(W),
-		nHeight(H),
-		nChannels(4),
-		nBytes(W * H * 4),
+	OTTTexture(const int& W, const int& H, const std::string& name = "", const ColorRGB& color=Colors::WHITE) :
+		OTTImageBuffer(W, H, 4), // Blank RGBA image
 		nContext(0),
-		bGood(true),
 		sName(name),
-		data(new unsigned char[nBytes]),
-		dptr(data.get())
+		data()
 	{
 		fillColor(color, BlendMode::NORMAL);
 	}
 
 	/** Destructor
 	  **/
-	~Texture();
-
-	/** Return true if image data is loaded in conventional memory and return false otherwise
-	  **/
-	bool isGood() const { return bGood; }
-
-	/** Get the true width of the loaded image (in pixels)
-	  **/
-	int getWidth() const { return nWidth; }
-
-	/** Get the true height of the loaded image (in pixels)
-	  **/
-	int getHeight() const { return nHeight; }
+	~OTTTexture();
 
 	/** Get the current OpenGL texture context
 	  **/
-	unsigned int getContext() const { return nContext; }
+	unsigned int getContext() const { 
+		return nContext; 
+	}
 
 	/** Send loaded image to OpenGL to create a texture. Once OpenGL creates the texture,
 	  * it may no longer be modified directly. If texture modification is required, a new
@@ -120,17 +74,17 @@ public:
 	  **/
 	unsigned int getTexture();
 
-	/** Get a const pointer to raw image data in conventional memory
-	  **/
-	const unsigned char* getConstData() const { return dptr; }
-
 	/** Get a logical pixel from a pixel in the loaded image
 	  **/
-	bool getPixel(const int& x, const int& y, LogicalColor& color);
+	bool getPixel(const int& x, const int& y, OTTLogicalColor& color);
 
-	void setParameter() {}
+	/** Set an OpenGL texture parameter (not implemented)
+	  */
+	void setParameter() { }
 
-	void generateMipmaps() {}
+	/** Generate OpenGL mipmaps (not implemented)
+	  */
+	void generateMipmaps() { }
 
 	/** Set multiplicitive opacity of the texture
 	  * @param opacity Opacity of texture, in range [0, 1]
@@ -174,26 +128,22 @@ public:
 	  **/
 	bool read(const std::string& fname);
 
+	/** Fill image buffer with a value
+	  * Uses std::fill to fill entire buffer with specified color component value.
+	  */
+	void fill(const unsigned char& value=0) override;
+
 	/** Free conventional memory being used to store image
 	  * @note Does not delete associated OpenGL texture
 	  **/
-	void free();
+	void free() override;
 
 protected:
-	int nWidth;
-	int nHeight;
-	int nChannels;
-	int nBytes;
+	unsigned int nContext; ///< OpenGL texture context ID number
 
-	unsigned int nContext;
+	std::string sName; ///< Name of texture
 
-	bool bGood;
-
-	std::string sName;
-
-	std::unique_ptr<unsigned char> data;
-
-	const unsigned char* dptr;
+	std::unique_ptr<unsigned char> data; ///< Array containing image data
 };
 
 #endif

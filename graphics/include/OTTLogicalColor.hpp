@@ -1,26 +1,22 @@
-#ifndef LOGICAL_COLOR_HPP
-#define LOGICAL_COLOR_HPP
+#ifndef OTT_LOGICAL_COLOR_HPP
+#define OTT_LOGICAL_COLOR_HPP
 
 #include "ColorRGB.hpp"
 
-unsigned char limitValueUChar(const float& value);
-
-float limitValueFloat(const float& value);
-
-class LogicalColor {
+class OTTLogicalColor {
 public:
 	unsigned char* pArray; ///< Start of color component array
 
 	/** Default constructor (empty)
 	  */
-	LogicalColor() :
+	OTTLogicalColor() :
 		pArray(0x0)
 	{
 	}
 
 	/** Array constructor. Expects at least four elements
 	  **/
-	LogicalColor(unsigned char* arr) :
+	OTTLogicalColor(unsigned char* arr) :
 		pArray(arr)
 	{
 	}
@@ -75,35 +71,51 @@ public:
 
 	/** Return the red component, scaled by the color's alpha channel
 	  **/
-	float getR() const { return pArray[0] * pArray[3] / 65025.f; }
+	float getR() const {
+		return pArray[0] * pArray[3] / 65025.f;
+	}
 
 	/** Return the green component, scaled by the color's alpha channel
 	  **/
-	float getG() const { return pArray[1] * pArray[3] / 65025.f; }
+	float getG() const {
+		return pArray[1] * pArray[3] / 65025.f;
+	}
 
 	/** Return the blue component, scaled by the color's alpha channel
 	  **/
-	float getB() const { return pArray[2] * pArray[3] / 65025.f; }
+	float getB() const {
+		return pArray[2] * pArray[3] / 65025.f;
+	}
 
 	/** Return the alpha channel
 	  **/
-	float getA() const { return pArray[3] / 255.f; }
+	float getA() const {
+		return pArray[3] / 255.f;
+	}
 
 	/** Set the red component
 	  **/
-	void setRed(const float& value) { pArray[0] = limitValueUChar(value * 255); }
+	void setRed(const float& value) {
+		pArray[0] = clampUChar(value * 255);
+	}
 
 	/** Set the green component
 	  **/
-	void setGreen(const float& value) { pArray[1] = limitValueUChar(value * 255); }
+	void setGreen(const float& value) {
+		pArray[1] = clampUChar(value * 255);
+	}
 
 	/** Set the blue component
 	  **/
-	void setBlue(const float& value) { pArray[2] = limitValueUChar(value * 255); }
+	void setBlue(const float& value) {
+		pArray[2] = clampUChar(value * 255);
+	}
 
 	/** Set the alpha channel
 	  **/
-	void setAlpha(const float& value) { pArray[3] = limitValueUChar(value * 255); }
+	void setAlpha(const float& value) {
+		pArray[3] = clampUChar(value * 255);
+	}
 
 	/** Set the color
 	  **/
@@ -139,6 +151,14 @@ public:
 	/** Reset color to fully transparent black
 	  */
 	void reset();
+	
+	/** Clamp input float value to the range 0 to 255 and return as unsigned integer
+	  */
+	static unsigned char clampUChar(const float& value);
+
+	/** Clamp input float value to the range 0 to 1 and return as float
+	  */
+	static float clampFloat(const float& value);
 };
 
 #endif
