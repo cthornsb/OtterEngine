@@ -52,7 +52,11 @@ target_link_libraries(
 	Otter3dCoreStatic 
 	Otter3dGeomStatic 
 	OtterMathStatic 
-	${GRAPHICS_LIBS}
+	${GLFW3_LIBRARY}
+	${OPENGL_LIBRARY} 
+	${GLEW_LIBRARY}
+	${SOIL_LIBRARY}
+	${PORT_AUDIO_LIBRARY}
 )
 install(TARGETS render3d DESTINATION bin)
 

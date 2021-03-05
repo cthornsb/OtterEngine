@@ -1,4 +1,4 @@
-#include <GL/freeglut.h>
+#include <GL/gl.h>
 
 #include "OTTSprite.hpp"
 

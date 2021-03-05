@@ -2,8 +2,8 @@
 #include <fstream>
 #include <vector>
 
+#include <GL/gl.h>
 #include <SOIL/SOIL.h>
-#include <GL/freeglut.h>
 
 #include "OTTTexture.hpp"
 

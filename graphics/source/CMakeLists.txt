@@ -18,6 +18,9 @@ add_library(
 	OTTWindow3D.cpp
 )
 
+#	OTTShader.cpp
+#	OTTWindow3D.cpp
+
 # Generate the libraries
 add_library(
 	OtterCoreStatic 

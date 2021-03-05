@@ -1,27 +1,17 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.1)
 
-project (render3d)
+project (OtterEngine)
 
 if(NOT WIN32) # Unix systems (Ubuntu)
 	#Compile with c++11 or c++0x depending on the compiler version
 	message(STATUS "Building for Linux")
 	if (CMAKE_COMPILER_IS_GNUCXX)
-		if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.3" AND
-				${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "4.7")
-				set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-		elseif(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.6")
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-		else()
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-		endif(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.3" AND
-				${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "4.7")
-
 		#Make compiler messages nice with colored tags.
 		if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.9")
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=auto")
 		endif()
 
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -fPIC")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -fPIC")
 	endif()
 else()
 	message(STATUS "Building for Windows")
@@ -62,72 +52,70 @@ endif(WIN32)
 option(INSTALL_STATIC "Install static libraries." OFF)
 option(INSTALL_SHARED "Build and install shared libraries." OFF)
 
-#if(SHARED_LIBS)
-#	option(SHARED_
-#endif(SHARED_LIBS)
-
 #------------------------------------------------------------------------------
 
 #Find required packages.
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
-set(TOP_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+# To install OpenGL and glfw on Ubunut (apt)
+# sudo apt install libglu1-mesa-dev libglfw3-dev mesa-common-dev libsoil-dev libglew-dev
 
-add_definitions(-DTOP_DIRECTORY="${TOP_DIRECTORY}")
+find_package(GLFW3 REQUIRED) # Required: GLFW3_LIBRARY GLFW3_INCLUDE_DIR
+find_package(OpenGL REQUIRED) # Required: OpenGL::GL[OpenGL] OpenGL::GLU
+find_package(GLEW REQUIRED) # Required: GLEW::glew[GLEW] GLEW_INCLUDE_DIRS
+find_package(SOIL REQUIRED) # Required: SOIL_LIBRARY SOIL_INCLUDE_DIR
+find_package(PortAudio REQUIRED) # Required: PORT_AUDIO_LIBRARY PORT_AUDIO_INCLUDE
 
-#Set the graphics library
-if(NOT GRAPHICS_LIBRARY)
-	set(GRAPHICS_LIBRARY OpenGL CACHE STRING "Graphics library, options are: SDL OpenGL" FORCE)
-endif()
+#THREADS_PREFER_PTHREAD_FLAG	
+#find_package(Threads REQUIRED)
+#find_package(QT4 REQUIRED)
 
-if(GRAPHICS_LIBRARY MATCHES "OpenGL")
-	if(NOT WIN32)
-		# To install OpenGL and glfw:
-		#(Ubuntu) sudo apt-get install libglu1-mesa-dev libglfw3-dev mesa-common-dev libsoil-dev libglew-dev
-		set(GRAPHICS_LIBS -lglfw -lGLU -lGL -lSOIL -lGLEW)
+if(OpenGL::GL)
+	set(OPENGL_LIBRARY OpenGL::GL)
+	if(OpenGL::GLU)
+		set(OPENGL_LIBRARY ${OPENGL_LIBRARY} OpenGL::GLU)
 	else()
-		#Find OpenGL install on Windows (eventually make a CMake module for this)
-		#Precompiled glfw libs from 
-		if(NOT GLFW_DIRECTORY)
-			set(GLFW_DIRECTORY "" CACHE STRING "GLFW install directory" FORCE)
-		endif(NOT GLFW_DIRECTORY)
-		set(GLFW_INCLUDE ${GLFW_DIRECTORY}/include)
-		set(GLFW_LIBRARY ${GLFW_DIRECTORY}/lib/x64/freeglut.lib)
-		set(WINDOWS_DLL_LIST ${GLFW_DIRECTORY}/bin/x64/freeglut.dll)
-		include_directories(${GLFW_INCLUDE})
-
-		#Set GLEW directory
-		if(NOT GLEW_DIRECTORY)
-			set(GLEW_DIRECTORY "" CACHE STRING "GLEW install directory" FORCE)
-		endif(NOT GLEW_DIRECTORY)
-		set(GLEW_INCLUDE ${GLEW_DIRECTORY}/include)
-		set(GLEW_LIBRARY ${GLEW_DIRECTORY}/lib/Debug/x64/glew32d.lib)
-		set(WINDOWS_DLL_LIST ${WINDOWS_DLL_LIST} ${GLEW_DIRECTORY}/bin/Debug/x64/glew32d.dll)
-		include_directories(${GLEW_INCLUDE})
-		set(GRAPHICS_LIBS ${GLFW_LIBRARY} ${SOIL_LIBRARY} ${GLEW_LIBRARY} opengl32.lib)
-		
-		#Set SOIL directory
-		if(NOT SOIL_DIRECTORY)
-			set(SOIL_DIRECTORY "" CACHE STRING "SOIL install directory" FORCE)
-		endif(NOT SOIL_DIRECTORY)
-		set(SOIL_INCLUDE ${SOIL_DIRECTORY}/inc)
-		set(SOIL_LIBRARY ${SOIL_DIRECTORY}/lib/soil.lib)
-		include_directories(${SOIL_INCLUDE})
-	endif(NOT WIN32)
-	
-elseif(GRAPHICS_LIBRARY MATCHES "SDL")
-	# Support for SDL is heavily deprecated at this point and needs fixed.
-	set(GRAPHICS_LIBS -lSDL2)
-	add_definitions(-DUSE_SDL_RENDERER)
+		message(FATAL_ERROR "Failed to determine GLU install location")
+	endif()
+elseif(OpenGL::OpenGL) # GLVND libraries
+	set(OPENGL_LIBRARY OpenGL::OpenGL) # Should also contain GLU
 endif()
+
+if(NOT OPENGL_LIBRARY)
+	message(FATAL_ERROR "Failed to determine OpenGL install location")
+endif()
+
+if(GLEW::glew)
+	set(GLEW_LIBRARY GLEW::glew)
+elseif(GLEW::GLEW)
+	set(GLEW_LIBRARY GLEW::GLEW)
+endif()
+
+if(NOT GLEW_LIBRARY)
+	message(FATAL_ERROR "Failed to determine GLEW install location")
+endif()
+
+message(STATUS "Found glfw3: ${GLFW3_LIBRARY}")
+message(STATUS "Found OpenGL: ${OPENGL_LIBRARY}")
+message(STATUS "Found GLEW: ${GLEW_LIBRARY}")
+message(STATUS "Found SOIL: ${SOIL_LIBRARY}")
+message(STATUS "Found PortAudio: ${PORT_AUDIO_LIBRARY}")
+
+include_directories(${GLFW3_INCLUDE_DIR})
+include_directories(${OPENGL_INCLUDE_DIR})
+include_directories(${GLEW_INCLUDE_DIRS})
+include_directories(${SOIL_INCLUDE_DIR})
+include_directories(${PORT_AUDIO_INCLUDE_DIR})
 
 #Add the include directories.
 include_directories(graphics/include)
+include_directories(audio/include)
 include_directories(math/include)
 include_directories(include)
 
 #Add the graphics directory.
 add_subdirectory(graphics/source)
+add_subdirectory(audio/source)
 add_subdirectory(math/source)
 
 #Add the source directory.

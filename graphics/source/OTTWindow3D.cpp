@@ -2,7 +2,6 @@
 #include <map>
 
 #include <GL/glew.h>
-#include <GL/freeglut.h>
 
 #include "Globals.hpp"
 #include "OTTWindow3D.hpp"
