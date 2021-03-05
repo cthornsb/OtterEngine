@@ -532,18 +532,23 @@ public:
 
 	/** Return x-axis component
 	  */
-	float& x() { return elements[0]; }
+	float& x() {
+		return elements[0];
+	}
 
 	/** Return y-axis component
 	  */
-	float& y() { return elements[1]; }
+	float& y() {
+		return elements[1];
+	}
 };
 
 class Vector3 : public Vector {
 public:
 	/** Empty 2-dimensional Vector
 	  */
-	Vector3() : Vector(3) { }
+	Vector3() : Vector(3) {
+	}
 
 	/** Filled vector constructor
 	  */
@@ -713,15 +718,21 @@ public:
 
 	/** Return x-axis component
 	  */
-	float& x() { return elements[0]; }
+	float& x() {
+		return elements[0];
+	}
 
 	/** Return y-axis component
 	  */
-	float& y() { return elements[1]; }
+	float& y() {
+		return elements[1];
+	}
 
 	/** Return z-axis component
 	  */
-	float& z() { return elements[2]; }
+	float& z() {
+		return elements[2];
+	}
 
 	/** Compute the cross product of two vectors
 	  */
@@ -903,27 +914,35 @@ public:
 
 	/** Return x-axis component
 	  */
-	float& x() { return elements[0]; }
+	float& x() {
+		return elements[0];
+	}
 
 	/** Return y-axis component
 	  */
-	float& y() { return elements[1]; }
+	float& y() {
+		return elements[1];
+	}
 
 	/** Return z-axis component
 	  */
-	float& z() { return elements[2]; }
+	float& z() {
+		return elements[2];
+	}
 
 	/** Return w-axis component
 	  */
-	float& w() { return elements[3]; }
+	float& w() {
+		return elements[3];
+	}
 };
 
-extern const Vector3 zeroVector;
+extern const Vector3 zeroVector; ///< Three dimensional zero-vector (0, 0, 0)
 
-extern const Vector3 unitVectorX;
+extern const Vector3 unitVectorX; ///< X-axis unit vector (1, 0, 0)
 
-extern const Vector3 unitVectorY;
+extern const Vector3 unitVectorY; ///< Y-axis unit vector (0, 1, 0)
 
-extern const Vector3 unitVectorZ;
+extern const Vector3 unitVectorZ; ///< Z-axis unit vector (0, 0, 1)
 
 #endif

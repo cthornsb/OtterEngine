@@ -6,9 +6,6 @@
 
 #include "Vector.hpp"
 
-class camera;
-class object;
-
 /// <summary>
 /// General square matrix class
 /// Elements are in row-major format in memory i.e. {m00, m01, ... , mNN} for the N+1
@@ -967,10 +964,6 @@ public:
 	  */
 	static Matrix4 concatenate(const Matrix4* P, const Matrix4* V, const Matrix4* M);
 
-	/** Get the total OpenGL transformation matrix (MVP) for a given camera and object
-	  */
-	static Matrix4 getMVP(const Matrix4* P, const camera* cam, const object* obj);
-
 	/** Get a transformaton view-matrix for a camera looking at a point in 3d space
 	  * @param pos Focal point of camera
 	  * @param target The point the camera is looking at
@@ -986,10 +979,10 @@ public:
 	static Matrix4 getViewMatrixFPS(const Vector3& pos, const float& pitch, const float& yaw);
 };
 
-extern const Matrix2 identityMatrix2;
+extern const Matrix2 identityMatrix2; ///< 2x2 identity matrix
 
-extern const Matrix3 identityMatrix3;
+extern const Matrix3 identityMatrix3; ///< 3x3 identity matrix
 
-extern const Matrix4 identityMatrix4;
+extern const Matrix4 identityMatrix4; ///< 4x4 identity matrix
 
 #endif

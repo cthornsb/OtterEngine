@@ -1,6 +1,5 @@
 #include "Matrix.hpp"
 #include "camera.hpp"
-#include "object.hpp"
 
 const Matrix2 identityMatrix2(1.f);
 
@@ -307,10 +306,6 @@ Matrix4 Matrix4::getOrthographicMatrix(const float& fov, const float& aspectRati
 
 Matrix4 Matrix4::concatenate(const Matrix4* P, const Matrix4* V, const Matrix4* M) {
 	return (*M) * ((*V) * (*P));
-}
-
-Matrix4 Matrix4::getMVP(const Matrix4* P, const camera* cam, const object* obj) {
-	return identityMatrix4;
 }
 
 Matrix4 Matrix4::getViewMatrixLookAt(const Vector3& pos, const Vector3& target, const Vector3& up/* = unitVectorY*/) {
