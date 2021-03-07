@@ -1,4 +1,5 @@
-# Complile graphics sources
+# Complile core graphics sources
+# External Depends: glfw OpenGL GLU 
 add_library(
 	OtterCoreObj 
 	OBJECT 
@@ -8,6 +9,9 @@ add_library(
 	OTTMouse.cpp
 	OTTWindow.cpp
 )
+
+# Compile graphics sources
+# External Depends: SOIL
 add_library(
 	OtterGraphicsObj
 	OBJECT
@@ -18,8 +22,11 @@ add_library(
 	OTTWindow3D.cpp
 )
 
+# Compile 3d geometry sources
+# External Depends: GLEW
 #	OTTShader.cpp
 #	OTTWindow3D.cpp
+# PolygonContainer.cpp
 
 # Generate the libraries
 add_library(

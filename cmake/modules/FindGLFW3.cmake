@@ -53,7 +53,7 @@ FIND_LIBRARY(
 	${_glfw3_LIB_SEARCH_DIRS}
 )
 INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(
+find_package_handle_standard_args(
 	GLFW3 
 	DEFAULT_MSG
 	GLFW3_LIBRARY 

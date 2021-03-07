@@ -57,49 +57,14 @@ option(INSTALL_SHARED "Build and install shared libraries." OFF)
 #Find required packages.
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
+#Include helper macro
+include(PreRequisites)
+
 # To install OpenGL and glfw on Ubunut (apt)
 # sudo apt install libglu1-mesa-dev libglfw3-dev mesa-common-dev libsoil-dev libglew-dev
 
-find_package(GLFW3 REQUIRED) # Required: GLFW3_LIBRARY GLFW3_INCLUDE_DIR
-find_package(OpenGL REQUIRED) # Required: OpenGL::GL[OpenGL] OpenGL::GLU
-find_package(GLEW REQUIRED) # Required: GLEW::glew[GLEW] GLEW_INCLUDE_DIRS
-find_package(SOIL REQUIRED) # Required: SOIL_LIBRARY SOIL_INCLUDE_DIR
-find_package(PortAudio REQUIRED) # Required: PORT_AUDIO_LIBRARY PORT_AUDIO_INCLUDE
-
-#THREADS_PREFER_PTHREAD_FLAG	
-#find_package(Threads REQUIRED)
-#find_package(QT4 REQUIRED)
-
-if(OpenGL::GL)
-	set(OPENGL_LIBRARY OpenGL::GL)
-	if(OpenGL::GLU)
-		set(OPENGL_LIBRARY ${OPENGL_LIBRARY} OpenGL::GLU)
-	else()
-		message(FATAL_ERROR "Failed to determine GLU install location")
-	endif()
-elseif(OpenGL::OpenGL) # GLVND libraries
-	set(OPENGL_LIBRARY OpenGL::OpenGL) # Should also contain GLU
-endif()
-
-if(NOT OPENGL_LIBRARY)
-	message(FATAL_ERROR "Failed to determine OpenGL install location")
-endif()
-
-if(GLEW::glew)
-	set(GLEW_LIBRARY GLEW::glew)
-elseif(GLEW::GLEW)
-	set(GLEW_LIBRARY GLEW::GLEW)
-endif()
-
-if(NOT GLEW_LIBRARY)
-	message(FATAL_ERROR "Failed to determine GLEW install location")
-endif()
-
-message(STATUS "Found glfw3: ${GLFW3_LIBRARY}")
-message(STATUS "Found OpenGL: ${OPENGL_LIBRARY}")
-message(STATUS "Found GLEW: ${GLEW_LIBRARY}")
-message(STATUS "Found SOIL: ${SOIL_LIBRARY}")
-message(STATUS "Found PortAudio: ${PORT_AUDIO_LIBRARY}")
+#Find glfw, OpenGL, GLU, GLEW, SOIL, and portaudio
+find_all_packages()
 
 include_directories(${GLFW3_INCLUDE_DIR})
 include_directories(${OPENGL_INCLUDE_DIR})
