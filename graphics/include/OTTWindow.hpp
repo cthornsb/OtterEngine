@@ -175,12 +175,22 @@ public:
 	static void drawRectangle(const int &x1, const int &y1, const int &x2, const int &y2);
 
 	/** Write pixel data from an array to the GPU frame buffer
+	  * @param width Width of bitmap (in pixels)
+	  * @param height Height of bitmap (in pixels)
+	  * @param x0 X coordinate of bottom left corner
+	  * @param y0 Y coordinate of bottom left corner
+	  * @param data Array of bitmap pixel data
 	  */
-	static void drawBitmap(const unsigned int& width, const unsigned int& height, const float& x0, const float& y0, const unsigned char* data);
+	static void drawBitmap(const unsigned int& width, const unsigned int& height, const int& x0, const int& y0, const unsigned char* data);
 
 	/** Write pixel data from an image buffer to the GPU frame buffer
+	  * @param width Width of image buffer (in pixels)
+	  * @param height Height of image buffer (in pixels)
+	  * @param x0 X coordinate of bottom left corner
+	  * @param y0 Y coordinate of bottom left corner
+	  * @param data Pointer to conventional-memory image buffer
 	  */
-	static void drawPixels(const unsigned int& width, const unsigned int& height, const float& x0, const float& y0, const OTTImageBuffer* data);
+	static void drawPixels(const unsigned int& width, const unsigned int& height, const int& x0, const int& y0, const OTTImageBuffer* data);
 
 	/** Write to CPU image buffer
 	  * When drawing on a pixel-by-pixel level, it is much more efficient to modify the image
@@ -220,16 +230,28 @@ public:
 	  */
 	void updatePixelZoom();
 
+	/** Enable keyboard keypress event handling
+	  */
 	void enableKeyboard();
 	
+	/** Disable keyboard keypress event handling
+	  */
 	void disableKeyboard();
 	
+	/** Set keyboard handler to character stream buffer mode (e.g. a word-processor type program)
+	  */
 	void setKeyboardStreamMode();
 
+	/** Set keyboard handler to instantaneous keypress mode (default)
+	  */
 	void setKeyboardToggleMode();
 
+	/** Enable mouse movement and button press event handling
+	  */
 	void enableMouse();
 
+	/** Disable mouse movement and button press event handling
+	  */
 	void disableMouse();
 	
 	/** Handle glfw errors
@@ -247,7 +269,7 @@ public:
 	static void handleWindowFocus(GLFWwindow* window, int focused);
 	
 protected:
-	std::unique_ptr<GLFWwindow, DestroyGLFWwindow> win;
+	std::unique_ptr<GLFWwindow, DestroyGLFWwindow> win; ///< Pointer to glfw graphics output window
 
 	int nNativeWidth; ///< Original width of the window (in pixels)
 	

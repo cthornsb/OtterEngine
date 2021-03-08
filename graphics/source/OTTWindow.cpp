@@ -79,12 +79,12 @@ void OTTWindow::drawRectangle(const int &x1, const int &y1, const int &x2, const
 	drawLine(x1, y2, x1, y1); // Left
 }
 
-void OTTWindow::drawBitmap(const unsigned int& width, const unsigned int& height, const float& x0, const float& y0, const unsigned char* data){
+void OTTWindow::drawBitmap(const unsigned int& width, const unsigned int& height, const int& x0, const int& y0, const unsigned char* data){
 	glRasterPos2i(x0, y0);
 	glBitmap(width, height, 0, 0, 0, 0, data);
 }
 
-void OTTWindow::drawPixels(const unsigned int& width, const unsigned int& height, const float& x0, const float& y0, const OTTImageBuffer* data){
+void OTTWindow::drawPixels(const unsigned int& width, const unsigned int& height, const int& x0, const int& y0, const OTTImageBuffer* data){
 	glRasterPos2i(x0, y0);
 	glDrawPixels(width, height, GL_RGB, GL_UNSIGNED_BYTE, data->get());
 }

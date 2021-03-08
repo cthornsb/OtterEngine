@@ -98,15 +98,6 @@ endfunction()
 # GLEW_INCLUDE_DIRS
 function(ott_find_glew)
 	find_package(GLEW REQUIRED)
-
-	if(GLEW::glew)
-		set(GLEW_LIBRARY GLEW::glew CACHE INTERNAL FORCE)
-	elseif(GLEW::GLEW)
-		set(GLEW_LIBRARY GLEW::GLEW CACHE INTERNAL FORCE)
-	else()
-		message(FATAL_ERROR "Failed to determine GLEW install location")
-	endif()
-
 	message(STATUS "Found GLEW: ${GLEW_LIBRARY}")
 endfunction()
 

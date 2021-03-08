@@ -64,7 +64,7 @@ include(PreRequisites)
 # sudo apt install libglu1-mesa-dev libglfw3-dev mesa-common-dev libsoil-dev libglew-dev
 
 #Find glfw, OpenGL, GLU, GLEW, SOIL, and portaudio
-find_all_packages()
+ott_find_all_packages()
 
 include_directories(${GLFW3_INCLUDE_DIR})
 include_directories(${OPENGL_INCLUDE_DIR})

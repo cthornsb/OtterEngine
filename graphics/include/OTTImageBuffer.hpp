@@ -30,7 +30,7 @@ public:
 		bGood(false),
 		nWidth(0),
 		nHeight(0),
-		nChannels(0),
+		nChannels(3),
 		nSize(0),
 		nBytes(0),
 		bitmap(),

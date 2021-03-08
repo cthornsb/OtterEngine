@@ -53,8 +53,9 @@ target_link_libraries(
 	Otter3dGeomStatic 
 	OtterMathStatic 
 	${GLFW3_LIBRARY}
-	${OPENGL_LIBRARY} 
-	${GLEW_LIBRARY}
+	OpenGL::GL
+	OpenGL::GLU
+	GLEW::GLEW
 	${SOIL_LIBRARY}
 	${PORT_AUDIO_LIBRARY}
 )

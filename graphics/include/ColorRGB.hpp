@@ -26,6 +26,14 @@ public:
 	  */
 	ColorRGB(const float &red, const float &green, const float &blue);
 
+	/** Get a reference to one of the four color components (RGBA)
+	  */
+	unsigned char& operator [] (const unsigned char& index);
+
+	/** Get a const reference to one of the four color components (RGBA)
+	  */
+	unsigned char operator [] (const unsigned char& index) const ;
+
 	/** Equality operator
 	  */
 	bool operator == (const ColorRGB &rhs) const { 

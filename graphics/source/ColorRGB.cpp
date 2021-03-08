@@ -20,6 +20,39 @@ ColorRGB ColorRGB::invert() const {
 	return ColorRGB(255 - r, 255 - g, 255 - b);
 }
 
+unsigned char& ColorRGB::operator [] (const unsigned char& index){
+	static unsigned char dummy = 0;
+	switch(index){
+	case 0: // red
+		return r;
+	case 1: // green
+		return g;
+	case 2: // blue
+		return b;
+	case 3: // alpha
+		return a;
+	default:
+		break;
+	}
+	return dummy;
+}
+
+unsigned char ColorRGB::operator [] (const unsigned char& index) const {
+	switch(index){
+	case 0: // red
+		return r;
+	case 1: // green
+		return g;
+	case 2: // blue
+		return b;
+	case 3: // alpha
+		return a;
+	default:
+		break;
+	}
+	return 0;
+}
+
 void ColorRGB::toGrayscale(){
 	// Based on the sRGB convention
 	float value = toFloat(r) * 0.2126f + toFloat(g) * 0.7152f + toFloat(b) * 0.0722f;
