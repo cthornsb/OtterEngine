@@ -5,13 +5,9 @@
 
 #include "SoundMixer.hpp"
 
-#ifdef AUDIO_ENABLED
-
 #include "portaudio.h"
 
 typedef int (*portCallback)( const void*, void*, unsigned long, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* );
-
-#endif // ifdef AUDIO_ENABLED
 
 class SoundManager{
 public:
@@ -85,14 +81,12 @@ public:
 		nFramesPerBuffer = frames;
 	}
 
-#ifdef AUDIO_ENABLED
 	/** Set the audio callback function
 	  * Has no effect if called after audio stream is initialized
 	  */
 	void setCallbackFunction(portCallback call){ 
 		callback = call;
 	}
-#endif // ifdef AUDIO_ENABLED
 
 	/** Initialize audio stream
 	  */
@@ -125,7 +119,6 @@ public:
 	  */
 	void execute();
 
-#ifdef AUDIO_ENABLED
 	/** Default port callback function
 	  */
 	static int defaultCallback( 
@@ -136,7 +129,6 @@ public:
 		PaStreamCallbackFlags statusFlags,
 		void *data 
 	);
-#endif // ifdef AUDIO_ENABLED
 
 private:
 	bool bQuitting;
@@ -153,11 +145,9 @@ private:
 
 	SoundMixer mixer; ///< Audio output mixer
 
-#ifdef AUDIO_ENABLED    	
     PaStream* stream; ///< Port audio stream pointer
 
     portCallback callback; ///< Port audio callback function pointer
-#endif // ifdef AUDIO_ENABLED
     
 	/** Default constructor
 	  */
