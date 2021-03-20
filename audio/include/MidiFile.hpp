@@ -540,13 +540,13 @@ namespace MidiFile{
 		}
 
 		/** Add a pressed note event
-		  * @param chan Audio channel (1, 2, 3, or 4)
+		  * @param chan Audio channel (0-15)
 		  * @param t Absolute time in midi ticks
 		  * @param freq Audio frequency of note (the midi note with the closest matching ideal frequency will be used)
 		  */
 		void press(const unsigned char& ch, const unsigned int& t, const float& freq);
 
-		/** Release the key currently pressed on the specified audio channel (1, 2, 3, or 4)
+		/** Release the key currently pressed on the specified audio channel (0-15)
 		  * If no keys are pressed, do nothing
 		  */
 		void release(const unsigned char& ch, const unsigned int& t);

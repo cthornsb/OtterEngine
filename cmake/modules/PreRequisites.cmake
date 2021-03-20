@@ -1,6 +1,8 @@
 # PreRequisites.cmake
 # To use this macro in your project, simply use:
-#  include(PreRequisites)
+#  - set(OTTER_DIRECTORY "/path/to/install")
+#  - set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${OTTER_DIRECTORY}/cmake/modules/")
+#  - include(PreRequisites)
 # somewhere in your cmake script. The following functions are available to
 # easily include OtterEngine libraries in your project.
 #  ott_use_core()  : Enable the use of 2d opengl graphics (requires opengl and glfw3) 
