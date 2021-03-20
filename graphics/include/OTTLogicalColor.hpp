@@ -92,6 +92,12 @@ public:
 	float getA() const {
 		return pArray[3] / 255.f;
 	}
+	
+	/** Get a copy of the current pixel color
+	  */
+	ColorRGB getColor() const {
+		return ColorRGB(pArray[0] / 255.f, pArray[1] / 255.f, pArray[2] / 255.f);
+	}
 
 	/** Set the red component
 	  **/

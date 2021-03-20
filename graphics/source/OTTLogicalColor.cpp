@@ -80,10 +80,10 @@ void OTTLogicalColor::operator /= (const ColorRGB& rhs){
 }
 
 void OTTLogicalColor::setColor(const ColorRGB& color) {
-	pArray[0] = clampUChar(color.r);
-	pArray[1] = clampUChar(color.g);
-	pArray[2] = clampUChar(color.b);
-	pArray[3] = clampUChar(color.a);
+	pArray[0] = color.r;
+	pArray[1] = color.g;
+	pArray[2] = color.b;
+	pArray[3] = color.a;
 }
 
 void OTTLogicalColor::setColor(const float& r, const float& g, const float& b, const float& a/*=1*/) {
