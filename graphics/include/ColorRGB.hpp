@@ -14,17 +14,17 @@ public:
 		r(0), 
 		g(0), 
 		b(0),
-		a(1)
+		a(255)
 	{ 
 	}
 
 	/** Grayscale constructor (0, 1)
 	  */
-	ColorRGB(const float &value);
+	ColorRGB(const float &value, const float& alpha=1.f);
 
 	/** RGB constructor (0, 1)
 	  */
-	ColorRGB(const float &red, const float &green, const float &blue);
+	ColorRGB(const float &red, const float &green, const float &blue, const float& alpha=1.f);
 
 	/** Get a reference to one of the four color components (RGBA)
 	  */

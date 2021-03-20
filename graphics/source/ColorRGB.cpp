@@ -2,17 +2,19 @@
 
 #include "ColorRGB.hpp"
 
-ColorRGB::ColorRGB(const float &value) :
+ColorRGB::ColorRGB(const float& value, const float& alpha/*=1.f*/) :
 	r(toUChar(value)),
 	g(toUChar(value)),
-	b(toUChar(value))
+	b(toUChar(value)),
+	a(toUChar(alpha))
 {
 }
 
-ColorRGB::ColorRGB(const float &red, const float &green, const float &blue) :
+ColorRGB::ColorRGB(const float& red, const float& green, const float& blue, const float& alpha/*=1.f*/) :
 	r(toUChar(red)),
 	g(toUChar(green)),
-	b(toUChar(blue))
+	b(toUChar(blue)),
+	a(toUChar(alpha))
 {
 }
 
@@ -75,11 +77,11 @@ ColorRGB ColorRGB::operator - (const ColorRGB &rhs) const {
 	return ColorRGB((rprime > 0 ? rprime : 0), (gprime > 1 ? gprime : 0), (bprime > 1 ? bprime : 0));
 }
 
-ColorRGB ColorRGB::operator * (const float &rhs) const {
+ColorRGB ColorRGB::operator * (const float& rhs) const {
 	return ColorRGB(r*rhs, g*rhs, b*rhs);
 }
 
-ColorRGB ColorRGB::operator / (const float &rhs) const {
+ColorRGB ColorRGB::operator / (const float& rhs) const {
 	return ColorRGB(r/rhs, g/rhs, b/rhs);
 }
 
@@ -91,11 +93,11 @@ ColorRGB& ColorRGB::operator -= (const ColorRGB &rhs){
 	return ((*this) = (*this) - rhs);
 }
 
-ColorRGB& ColorRGB::operator *= (const float &rhs){
+ColorRGB& ColorRGB::operator *= (const float& rhs){
 	return ((*this) = (*this) * rhs);
 }
 
-ColorRGB& ColorRGB::operator /= (const float &rhs){
+ColorRGB& ColorRGB::operator /= (const float& rhs){
 	return ((*this) = (*this) / rhs);
 }
 
