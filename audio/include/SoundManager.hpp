@@ -5,9 +5,13 @@
 
 #include "SoundMixer.hpp"
 
+#ifdef ENABLE_PORT_AUDIO
+
 #include "portaudio.h"
 
 typedef int (*portCallback)( const void*, void*, unsigned long, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* );
+
+#endif // ifdef ENABLE_PORT_AUDIO
 
 class SoundManager{
 public:
@@ -81,12 +85,14 @@ public:
 		nFramesPerBuffer = frames;
 	}
 
+#ifdef ENABLE_PORT_AUDIO
 	/** Set the audio callback function
 	  * Has no effect if called after audio stream is initialized
 	  */
 	void setCallbackFunction(portCallback call){ 
 		callback = call;
 	}
+#endif // ifdef ENABLE_PORT_AUDIO
 
 	/** Initialize audio stream
 	  */
@@ -119,6 +125,7 @@ public:
 	  */
 	void execute();
 
+#ifdef ENABLE_PORT_AUDIO
 	/** Default port callback function
 	  */
 	static int defaultCallback( 
@@ -129,6 +136,7 @@ public:
 		PaStreamCallbackFlags statusFlags,
 		void *data 
 	);
+#endif // ifdef ENABLE_PORT_AUDIO
 
 private:
 	bool bQuitting;
@@ -145,17 +153,15 @@ private:
 
 	SoundMixer mixer; ///< Audio output mixer
 
-    PaStream* stream; ///< Port audio stream pointer
+#ifdef ENABLE_PORT_AUDIO
+	PaStream* stream; ///< Port audio stream pointer
 
-    portCallback callback; ///< Port audio callback function pointer
-    
+	portCallback callback; ///< Port audio callback function pointer
+#endif // ifdef ENABLE_PORT_AUDIO
+	
 	/** Default constructor
 	  */
 	SoundManager();
-
-	/** Number of voices constructor
-	  */
-	SoundManager(const int& voices);
 };
 
 #endif

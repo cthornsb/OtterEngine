@@ -13,6 +13,12 @@ add_library(
 	WavFile.cpp
 )
 
+target_compile_definitions(
+	OtterAudioObj 
+	PRIVATE 
+	ENABLE_PORT_AUDIO
+)
+
 # Generate the audio library
 add_library(
 	OtterAudioStatic 
