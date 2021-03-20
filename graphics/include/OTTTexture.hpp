@@ -128,6 +128,12 @@ public:
 	  **/
 	bool read(const std::string& fname);
 
+	/** Save image buffer to disk. If image format is RGBA, output file will be TGA, otherwise it will be BMP.
+	  * @param fname Path to output image file
+	  * @return True if image is saved successfully
+	  */
+	bool write(const std::string& fname);
+
 	/** Fill image buffer with a value
 	  * Uses std::fill to fill entire buffer with specified color component value.
 	  */

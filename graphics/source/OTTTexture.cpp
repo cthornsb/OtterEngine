@@ -33,7 +33,7 @@ unsigned int OTTTexture::getTexture() {
 bool OTTTexture::getPixel(const int& x, const int& y, OTTLogicalColor& color) {
 	if (x >= nWidth || y >= nHeight)
 		return false;
-	color = OTTLogicalColor(&data.get()[(nWidth * y + x) * 4]);
+	color = OTTLogicalColor(&dptr[(nWidth * y + x) * nChannels]);
 	return true;
 }
 
@@ -183,9 +183,22 @@ bool OTTTexture::read(const std::string& fname) {
 		// Image data now stored in data vector, free memory pointed to by unique_ptr
 		data.reset(0x0);
 		dptr = &bitmap[0];
+		nChannels = 4; // Image now in RGBA format
 	}
 	std::cout << " [debug] Loaded image, W=" << nWidth << ", H=" << nHeight << ", with " << nChannels << " channels (" << nBytes/1E3 << " kB)" << std::endl;
 	return (bGood = (nBytes > 0));
+}
+
+bool OTTTexture::write(const std::string& fname){
+	int retval = SOIL_save_image(
+		fname.c_str(), 
+		SOIL_SAVE_TYPE_BMP, //(nChannels == 4 ? SOIL_SAVE_TYPE_TGA : SOIL_SAVE_TYPE_BMP), 
+		nWidth, 
+		nHeight, 
+		nChannels, 
+		dptr
+	);
+	return (retval == 1);
 }
 
 void OTTTexture::fill(const unsigned char& value/*=0*/) {
