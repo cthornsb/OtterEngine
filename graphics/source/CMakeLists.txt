@@ -4,6 +4,7 @@ add_library(
 	OtterCoreObj 
 	OBJECT 
 	ColorRGB.cpp
+	OTTFrameTimer.cpp
 	OTTImageBuffer.cpp
 	OTTKeyboard.cpp
 	OTTMouse.cpp

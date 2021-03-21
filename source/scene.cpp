@@ -1,5 +1,4 @@
 #include <iostream>
-#include <thread>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -15,11 +14,7 @@
 #define SCREEN_YLIMIT 1.0 ///< Set the vertical clipping border as a fraction of the total screen height
 
 scene::scene() : 
-	framerate(0), 
-	framerateCap(60),
-	totalRenderTime(0),
-	framePeriod(16667),
-	frameCount(0),
+	OTTFrameTimer(),
 	drawNorm(false), 
 	drawOrigin(false), 
 	drawDepthMap(false),
@@ -31,8 +26,6 @@ scene::scene() :
 	maxPixelsX(640), 
 	maxPixelsY(480),
 	mode(drawMode::WIREFRAME),
-	timeOfInitialization(hclock::now()),
-	timeOfLastUpdate(),
 	cam(0x0),
 	window(new OTTWindow3D(screenWidthPixels, screenHeightPixels, 1)),
 	worldLight(),
@@ -272,39 +265,6 @@ bool scene::render() {
 	}
 	window->render();
 	return true;
-}
-
-/** Sync the frame timer to the requested framerate
-  */
-float scene::sync() {
-	// Get the time since the frame started
-	long long frameTime = std::chrono::duration_cast<std::chrono::microseconds>(hclock::now() - timeOfLastUpdate).count(); // in microseconds
-	totalRenderTime += frameTime;
-
-	// Update the total render time and the instantaneous framerate
-	if (++frameCount >= (long long)framerateCap) { // Compute framerate (every second)
-		framerate = frameCount / (totalRenderTime * 1.0E-6);
-		totalRenderTime = 0;
-		frameCount = 0;
-	}
-
-	// Cap the framerate by sleeping
-	if (framerateCap > 0) {
-		long long timeToSleep = framePeriod - frameTime; // microseconds
-		if (timeToSleep > 0) {
-			std::this_thread::sleep_for(std::chrono::microseconds(timeToSleep));
-			totalRenderTime += timeToSleep;
-		}
-	}
-
-	// Return the time elapsed since last call to sync()
-	return std::chrono::duration<float>(hclock::now() - timeOfLastUpdate).count(); // in seconds
-}
-
-/** Get the total time elapsed since the scene was initialized (in seconds)
-  */
-double scene::getTimeElapsed() const { 
-	return std::chrono::duration_cast<std::chrono::duration<double>>(hclock::now() - timeOfInitialization).count();
 }
 
 OTTKeyboard* scene::getKeypress(){

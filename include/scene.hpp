@@ -3,9 +3,9 @@
 
 #include <vector>
 #include <cstddef>
-#include <chrono>
 #include <memory>
 
+#include "OTTFrameTimer.hpp"
 #include "Graphics.hpp"
 #include "lightSource.hpp"
 #include "PixelTriplet.hpp"
@@ -15,9 +15,6 @@ class object;
 class camera;
 class triangle;
 class OTTWindow3D;
-
-// Make a typedef for clarity when working with chrono.
-typedef std::chrono::high_resolution_clock hclock;
 
 /** Supported drawing modes
   */
@@ -34,7 +31,7 @@ enum class drawMode {
   * @date September 5, 2019
   */
 
-class scene{
+class scene : public OTTFrameTimer {
 public:
 	/** Default constructor
 	  */
@@ -75,18 +72,6 @@ public:
 	  */
 	lightSource *getWorldLight(){ return &worldLight; }
 
-	/** Get the total time elapsed since the scene was initialized (in seconds)
-	  */
-	double getTimeElapsed() const;
-
-	/** Get the average amount of time for each render (in microseconds)
-	  */
-	double getAverageRenderTime() const { return ((double)totalRenderTime/frameCount); }
-
-	/** Get the instantaneous framerate of the most recent render (in Hz)
-	  */
-	double getFramerate() const { return framerate; }
-	
 	/** Get a pointer to the last user keypress event
 	  */
 	OTTKeyboard* getKeypress();
@@ -122,10 +107,6 @@ public:
 	/** Enable or disable shading objects with their z-depth value
 	  */
 	void setDrawZDepth(const bool& enable = true) { drawDepthMap = enable; }
-
-	/** Set the target maximum framerate for rendering (in Hz)
-	  */
-	void setFramerateCap(const unsigned short &cap){ framerateCap = cap; }
 
 	/** Set the drawing mode to use when drawing the object to the screen
 	  */
@@ -163,20 +144,7 @@ public:
 	  */
 	bool updateOpenGL();
 
-	/** Sync the frame timer to the requested framerate
-	  * @return The time elapsed since last update() was called (in seconds)
-	  */
-	float sync();
-
 private:
-	double framerate; ///< The instantaneous framerate of the last render
-
-	unsigned short framerateCap; ///< The target render framerate (in Hz)
-
-	long long totalRenderTime; ///< The running total time of all render events
-	long long framePeriod; ///< Target frame period (microseconds)
-	long long frameCount; ///< The number of frames which have been rendered
-
 	bool drawNorm; ///< Flag indicating that normal vectors will be drawn on each triangle
 	bool drawOrigin; ///< Flag indicating that the X, Y, and Z axes will be drawn at the origin
 	bool drawDepthMap; ///< "Shade" objects with their Z-depth (i.e. their depth into the screen)
@@ -192,9 +160,6 @@ private:
 	int maxPixelsY;
 
 	drawMode mode; ///< Current rendering mode
-
-	hclock::time_point timeOfInitialization; ///< The time that the scene was initialized
-	hclock::time_point timeOfLastUpdate; ///< The last time that update() was called by the user
 
 	camera *cam;
 	
