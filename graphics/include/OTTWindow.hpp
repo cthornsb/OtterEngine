@@ -15,6 +15,8 @@
 
 class GPU;
 
+class OTTJoypad;
+
 struct DestroyGLFWwindow {
 	void operator()(GLFWwindow* ptr) {
 		glfwDestroyWindow(ptr);
@@ -29,22 +31,8 @@ public:
 	
 	/** Constructor taking the width and height of the window
 	  */
-	OTTWindow(const int &w, const int &h, const int& scale=1) : 
-		win(),
-		nNativeWidth(w), 
-		nNativeHeight(h),
-		fNativeAspect(float(w)/h),
-		width(nNativeWidth * scale),
-		height(nNativeHeight * scale),
-		aspect(fNativeAspect),
-		init(false),
-		bFirstInit(true),
-		keys(),
-		mouse(),
-		buffer()
-	{
-	}
-
+	OTTWindow(const int &w, const int &h, const int& scale=1);
+	
 	/** Copy constructor
 	  */
 	OTTWindow(const OTTWindow&) = delete;
@@ -114,6 +102,13 @@ public:
 	  */
 	OTTMouse* getMouse() { 
 		return &mouse; 
+	}
+	
+	/** Get a pointer to the joypad handler.
+	  * The user must call enableJoypad() to handle joypad callbacks.
+	  */
+	OTTJoypad* getJoypad() {
+		return joypad;
 	}
 
 	/** Set the size of graphical window
@@ -216,7 +211,7 @@ public:
 	  */
 	void renderBuffer();
 
-	/** Return true if window is uninitialized or if it should be closed
+	/** Return true if window is initialized and should not be closed.
 	  * May be called from any thread.
 	  */
 	bool status();
@@ -254,6 +249,14 @@ public:
 	  */
 	void disableMouse();
 	
+	/** Enable gamepad button press event handling
+	  */
+	void enableGamepad();
+
+	/** Disable gamepad button press event handling
+	  */
+	void disableGamepad();
+	
 	/** Handle glfw errors
 	  */
 	static void handleErrors(int error, const char* description);
@@ -287,9 +290,11 @@ protected:
 
 	bool bFirstInit; ///< Set if this is the first initialization
 
-	OTTKeyboard keys; ///< The last key which was pressed by the user
+	OTTKeyboard keys; ///< GLFW keyboard callback wrapper
 	
-	OTTMouse mouse; ///< GLUT mouse event callback wrapper
+	OTTMouse mouse; ///< GLFW mouse callback wrapper
+	
+	OTTJoypad* joypad; ///< GLFW joypad callback wrapper
 	
 	OTTImageBuffer buffer; ///< CPU-side frame buffer
 	

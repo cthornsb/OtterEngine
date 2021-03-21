@@ -6,6 +6,7 @@ add_library(
 	ColorRGB.cpp
 	OTTFrameTimer.cpp
 	OTTImageBuffer.cpp
+	OTTJoypad.cpp
 	OTTKeyboard.cpp
 	OTTMouse.cpp
 	OTTWindow.cpp

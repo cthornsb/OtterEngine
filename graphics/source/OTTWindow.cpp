@@ -1,6 +1,24 @@
 #include <iostream>
 
 #include "OTTWindow.hpp"
+#include "OTTJoypad.hpp"
+
+OTTWindow::OTTWindow(const int &w, const int &h, const int& scale/*=1*/) : 
+	win(),
+	nNativeWidth(w), 
+	nNativeHeight(h),
+	fNativeAspect(float(w)/h),
+	width(nNativeWidth * scale),
+	height(nNativeHeight * scale),
+	aspect(fNativeAspect),
+	init(false),
+	bFirstInit(true),
+	keys(),
+	mouse(),
+	joypad(&OTTJoypad::getInstance()),
+	buffer()
+{
+}
 
 OTTWindow::~OTTWindow(){
 	// glfw window will automatically be destroyed by its unique_ptr destructor
@@ -177,6 +195,14 @@ void OTTWindow::enableMouse() {
 
 void OTTWindow::disableMouse() {
 	mouse.disable();
+}
+
+void OTTWindow::enableGamepad() {
+	joypad->enable();
+}
+
+void OTTWindow::disableGamepad() {
+	joypad->disable();
 }
 
 void OTTWindow::handleErrors(int error, const char* description) {
