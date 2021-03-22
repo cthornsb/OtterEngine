@@ -31,6 +31,8 @@ void OTTWindow::close(){
 bool OTTWindow::processEvents(){
 	if(!status())
 		return false;
+	if(joypad->isConnected())
+		joypad->update();
 	glfwPollEvents();
 	return true;
 }
