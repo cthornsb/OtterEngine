@@ -110,6 +110,10 @@ public:
 	OTTJoypad* getJoypad() {
 		return joypad;
 	}
+	
+	/** Get the current system clipboard string
+	  */
+	std::string getClipboardString() const ;
 
 	/** Set the size of graphical window
 	  * Has no effect if window has not been initialized.
@@ -120,6 +124,21 @@ public:
 	  * Has no effect if window has not been initialized.
 	  */
 	void updateWindowSize(const int& scale);
+
+	/** Enable or disable locking the window aspect ratio on window resize
+	  */
+	void lockWindowAspectRatio(bool state=true){
+		bLockAspectRatio = state;
+	}
+
+	/** Set the current system clipboard string
+	  */
+	void setClipboardString(const std::string& str) const ;
+
+	/** Set GLFW path / directory drop callback function.
+	  * Function will be called for every system path dropped on the window.
+	  */
+	void setPathDropCallback(void (*callback)(const std::string&));
 
 	/** Set the current draw color
 	  */
@@ -271,6 +290,10 @@ public:
 	  */
 	static void handleWindowFocus(GLFWwindow* window, int focused);
 	
+	/** Handle GLFW window path / directory string drop event
+	  */
+	static void handlePathDrop(GLFWwindow* window, int count, const char** paths);
+	
 protected:
 	std::unique_ptr<GLFWwindow, DestroyGLFWwindow> win; ///< Pointer to glfw graphics output window
 
@@ -286,9 +309,15 @@ protected:
 	
 	float aspect; ///< Current aspect ratio of window
 	
+	int nOffsetX; ///< Horizontal buffer pixel offset
+	
+	int nOffsetY; ///< Vertical buffer pixel offset
+	
 	bool init; ///< Flag indicating that the window has been initialized
 
 	bool bFirstInit; ///< Set if this is the first initialization
+
+	bool bLockAspectRatio; ///< If set, original aspect ratio will be preserved on window resize
 
 	OTTKeyboard keys; ///< GLFW keyboard callback wrapper
 	
@@ -298,10 +327,16 @@ protected:
 	
 	OTTImageBuffer buffer; ///< CPU-side frame buffer
 	
+	void (*userPathDropCallback)(const std::string&);
+	
 	/** Update viewport and projection matrix after resizing window
 	  * This method should be called for setting up a viewport and projection matrix for 2d displays.
 	  */
 	void reshape();
+	
+	/** Call the user path-drop callback function for each of the dropped system paths
+	  */
+	void dropSystemPaths(const std::vector<std::string>& path);
 	
 	/** Called whenever the user updates the size of the window
 	  */

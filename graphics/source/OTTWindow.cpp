@@ -11,12 +11,16 @@ OTTWindow::OTTWindow(const int &w, const int &h, const int& scale/*=1*/) :
 	width(nNativeWidth * scale),
 	height(nNativeHeight * scale),
 	aspect(fNativeAspect),
+	nOffsetX(0),
+	nOffsetY(0),
 	init(false),
 	bFirstInit(true),
+	bLockAspectRatio(false),
 	keys(),
 	mouse(),
 	joypad(&OTTJoypad::getInstance()),
-	buffer()
+	buffer(),
+	userPathDropCallback(0x0)
 {
 }
 
@@ -37,10 +41,33 @@ bool OTTWindow::processEvents(){
 	return true;
 }
 
+std::string OTTWindow::getClipboardString() const {
+	const char* str = glfwGetClipboardString(NULL);
+	if(str)
+		return std::string(str);
+	return "";
+}
+
 void OTTWindow::updateWindowSize(const int& w, const int& h){
 	width = w;
 	height = (h > 0 ? h : 1); // Prevent division by zero
 	aspect = float(w) / float(h);
+	nOffsetX = 0;
+	nOffsetY = 0;
+	if(bLockAspectRatio){ // Preserve original aspect ratio
+		if(aspect >= fNativeAspect){ // New window is too wide (pillarbox)
+			float wprime = fNativeAspect * height;
+			nOffsetX = (int)((width - wprime) / 2.f);
+			nOffsetY = 0;
+			width = wprime;
+		}
+		else{ // New window is too tall (letterbox)
+			float hprime = width / fNativeAspect;
+			nOffsetX = 0;
+			nOffsetY = (int)((height - hprime) / 2.f);
+			height = hprime;
+		}
+	}
 	if(init){
 		glfwSetWindowSize(win.get(), width, height); // Update physical window size
 		onUserReshape();
@@ -49,6 +76,14 @@ void OTTWindow::updateWindowSize(const int& w, const int& h){
 
 void OTTWindow::updateWindowSize(const int& scale){
 	updateWindowSize(nNativeWidth * scale, nNativeHeight * scale);
+}
+
+void OTTWindow::setClipboardString(const std::string& str) const {
+	glfwSetClipboardString(NULL, str.c_str());
+}
+
+void OTTWindow::setPathDropCallback(void (*callback)(const std::string&)){
+	userPathDropCallback = callback;
 }
 
 void OTTWindow::setDrawColor(ColorRGB *color, const float &alpha/*=1*/){
@@ -123,7 +158,7 @@ void OTTWindow::render(){
 }
 
 void OTTWindow::drawBuffer(){
-	drawPixels(nNativeWidth, nNativeHeight ,0, nNativeHeight, &buffer);
+	drawPixels(nNativeWidth, nNativeHeight, 0, nNativeHeight, &buffer);
 }
 
 void OTTWindow::renderBuffer(){
@@ -167,6 +202,9 @@ void OTTWindow::initialize(const std::string& name){
 
 	// Set window focus callback
 	glfwSetWindowFocusCallback(win.get(), OTTWindow::handleWindowFocus);
+	
+	// Set path / directory drop callback
+	glfwSetDropCallback(win.get(), OTTWindow::handlePathDrop);
 	
 	// Link to mouse and keyboard callback handlers
 	mouse.setParentWindow(win.get());
@@ -227,6 +265,17 @@ void OTTWindow::handleWindowFocus(GLFWwindow* window, int focused){
 	}
 }
 
+void OTTWindow::handlePathDrop(GLFWwindow* window, int count, const char** paths){
+	OTTWindow* currentWindow = OTTActiveWindows::get().find(window);
+	if(!currentWindow)
+		return;
+	std::vector<std::string> pathStrs;
+	for(int i = 0; i < count; i++){
+		pathStrs.push_back(std::string(paths[i]));
+	}
+	currentWindow->dropSystemPaths(pathStrs);
+}
+
 void OTTWindow::setKeyboardStreamMode(){
 	// Enable keyboard repeat
 	keys.enableStreamMode();
@@ -246,12 +295,19 @@ void OTTWindow::reshape(){
 	glLoadIdentity();
 
 	// Update viewport
-	glViewport(0, 0, width, height);
-	glOrtho(0, nNativeWidth, nNativeHeight, 0, -1, 1);
+	glViewport(nOffsetX, nOffsetY, width, height); // x, y, width, height
+	glOrtho(0, nNativeWidth, nNativeHeight, 0, -1, 1); // left, right, bottom, top, near, far
 	glMatrixMode(GL_MODELVIEW);
 
 	// Clear the window.
 	clear();
+}
+
+void OTTWindow::dropSystemPaths(const std::vector<std::string>& paths){
+	if(userPathDropCallback){
+		for(auto str = paths.cbegin(); str != paths.cend(); str++)
+			(*userPathDropCallback)(*str);
+	}
 }
 
 OTTActiveWindows& OTTActiveWindows::get(){

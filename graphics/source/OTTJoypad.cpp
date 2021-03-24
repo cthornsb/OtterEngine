@@ -197,7 +197,6 @@ void OTTJoypad::connect(const int& id) {
 			std::cout << " [joypad] Warning! Connected device at id=" << id << " is not a valid gamepad.\n";
 		}
 	}
-	std::cout << "last=" << lastGamepad << std::endl;
 }
 
 void OTTJoypad::disconnect(const int& id) {
@@ -246,7 +245,6 @@ bool OTTJoypad::changeActiveGamepad(const int& id/*=-1*/){
 		return false;
 	}
 	lastGamepad = (*pad);
-	std::cout << "last=" << lastGamepad << std::endl;
 	bConnected = true;
 	std::cout << " [joypad] Switched to gamepad " << lastGamepad->getID() << " (player " << lastGamepad->getPlayerNumber() << ")" << std::endl;
 	return true;
