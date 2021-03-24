@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <memory>
+#include <mutex>
 
 class GLFWwindow;
 
@@ -134,17 +136,16 @@ private:
 	unsigned char nY; ///< Data array index for Y value
 };
 
-class LogicalGamepad{
+class Gamepad{
 public:
 	/** Default constructor
 	  */
-	LogicalGamepad() = delete;
-	
-	/** GLFW gamepad id constructor
-	  */
-	LogicalGamepad(const int& id) :
+	Gamepad() :
 		bConnected(false),
-		nID(id),
+		bValidGamepad(true),
+		bGood(false),
+		nID(-1),
+		nPlayer(-1),
 		sName(),
 		jptr(0x0),
 		nButtons(0),
@@ -152,25 +153,29 @@ public:
 		nAxes(0),
 		nButtonStates(0x0),
 		nHatStates(0x0),
-		fAxisStates(0x0)
+		fAxisStates(0x0),
+		leftStick(0, 1),
+		rightStick(3, 4),
+		dpad(6, 7),
+		fLeftTrigger(0.f),
+		fRightTrigger(0.f),
+		buttonStates(),
+		prevStates(),
+		bToggleStates{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 	{
+	}
+	
+	/** GLFW gamepad id constructor
+	  */
+	Gamepad(const int& id) :
+		Gamepad()
+	{
+		nID = id;
 	}
 	
 	/** Destructor
 	  */
-	~LogicalGamepad(){ 
-	}
-	
-	/** GLFW gamepad id number equality operator
-	  */
-	bool operator == (const int& id) const {
-		return (nID == id);
-	}
-	
-	/** Pointer equality operator
-	  */
-	bool operator == (LogicalGamepad* rhs) const {
-		return (rhs == this);
+	~Gamepad(){ 
 	}
 	
 	/** Return true if this gamepad is currently connected
@@ -179,87 +184,30 @@ public:
 		return bConnected;
 	}
 	
-	/** Get GLFW gamepad ID number
+	/** Return true if connected device is a valid gamepad (with at least one button)
 	  */
-	int getID() const {
-		return nID;
+	bool isValid() const {
+		return bValidGamepad;
 	}
-	
-	/** Set this gamepad as connected at the specified GLFW ID
-	  */
-	void connect(const int& id);
-	
-	/** Set this gamepad as disconnected
-	  */
-	void disconnect();
-	
-	/** Print gamepad information
-	  */
-	void print() const ;
 
-	/** Retrieve all button and analog stick data from device
-	  */
-	void update();
-
-protected:
-	bool bConnected; ///< Set if gamepad is connected
-	
-	int nID; ///< GLFW gamepad ID number
-	
-	std::string sName; ///< GLFW gamepad name (GLFW 3.3 or above)
-	
-	void* jptr; ///< Joypad pointer (GLFW 3.3 or above)
-	
-	int nButtons; ///< Number of gamepad button states (also contains "hat" buttons)
-
-	int nHats; ///< Number of gamepad hat states (GLFW 3.3 or above)
-	
-	int nAxes; ///< Number of gamepad axis states
-	
-	const unsigned char* nButtonStates; ///< Array of all gamepad button states (GLFW_PRESS or GLFW_RELEASE)
-	
-	const unsigned char* nHatStates; ///< Array of all gamepad hat button states (GLFW 3.3 or above)
-	
-	const float* fAxisStates; ///< Array of all gamepad analog stick X and Y positions (-1 to 1)
-
-	/** Get all gamepad button states from the device
-	  */
-	bool getJoystickButtons();
-	
-	/** Get all gamepad hat-button states from the device
-	  */
-	bool getJoystickHats();
-
-	/** Get all gamepad analog stick positions from the device
-	  */
-	bool getJoystickAxes();
-	
-	/** Called whenever the user calls update() method
-	  */
-	virtual void onUserUpdate() { }
-};
-
-class Gamepad : public LogicalGamepad {
-public:
-	/** Default constructor
-	  */
-	Gamepad() = delete;
-	
-	/** GLFW gamepad id constructor
-	  */
-	Gamepad(const int& id);
-	
-	/** Destructor
-	  */
-	~Gamepad(){
-	}
-	
 	/** Return true if gamepad data is available for use
 	  */
 	bool isGood() const {
 		return bGood;
 	}
 	
+	/** Get GLFW gamepad ID number
+	  */
+	int getID() const {
+		return nID;
+	}
+	
+	/** Get gamepad player number
+	  */
+	int getPlayerNumber() const {
+		return nPlayer;	
+	}
+
 	/** Get pointer to the left analog stick
 	  */
 	AnalogStick* getLeftAnalogStick() {
@@ -290,18 +238,69 @@ public:
 		return fRightTrigger;
 	}
 	
-	/** 
+	/** Set GLFW gamepad ID number
+	  */
+	void setID(const int& id){
+		nID = id;
+	}
+	
+	/** Set gamepad player number
+	  */
+	void setPlayerNumber(const int& player){
+		nPlayer = player;
+	}
+	
+	/** Set this gamepad as connected at the specified GLFW ID
+	  */
+	bool connect(const int& id);
+	
+	/** Disconnect this gamepad
+	  */
+	void disconnect();
+	
+	/** Retrieve all button and analog stick data from device
+	  */
+	bool update();
+
+	/** Poll the state of a gamepad button.
+	  * If the button is currently pressed, mark it as released.
 	  */
 	bool poll(const unsigned char& input);
 	
-	/**
+	/** Check if a gamepad button is currently pressed or an analog stick is away from its neutral position
 	  */
 	bool check(const unsigned char& input);
 
-	void press(const unsigned char& input);
+	/** Print gamepad information
+	  */
+	void print() const ;
+
+protected:
+	bool bConnected; ///< Set if gamepad is connected
 	
-private:
-	bool bGood;
+	bool bValidGamepad; ///< Set if connected device is a valid gamepad
+	
+	bool bGood; ///< Set when a valid gamepad is connected and data has been read from it
+	
+	int nID; ///< GLFW gamepad ID number
+	
+	int nPlayer; ///< Player ID number
+	
+	std::string sName; ///< GLFW gamepad name (GLFW 3.3 or above)
+	
+	void* jptr; ///< Joypad pointer (GLFW 3.3 or above)
+	
+	int nButtons; ///< Number of gamepad button states (also contains "hat" buttons)
+
+	int nHats; ///< Number of gamepad hat states (GLFW 3.3 or above)
+	
+	int nAxes; ///< Number of gamepad axis states
+	
+	const unsigned char* nButtonStates; ///< Array of all gamepad button states (GLFW_PRESS or GLFW_RELEASE)
+	
+	const unsigned char* nHatStates; ///< Array of all gamepad hat button states (GLFW 3.3 or above)
+	
+	const float* fAxisStates; ///< Array of all gamepad analog stick X and Y positions (-1 to 1)
 
 	AnalogStick leftStick; ///< Left analog stick position
 	
@@ -313,14 +312,30 @@ private:
 	
 	float fRightTrigger; ///< Right trigger pressure (-1 to 1)
 	
-	GLFWgamepadstate buttonStates;
+	GLFWgamepadstate buttonStates; ///< Gamepad button and analog stick states at most recent update() call
 	
-	GLFWgamepadstate prevStates;
+	GLFWgamepadstate prevStates; ///< Gamepad button and analog stick states at previous update() call
 	
-	bool bToggleStates[15]; ///< 
+	bool bToggleStates[15]; ///< Gamepad button states toggled when button is pressed
+
+	/** Get all gamepad button states from the device
+	  */
+	bool getJoystickButtons();
 	
-	void onUserUpdate() override ;
+	/** Get all gamepad hat-button states from the device
+	  */
+	bool getJoystickHats();
+
+	/** Get all gamepad analog stick positions from the device
+	  */
+	bool getJoystickAxes();
+	
+	/** Called whenever the user calls update() method
+	  */
+	void updateButtonData();
 };
+
+typedef std::vector<Gamepad*>::iterator GamepadIterator;
 
 class OTTJoypad{
 public:
@@ -354,19 +369,31 @@ public:
 	/** Return true if no gamepads are currently connected
 	  */
 	bool empty() const { 
-		return gamepads.empty(); 
+		return connected.empty(); 
 	}
 	
 	/** Return true if a gamepad is connected and is in use
 	  */
 	bool isConnected() const {
-		return (bConnected && lastGamepad);
+		return (lastGamepad && lastGamepad->isConnected());
 	}
 	
 	/** Return true if a gamepad is connected and button data is available for use
 	  */
 	bool isReady() const {
 		return (lastGamepad && lastGamepad->isGood());
+	}
+
+	/** Get the number of currently valid gamepads which are currently connected
+	  */
+	int getNumberOfGamepads() const {
+		return nGamepads;
+	}
+	
+	/** Get the number of currently connected player gamepads
+	  */
+	int getNumberOfPlayers() const {
+		return nPlayers;
 	}
 
 	/** Poll the state of a gamepad button.
@@ -395,53 +422,37 @@ public:
 	/** Get the current position of the DPad.
 	  * Despite the position being read from the device as floating point values, the DPad likely
 	  * has no pressure sensitivity and thus X and Y will read back as either -1, 0, or 1.
-	  * @return True if a gamepad is connected and input data is available
+	  * @return True if a gamepad is connected
 	  */
-	bool getDPadPosition(float& x, float& y) const {
-		if(!lastGamepad || !lastGamepad->isGood())
-			return false;
-		x = lastGamepad->getDPad()->fX;
-		y = lastGamepad->getDPad()->fY;
-		return true;
-	}
+	bool getDPadPosition(float& x, float& y) const ;
 	
 	/** Get the current position of the left analog stick
-	  * @return True if a gamepad is connected and input data is available
+	  * @return True if a gamepad is connected
 	  */
-	bool getLeftStickPosition(float& x, float& y) const {
-		if(!lastGamepad || !lastGamepad->isGood())
-			return false;
-		x = lastGamepad->getLeftAnalogStick()->fX;
-		y = lastGamepad->getLeftAnalogStick()->fY;
-		return true;
-	}
+	bool getLeftStickPosition(float& x, float& y) const ;
+	
+	/** Get the change in position of the left analog stick since the last update
+	  * @return True if a gamepad is connected
+	  */
+	bool getLeftStickDeltaPosition(float& dx, float& dy) const ;
 
 	/** Get the current position of the right analog stick
-	  * @return True if a gamepad is connected and input data is available
+	  * @return True if a gamepad is connected
 	  */
-	bool getRightStickPosition(float& x, float& y) const {
-		if(!lastGamepad || !lastGamepad->isGood())
-			return false;
-		x = lastGamepad->getRightAnalogStick()->fX;
-		y = lastGamepad->getRightAnalogStick()->fY;
-		return true;
-	}
+	bool getRightStickPosition(float& x, float& y) const ;
+
+	/** Get the change in position of the right analog stick since the last update
+	  * @return True if a gamepad is connected
+	  */
+	bool getRightStickDeltaPosition(float& dx, float& dy) const ;
 
 	/** Get the current "position" of the left trigger
 	  */
-	float getLeftTrigger() const {
-		if(lastGamepad)
-			return lastGamepad->getLeftTriggerPosition();
-		return 0.f;
-	}
+	float getLeftTrigger() const ;
 	
 	/** Get the current "position" of the right trigger
 	  */
-	float getRightTrigger() const {
-		if(lastGamepad)
-			return lastGamepad->getRightTriggerPosition();
-		return 0.f;
-	}
+	float getRightTrigger() const ;
 
 	/** Update the state of all inputs for the most recently connected gamepad
 	  */
@@ -463,6 +474,16 @@ public:
 	  */
 	bool changeActiveGamepad(const int& id=-1);
 
+	/** Change the currently selected player's gamepad (assuming more than one are connected).
+	  * Player indicies start at zero. Each new gamepad connection increments the player number by 1.
+	  * @return True if the gamepad was changed successfully
+	  */
+	bool changeActivePlayer(const int& player);
+
+	/** Re-order player ID numbers to fill any gaps caused by disconnections
+	  */
+	void reorderPlayers();
+
 	/** Print all currently connected gamepads
 	  */
 	void print();
@@ -476,7 +497,11 @@ private:
 
 	int nGamepads; ///< Number of gamepads connected
 
-	std::vector<Gamepad> gamepads; ///< Vector of all possible gamepad connections
+	int nPlayers; ///< Number of connected player gamepads
+
+	std::unique_ptr<Gamepad[]> gamepads; ///< Array of all possible gamepad connections
+	
+	std::vector<Gamepad*> connected; ///< Vector of all connected gamepads
 	
 	std::unordered_map<GamepadInput, unsigned char> buttonMap; ///< Input map for 360-style gamepad buttons
 	
@@ -493,14 +518,14 @@ private:
 	void setupCallbacks(bool bEnable=true);
 	
 	/** Search the list of connected gamepads for one with matching id
-	  * @return The iterator of the gamepad with the specified id number, or gamepads.end() if the specified id number was not found.
+	  * @return The iterator of the gamepad with the specified id number, or connected.end() if the specified id number was not found.
 	  */
-	std::vector<Gamepad>::iterator findGamepad(const int& id);
+	GamepadIterator findGamepad(const int& id);
 
-	/** Search the list of connected gamepads for one with matching pointer address
-	  * @return The iterator of the gamepad with the specified pointer address, or gamepads.end() if a matching gamepad was not found.
+	/** Search the list of connected gamepads for one with matching player id number
+	  * @return The iterator of the gamepad with the specified player id, or connected.end() if a matching gamepad was not found.
 	  */
-	std::vector<Gamepad>::iterator findGamepad(LogicalGamepad* id);
+	GamepadIterator findPlayer(const int& player);
 };
 
 #endif

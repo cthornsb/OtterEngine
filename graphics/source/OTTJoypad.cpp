@@ -14,7 +14,9 @@ OTTJoypad& OTTJoypad::getInstance(){
 OTTJoypad::OTTJoypad() : 
 	bConnected(false),
 	nGamepads(0),
-	gamepads(),
+	nPlayers(0),
+	gamepads(new Gamepad[(GLFW_JOYSTICK_LAST - GLFW_JOYSTICK_1) + 1]),
+	connected(),
 	buttonMap(),
 	lastGamepad(0x0),
 	parent(0x0)
@@ -41,6 +43,11 @@ OTTJoypad::OTTJoypad() :
 	buttonMap[GamepadInput::CIRCLE]   = GLFW_GAMEPAD_BUTTON_B;
 	buttonMap[GamepadInput::SQUARE]   = GLFW_GAMEPAD_BUTTON_X;
 	buttonMap[GamepadInput::TRIANGLE] = GLFW_GAMEPAD_BUTTON_Y;
+	
+	// Set GLFW gamepad ID numbers
+	for(int i = GLFW_JOYSTICK_1; i <= GLFW_JOYSTICK_LAST; i++){
+		gamepads[i].setID(i);
+	}
 }
 
 void OTTJoypad::enable(){
@@ -95,15 +102,17 @@ void OTTJoypad::reset(){
 	nGamepads = 0;
 	lastGamepad = 0x0;
 	bConnected = false;
-	gamepads.clear(); // Remove all existing gamepads
-	for(int i = 0; i <= GLFW_JOYSTICK_LAST; i++){
+	connected.clear(); // Remove all existing gamepads
+	for(int i = GLFW_JOYSTICK_1; i <= GLFW_JOYSTICK_LAST; i++){
 		if(glfwJoystickPresent(i) == GLFW_TRUE) // Gamepad connected
 			connect(i);
 	}
+	if(!connected.empty())
+		changeActiveGamepad(); // Switch to a different gamepad (if another is connected)
 }
 
 bool OTTJoypad::status(const int& id) const {
-	return (gamepads[id].isConnected() && (glfwJoystickPresent(id) == GLFW_TRUE));
+	return (glfwJoystickPresent(id) == GLFW_TRUE);
 }
 
 bool OTTJoypad::isGamepad(const int& id) const {
@@ -113,8 +122,60 @@ bool OTTJoypad::isGamepad(const int& id) const {
 	return false;
 }
 
+bool OTTJoypad::getDPadPosition(float& x, float& y) const {
+	if(!lastGamepad)
+		return false;
+	x = lastGamepad->getDPad()->fX;
+	y = lastGamepad->getDPad()->fY;
+	return true;
+}
+
+bool OTTJoypad::getLeftStickPosition(float& x, float& y) const {
+	if(!lastGamepad)
+		return false;
+	x = lastGamepad->getLeftAnalogStick()->fX;
+	y = lastGamepad->getLeftAnalogStick()->fY;
+	return true;
+}
+
+bool OTTJoypad::getLeftStickDeltaPosition(float& dx, float& dy) const {
+	if(!lastGamepad)
+		return false;
+	dx = lastGamepad->getLeftAnalogStick()->fDX;
+	dy = lastGamepad->getLeftAnalogStick()->fDY;
+	return true;
+}
+
+bool OTTJoypad::getRightStickPosition(float& x, float& y) const {
+	if(!lastGamepad)
+		return false;
+	x = lastGamepad->getRightAnalogStick()->fX;
+	y = lastGamepad->getRightAnalogStick()->fY;
+	return true;
+}
+
+bool OTTJoypad::getRightStickDeltaPosition(float& dx, float& dy) const {
+	if(!lastGamepad)
+		return false;
+	dx = lastGamepad->getRightAnalogStick()->fDX;
+	dy = lastGamepad->getRightAnalogStick()->fDY;
+	return true;
+}
+
+float OTTJoypad::getLeftTrigger() const {
+	if(lastGamepad)
+		return lastGamepad->getLeftTriggerPosition();
+	return 0.f;
+}
+
+float OTTJoypad::getRightTrigger() const {
+	if(lastGamepad)
+		return lastGamepad->getRightTriggerPosition();
+	return 0.f;
+}
+
 void OTTJoypad::update(){
-	if(!bConnected || gamepads.empty())
+	if(!bConnected || connected.empty())
 		return;
 	lastGamepad->update();
 }
@@ -122,70 +183,95 @@ void OTTJoypad::update(){
 void OTTJoypad::connect(const int& id) {
 	if(id >= GLFW_JOYSTICK_1 && id <= GLFW_JOYSTICK_LAST){
 		std::cout << " [joypad] Connected gamepad with id=" << id << std::endl;
-		gamepads.push_back(Gamepad(id));
-		gamepads.back().connect(id);
-		lastGamepad = &gamepads.back();
-		bConnected = true;
-		nGamepads++;
+		if(gamepads[id].connect(id) && gamepads[id].update()){
+			connected.push_back(&gamepads[id]);
+			connected.back()->setPlayerNumber(nPlayers++);
+			nGamepads++;			
+			std::cout << " [joypad]  Gamepad assigned player number " << nPlayers - 1 << std::endl;
+			if(!lastGamepad){
+				lastGamepad = connected.back();
+				bConnected = true;
+			}
+		}
+		else{
+			std::cout << " [joypad] Warning! Connected device at id=" << id << " is not a valid gamepad.\n";
+		}
 	}
+	std::cout << "last=" << lastGamepad << std::endl;
 }
 
 void OTTJoypad::disconnect(const int& id) {
 	if(id >= GLFW_JOYSTICK_1 && id <= GLFW_JOYSTICK_LAST){
 		auto pad = findGamepad(id);
-		if(pad != gamepads.end()){
+		if(pad != connected.end()){ // Disconnected gamepad is in the list of valid gamepads
 			std::cout << " [joypad] Disconnected gamepad with id=" << id << std::endl;
-			if(&(*pad) == lastGamepad){ // User disconnected the currently active controller
+			connected.erase(pad);
+			nGamepads--;
+			if((*pad) == lastGamepad){ // User disconnected the currently active controller
 				lastGamepad = 0x0;
 				bConnected = false;
+				if(!connected.empty())
+					changeActiveGamepad(); // Switch to a different gamepad (if another is connected)
 			}
-			gamepads.erase(pad);
-			nGamepads--;
 		}
-		else{
-			std::cout << " [joypad] Error! Failed to find gamepad with id=" << id << std::endl;
-		}
+		gamepads[id].disconnect();
 	}
 }
 
 bool OTTJoypad::changeActiveGamepad(const int& id/*=-1*/){
-	if(gamepads.size() < 2){
-		std::cout << " [joypad] Error! " << gamepads.size() << " gamepads currently connected." << std::endl;
+	if(connected.empty()){
+		std::cout << " [joypad] changeActiveGamepad() Error! No gamepads currently connected." << std::endl;
 		return false;
 	}
-	std::vector<Gamepad>::iterator pad;
+	GamepadIterator pad;
 	if(id < 0){ // Next gamepad in the list
-		pad = findGamepad(lastGamepad);
-		pad++;
-		if(pad == gamepads.end()) // Return to first gamepad
-			pad = gamepads.begin();
+		if(lastGamepad){ // Advance to the next available gamepad
+			pad = findGamepad(lastGamepad->getID()) + 1;
+			if(pad == connected.end()) // Return to first gamepad
+				pad = connected.begin();
+		}
+		else{ // No active gamepads, return to beginning of list
+			pad = connected.begin();
+		}
 	}
 	else{ // User specified gamepad
 		if(id < GLFW_JOYSTICK_1 || id > GLFW_JOYSTICK_LAST){
-			std::cout << " [joypad] Error! Invalid gamepad ID (" << id << ")." << std::endl;
+			std::cout << " [joypad] changeActiveGamepad() Error! Invalid gamepad ID (" << id << ")." << std::endl;
 			return false;
 		}
 		pad = findGamepad(id);
 	}
-	if(pad == gamepads.end()){
-		std::cout << " [joypad] Error! Specified gamepad ID (" << id << ") is not connected." << std::endl;
+	if(pad == connected.end()){
+		std::cout << " [joypad] changeActiveGamepad() Error! Specified gamepad ID (" << id << ") is not connected." << std::endl;
 		return false;
 	}
-	lastGamepad = &(*pad);
+	lastGamepad = (*pad);
+	std::cout << "last=" << lastGamepad << std::endl;
 	bConnected = true;
-	std::cout << " [joypad] Switched to gamepad " << lastGamepad->getID() << std::endl;
+	std::cout << " [joypad] Switched to gamepad " << lastGamepad->getID() << " (player " << lastGamepad->getPlayerNumber() << ")" << std::endl;
+	return true;
+}
+
+bool OTTJoypad::changeActivePlayer(const int& player){
+	GamepadIterator pad = findPlayer(player); 
+	if(pad == connected.end()){
+		std::cout << " [joypad] changeActivePlayer() Error! Specified player ID (" << player << ") does not exist." << std::endl;
+		return false;
+	}
+	lastGamepad = (*pad);
+	bConnected = true;
+	std::cout << " [joypad] Switched to gamepad " << lastGamepad->getID() << " (player " << lastGamepad->getPlayerNumber() << ")" << std::endl;
 	return true;
 }
 
 void OTTJoypad::print(){
-	std::cout << " [joypad] " << gamepads.size() << " gamepads are connected" << std::endl;
-	for(auto pad = gamepads.cbegin(); pad != gamepads.cend(); pad++){
-		pad->print();
+	std::cout << " [joypad] " << connected.size() << " gamepads are connected" << std::endl;
+	for(auto pad = connected.cbegin(); pad != connected.cend(); pad++){
+		(*pad)->print();
 	}
 }
 
 void OTTJoypad::joystickCallback(int id, int event) {
-	std::cout << " CALLBACK id=" << id << std::endl;
 	if(event == GLFW_CONNECTED){
 		// Joystick connected
 		OTTJoypad::getInstance().connect(id);
@@ -206,57 +292,111 @@ void OTTJoypad::setupCallbacks(bool bEnable/*=true*/) {
 	}
 }
 
-std::vector<Gamepad>::iterator OTTJoypad::findGamepad(const int& id){
-	return std::find(gamepads.begin(), gamepads.end(), id);
+void OTTJoypad::reorderPlayers(){
+	if(connected.empty())
+		return;
+
+	// Sort connected gamepads by player number
+	std::sort(
+		connected.begin(), 
+		connected.end(), 
+		[](Gamepad* left, Gamepad* right) -> bool 
+		{ 
+			return (left->getPlayerNumber() > right->getPlayerNumber()); 
+		} 
+	);
+
+	// Remove any gaps in player number
+	int nextPlayer = 0;
+	for(auto pad = connected.cbegin(); pad != connected.cend(); pad++){
+		if((*pad)->getPlayerNumber() != nextPlayer)
+			(*pad)->setPlayerNumber(nextPlayer);
+		nextPlayer++;
+	}
 }
 
-std::vector<Gamepad>::iterator OTTJoypad::findGamepad(LogicalGamepad* id){
-	return std::find(gamepads.begin(), gamepads.end(), id);
+GamepadIterator OTTJoypad::findGamepad(const int& id){
+	for(GamepadIterator pad = connected.begin(); pad != connected.end(); pad++){
+		if((*pad)->getID() == id)
+			return pad;
+	}
+	return connected.end();
 }
 
-void LogicalGamepad::connect(const int& id){
+GamepadIterator OTTJoypad::findPlayer(const int& player){
+	for(GamepadIterator pad = connected.begin(); pad != connected.end(); pad++){
+		if((*pad)->getPlayerNumber() == player)
+			return pad;
+	}
+	return connected.end();
+}
+
+bool Gamepad::connect(const int& id){
 	nID = id;
 	bConnected = true;
 #ifdef GLFW_VERSION_3_3
 	sName = std::string(glfwGetJoystickName(id)); // GLFW 3.3
 	jptr = glfwGetJoystickUserPointer(id); // GLFW 3.3
 #endif // ifdef GLFW_VERSION_3_3
+	return true;
 }
 
-void LogicalGamepad::disconnect(){
+void Gamepad::disconnect(){
 	bConnected = false;
-	nID = -1;
+	bValidGamepad = true;
 	sName = "";
-	jptr = 0x0;
+	nID = -1;
+	nPlayer = -1;
 	nButtons = 0;
 	nHats = 0;
 	nAxes = 0;
+	jptr = 0x0;
 	nButtonStates = 0x0;
 	nHatStates = 0x0;
 	fAxisStates = 0x0;
+	for(int i = 0; i < 15; i++)
+		bToggleStates[i] = false;
+}
+ 
+bool Gamepad::poll(const unsigned char& input){
+	if(bToggleStates[input]){
+		bToggleStates[input] = false;
+		return true;
+	}
+	return false;
 }
 
-void LogicalGamepad::print() const {
-	std::cout << " Gamepad id=" << nID << ", name=\"" << sName << "\"" << std::endl;
+bool Gamepad::check(const unsigned char& input){
+	return bToggleStates[input];
 }
 
-void LogicalGamepad::update(){
+bool Gamepad::update(){
 #ifdef GLFW_VERSION_3_3
 	glfwGetGamepadState(nID, buttonStates); // GLFW 3.3
 #else
-	getJoystickButtons();
+	if(!bValidGamepad)
+		return false;
+	if(!getJoystickButtons()){
+		bValidGamepad = false;
+		return false;
+	}
 	getJoystickHats();
 	getJoystickAxes();
 #endif // ifdef GLFW_VERSION_3_3
-	this->onUserUpdate();
+	this->updateButtonData();
+	return true;
 }
 
-bool LogicalGamepad::getJoystickButtons(){
+void Gamepad::print() const {
+	std::cout << "  Gamepad id=" << nID << ", name=\"" << sName << "\"" << std::endl;
+}
+
+bool Gamepad::getJoystickButtons(){
 	nButtonStates = glfwGetJoystickButtons(nID, &nButtons); // GLFW 3.0
 	return (nButtons > 0);
 }
 
-bool LogicalGamepad::getJoystickHats(){
+bool Gamepad::getJoystickHats(){
 #ifdef GLFW_VERSION_3_3
 	nHatStates = glfwGetJoystickHats(nID, &nHats); // GLFW 3.3
 	return (nHats > 0);
@@ -265,26 +405,12 @@ bool LogicalGamepad::getJoystickHats(){
 #endif // ifdef GLFW_VERSION_3_3
 }
 
-bool LogicalGamepad::getJoystickAxes(){
+bool Gamepad::getJoystickAxes(){
 	fAxisStates = glfwGetJoystickAxes(nID, &nAxes); // GLFW 3.0
 	return (nAxes > 0);
 }
 
-Gamepad::Gamepad(const int& id) :
-	LogicalGamepad(id),
-	bGood(false),
-	leftStick(0, 1),
-	rightStick(3, 4),
-	dpad(6, 7),
-	fLeftTrigger(0.f),
-	fRightTrigger(0.f),
-	buttonStates(),
-	prevStates(),
-	bToggleStates{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
-{
-}
-
-void Gamepad::onUserUpdate(){
+void Gamepad::updateButtonData(){
 #ifdef GLFW_VERSION_3_3
 	leftStick.set(
 		buttonStates.axes[GLFW_GAMEPAD_AXIS_LEFT_X],
@@ -322,17 +448,5 @@ void Gamepad::onUserUpdate(){
 	}
 #endif // ifdef GLFW_VERSION_3_3
 	bGood = true;
-}
- 
-bool Gamepad::poll(const unsigned char& input){
-	if(bToggleStates[input]){
-		bToggleStates[input] = false;
-		return true;
-	}
-	return false;
-}
-
-bool Gamepad::check(const unsigned char& input){
-	return bToggleStates[input];
 }
 
