@@ -25,6 +25,33 @@ struct DestroyGLFWwindow {
 
 class OTTWindow{
 public:
+	class VideoMode{
+	public:
+		int nWidth;
+		
+		int nHeight;
+		
+		int nColorDepth;
+		
+		int nRefreshRate;
+		
+		VideoMode() :
+			nWidth(0),
+			nHeight(0),
+			nColorDepth(0),
+			nRefreshRate(0)
+		{
+		}
+		
+		VideoMode(const GLFWvidmode* ptr) :
+			nWidth(ptr->width),
+			nHeight(ptr->height),
+			nColorDepth(ptr->redBits + ptr->greenBits + ptr->blueBits),
+			nRefreshRate(ptr->refreshRate)
+		{
+		}
+	};
+
 	/** Default constructor
 	  */
 	OTTWindow() = delete;
@@ -89,6 +116,12 @@ public:
 	float getAspectRatio() const {
 		return aspect;
 	}
+	
+	/** Return true if the window is currently in full screen mode
+	  */
+	bool getFullScreenMode() const {
+		return bFullScreenMode;
+	}
 
 	/** Get a pointer to the last user keypress event
 	  * The user must call enableKeyboard() to handle keyboard callbacks
@@ -114,6 +147,18 @@ public:
 	/** Get the current system clipboard string
 	  */
 	std::string getClipboardString() const ;
+
+	/** Get all available native monitor video modes
+	  */
+	int getAvailableVideoModes(std::vector<OTTWindow::VideoMode>& modes) const ;
+
+	/** Get the current monitor video mode
+	  */
+	bool getCurrentVideoMode(OTTWindow::VideoMode& mode) const ;
+
+	/** Print all available native monitor video modes
+	  */
+	void printVideoModes() const ;
 
 	/** Set the size of graphical window
 	  * Has no effect if window has not been initialized.
@@ -152,6 +197,24 @@ public:
 	  * May be called from any thread.
 	  */
 	void setCurrent();
+
+	/** Enable or disable full screen mode.
+	  * The current monitor video mode will not be changed.
+	  */
+	void setFullScreenMode(bool state=true);
+
+	/** Toggle full screen mode.
+	  * The current monitor video mode will not be changed.
+	  * @return True if the window is now in full screen mode
+	  */
+	bool toggleFullScreenMode();
+	
+	/** Attempt to change the current monitor video mode.
+	  * GLFW will attempt to change the video mode to the requested one, but the requested mode 
+	  * may not be available. In that case, the closest matching mode will be selected.
+	  * Attempting to change the video mode when not in full screen mode will have no effect.
+	  */
+	void changeVideoMode(const OTTWindow::VideoMode& mode);
 
 	/** Clear the screen with a given color
 	  */
@@ -238,7 +301,7 @@ public:
 	/** Initialize OpenGL and open the window
 	  * Must be called from main thread.
 	  */
-	void initialize(const std::string& name="OpenGL");
+	bool initialize(const std::string& name="OpenGL");
 
 	/** Set pixel scaling factor
 	  */
@@ -297,6 +360,8 @@ public:
 protected:
 	std::unique_ptr<GLFWwindow, DestroyGLFWwindow> win; ///< Pointer to glfw graphics output window
 
+	GLFWmonitor* monitor; ///< Pointer to primary display device
+
 	int nNativeWidth; ///< Original width of the window (in pixels)
 	
 	int nNativeHeight; ///< Original height of the window (in pixels)
@@ -313,11 +378,21 @@ protected:
 	
 	int nOffsetY; ///< Vertical buffer pixel offset
 	
+	int nOldWidth; ///< Width of window before switching to full screen mode
+	
+	int nOldHeight; ///< Height of window before switching to full screen mode
+	
+	int nOldPosX; ///< Horizontal position of window before switching to full screen mode
+	
+	int nOldPosY; ///< Vertical position of window before switching to full screen mode
+	
 	bool init; ///< Flag indicating that the window has been initialized
 
 	bool bFirstInit; ///< Set if this is the first initialization
 
 	bool bLockAspectRatio; ///< If set, original aspect ratio will be preserved on window resize
+
+	bool bFullScreenMode; ///< Set if window is in full screen mode
 
 	OTTKeyboard keys; ///< GLFW keyboard callback wrapper
 	

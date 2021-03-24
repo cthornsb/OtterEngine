@@ -5,6 +5,7 @@
 
 OTTWindow::OTTWindow(const int &w, const int &h, const int& scale/*=1*/) : 
 	win(),
+	monitor(0x0),
 	nNativeWidth(w), 
 	nNativeHeight(h),
 	fNativeAspect(float(w)/h),
@@ -13,9 +14,14 @@ OTTWindow::OTTWindow(const int &w, const int &h, const int& scale/*=1*/) :
 	aspect(fNativeAspect),
 	nOffsetX(0),
 	nOffsetY(0),
+	nOldWidth(width),
+	nOldHeight(height),
+	nOldPosX(0),
+	nOldPosY(0),
 	init(false),
 	bFirstInit(true),
 	bLockAspectRatio(false),
+	bFullScreenMode(false),
 	keys(),
 	mouse(),
 	joypad(&OTTJoypad::getInstance()),
@@ -46,6 +52,37 @@ std::string OTTWindow::getClipboardString() const {
 	if(str)
 		return std::string(str);
 	return "";
+}
+
+int OTTWindow::getAvailableVideoModes(std::vector<OTTWindow::VideoMode>& modes) const {
+ 	if(!monitor)
+ 		return -1;
+	int count;
+	const GLFWvidmode* arr = glfwGetVideoModes(monitor, &count);
+	for(int i = 0; i < count; i++)
+		modes.push_back(&arr[i]);
+	return count;
+}
+
+bool OTTWindow::getCurrentVideoMode(OTTWindow::VideoMode& mode) const {
+ 	if(!monitor)
+ 		return false;
+	mode = OTTWindow::VideoMode(glfwGetVideoMode(monitor));
+	return true;
+}
+
+void OTTWindow::printVideoModes() const {
+	OTTWindow::VideoMode currentMode;
+	if(!getCurrentVideoMode(currentMode))
+		return;
+	std::cout << " Current Mode: " << currentMode.nWidth << "x" << currentMode.nHeight << ", " << currentMode.nColorDepth << "-bit @ " << currentMode.nRefreshRate << " Hz" << std::endl;
+	std::cout << " Available Modes:" << std::endl;
+	std::cout << "  W\tH\tDepth\tRefresh" << std::endl;
+	std::vector<OTTWindow::VideoMode> modes;
+	getAvailableVideoModes(modes);
+	for(auto mode = modes.cbegin(); mode != modes.cend(); mode++){
+		std::cout << "  " << mode->nWidth << "\t" << mode->nHeight << "\t" << mode->nColorDepth << "-bit\t" << mode->nRefreshRate << " Hz" << std::endl;
+	}
 }
 
 void OTTWindow::updateWindowSize(const int& w, const int& h){
@@ -96,6 +133,39 @@ void OTTWindow::setDrawColor(const ColorRGB &color, const float &alpha/*=1*/){
 
 void OTTWindow::setCurrent(){
 	glfwMakeContextCurrent(win.get());
+}
+
+void OTTWindow::setFullScreenMode(bool state/*=true*/){
+	bFullScreenMode = state;
+	if(init){
+		if(bFullScreenMode){ // Windowed full screen
+			monitor = glfwGetPrimaryMonitor();
+			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+			nOldWidth = width;
+			nOldHeight = height;
+			glfwGetWindowPos(win.get(), &nOldPosX, &nOldPosY);
+			glfwSetWindowMonitor(win.get(), monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+		}
+		else{ // Windowed
+			updateWindowSize(nOldWidth, nOldHeight);
+			glfwSetWindowMonitor(win.get(), NULL, nOldPosX, nOldPosY, width, height, GLFW_DONT_CARE);
+		}
+	}
+}
+
+bool OTTWindow::toggleFullScreenMode(){
+	if(bFullScreenMode)
+		setFullScreenMode(false);
+	else
+		setFullScreenMode(true);
+	return bFullScreenMode;
+}
+
+void OTTWindow::changeVideoMode(const OTTWindow::VideoMode& mode){
+	if(!init || !bFullScreenMode)
+		return;
+	monitor = glfwGetPrimaryMonitor();
+	glfwSetWindowMonitor(win.get(), monitor, 0, 0, mode.nWidth, mode.nHeight, mode.nRefreshRate);
 }
 
 void OTTWindow::clear(const ColorRGB &color/*=Colors::BLACK*/){
@@ -170,9 +240,9 @@ bool OTTWindow::status(){
 	return (init && !glfwWindowShouldClose(win.get()));
 }
 
-void OTTWindow::initialize(const std::string& name){
+bool OTTWindow::initialize(const std::string& name){
 	if(init || nNativeWidth == 0 || nNativeHeight == 0) 
-		return;
+		return false;
 
 	// Set the GLFW error callback
 	glfwSetErrorCallback(handleErrors);
@@ -182,8 +252,16 @@ void OTTWindow::initialize(const std::string& name){
 		glfwInit();
 	
 	// Create the window
-	win.reset(glfwCreateWindow(nNativeWidth, nNativeHeight, name.c_str(), NULL, NULL)); // Windowed
-	//win.reset(glfwCreateWindow(nNativeWidth, nNativeHeight, name.c_str(), glfwGetPrimaryMonitor(), NULL)); // Fullscreen
+	if(!bFullScreenMode) // Windowed mode
+		win.reset(glfwCreateWindow(nNativeWidth, nNativeHeight, name.c_str(), NULL, NULL)); // Windowed
+	else // Full screen mode
+		win.reset(glfwCreateWindow(nNativeWidth, nNativeHeight, name.c_str(), glfwGetPrimaryMonitor(), NULL)); // Fullscreen
+	
+	if(!win.get()) // Window creation failed
+		return false;
+	
+	// Set the primary monitor pointer
+	monitor = glfwGetPrimaryMonitor();
 	
 	// Add window to the map
 	OTTActiveWindows::get().add(win.get(), this);
@@ -215,6 +293,8 @@ void OTTWindow::initialize(const std::string& name){
 	
 	if(bFirstInit)
 		bFirstInit = false;
+		
+	return true;
 }
 
 void OTTWindow::updatePixelZoom(){
