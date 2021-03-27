@@ -96,13 +96,13 @@ void OTTWindow::updateWindowSize(const int& w, const int& h){
 			float wprime = fNativeAspect * height;
 			nOffsetX = (int)((width - wprime) / 2.f);
 			nOffsetY = 0;
-			width = wprime;
+			width = (int)wprime;
 		}
 		else{ // New window is too tall (letterbox)
 			float hprime = width / fNativeAspect;
 			nOffsetX = 0;
 			nOffsetY = (int)((height - hprime) / 2.f);
-			height = hprime;
+			height = (int)hprime;
 		}
 	}
 	if(init){
@@ -248,7 +248,7 @@ bool OTTWindow::initialize(const std::string& name){
 	glfwSetErrorCallback(handleErrors);
 
 	// Open the graphics window
-	if(bFirstInit)
+	if (bFirstInit)
 		glfwInit();
 	
 	// Create the window
@@ -259,7 +259,17 @@ bool OTTWindow::initialize(const std::string& name){
 	
 	if(!win.get()) // Window creation failed
 		return false;
-	
+
+	// Initialize GLEW
+	if (bFirstInit) {
+		setCurrent();
+		GLint err = glewInit(); 
+		if (err != GLEW_OK) {
+			const GLubyte* str = glewGetErrorString(err);
+			std::cout << " [glew] Error! id=" << err << " : " << str << std::endl;
+		}
+	}
+
 	// Set the primary monitor pointer
 	monitor = glfwGetPrimaryMonitor();
 	
@@ -323,6 +333,22 @@ void OTTWindow::enableGamepad() {
 
 void OTTWindow::disableGamepad() {
 	joypad->disable();
+}
+
+void OTTWindow::enableVSync() {
+#ifndef WIN32
+
+#else
+	wglSwapIntervalEXT(1);
+#endif // ifndef WIN32
+}
+
+void OTTWindow::disableVSync() {
+#ifndef WIN32
+	
+#else
+	wglSwapIntervalEXT(0);
+#endif // ifndef WIN32
 }
 
 void OTTWindow::handleErrors(int error, const char* description) {

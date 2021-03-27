@@ -1,5 +1,3 @@
-#include <GLFW/glfw3.h>
-
 #include "OTTMouse.hpp"
 #include "OTTWindow.hpp"
 
@@ -40,7 +38,7 @@ void OTTMouse::setHideCursor(){
 bool OTTMouse::setRawCursor(){
 	if (glfwRawMouseMotionSupported()){
 		setDisableCursor(); // Disable normal cursor
-		glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+		glfwSetInputMode(parent, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 		return true;
 	}
 	return false;
@@ -72,7 +70,7 @@ bool OTTMouse::delta() {
 	return (dDeltaX != 0 || dDeltaY != 0);
 }
 
-void OTTMouse::setPosition(const int& x, const int& y) { 
+void OTTMouse::setPosition(const double& x, const double& y) {
 	/*static bool firstPosition = true;
 	if (firstPosition) {
 		firstPosition = false;
@@ -93,7 +91,7 @@ void OTTMouse::setPosition(const int& x, const int& y) {
 	}*/
 }
 
-bool OTTMouse::delta(int& deltaX, int& deltaY) {
+bool OTTMouse::delta(double& deltaX, double& deltaY) {
 	deltaX = dDeltaX;
 	deltaY = dDeltaY;
 	dDeltaX = 0;

@@ -1,5 +1,3 @@
-#include <GLFW/glfw3.h>
-
 #include "OTTKeyboard.hpp"
 #include "OTTWindow.hpp"
 

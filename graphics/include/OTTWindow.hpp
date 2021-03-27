@@ -4,7 +4,14 @@
 #include <vector>
 #include <queue>
 #include <memory>
+#include <string>
 #include <map>
+
+#ifdef WIN32
+// Note that GLEW must be included BEFORE GLFW!
+#include <GL/glew.h>
+#include <GL/wglew.h>
+#endif // ifdef WIN32
 
 #include <GLFW/glfw3.h>
 
@@ -339,6 +346,15 @@ public:
 	  */
 	void disableGamepad();
 	
+	/** Enable vertical sync (VSync), if available.
+	  * Availability varies by platform and hardware.
+	  */
+	void enableVSync();
+
+	/** Disable vertical sync (VSync)
+	  */
+	void disableVSync();
+
 	/** Handle glfw errors
 	  */
 	static void handleErrors(int error, const char* description);

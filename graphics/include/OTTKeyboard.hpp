@@ -3,7 +3,7 @@
 
 #include <queue>
 
-class GLFWwindow;
+struct GLFWwindow;
 
 class OTTKeyboard{
 public:

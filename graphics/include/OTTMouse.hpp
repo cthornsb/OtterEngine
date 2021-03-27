@@ -1,8 +1,8 @@
 #ifndef OTT_MOUSE_HPP
 #define OTT_MOUSE_HPP
 
-class GLFWwindow;
-class GLFWcursor;
+struct GLFWwindow;
+struct GLFWcursor;
 
 /// <summary>
 /// Simple mouse motion and button press wrapper for interfacing with glfw
@@ -27,43 +27,43 @@ public:
 
 	/** Set the horizontal position of the cursor (in pixels)
 	  **/
-	void setX(const int& x) {
+	void setX(const double& x) {
 		dPosX = x;
 	}
 
 	/** Set the vertical position of the cursor (in pixels)
 	  **/
-	void setY(const int& y) {
+	void setY(const double& y) {
 		dPosY = y;
 	}
 
 	/** Set the position of the cursor (in pixels)
 	  **/
-	void setPosition(const int& x, const int& y);
+	void setPosition(const double& x, const double& y);
 
 	/** Get the current horizontal position of the cursor (in pixels)
 	  **/
-	int getX() const {
+	double getX() const {
 		return dPosX;
 	}
 
 	/** Get the current vertical position of the cursor (in pixels)
 	  **/
-	int getY() const {
+	double getY() const {
 		return dPosY;
 	}
 
 	/** Get the change in horizontal position of the cursor since the last call to setPosition()
 	  * @note Does not reset the delta position values
 	  **/
-	int getDeltaX() const {
+	double getDeltaX() const {
 		return dDeltaX;
 	}
 
 	/** Get the change in vertical position of the cursor since the last call to setPosition()
 	  * @note Does not reset the delta position values
 	  **/
-	int getDeltaY() const {
+	double getDeltaY() const {
 		return dDeltaY;
 	}
 
@@ -121,7 +121,7 @@ public:
 	/** Get the change in the horizontal and vertical position of the mouse and reset the delta values 	
 	  * @return True if the mouse has moved since the last call to setPosition(), and return false otherwise
 	  **/
-	bool delta(int& dx, int& dy);
+	bool delta(double& dx, double& dy);
 
 	/** Check if a mouse button is pressed but do not reset its state
 	  * @note This method should be used for mouse buttons which are held down
