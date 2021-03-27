@@ -117,7 +117,7 @@ bool OTTJoypad::status(const int& id) const {
 
 bool OTTJoypad::isGamepad(const int& id) const {
 #ifdef GLFW_VERSION_3_3
-	return (status() && (glfwJoystickIsGamepad(id) == GLFW_TRUE)); // GLFW 3.3
+	return (status(id) && (glfwJoystickIsGamepad(id) == GLFW_TRUE)); // GLFW 3.3
 #endif // ifdef GLFW_VERSION_3_3
 	return false;
 }
@@ -370,7 +370,7 @@ bool Gamepad::check(const unsigned char& input){
 
 bool Gamepad::update(){
 #ifdef GLFW_VERSION_3_3
-	glfwGetGamepadState(nID, buttonStates); // GLFW 3.3
+	glfwGetGamepadState(nID, &buttonStates); // GLFW 3.3
 #else
 	if(!bValidGamepad)
 		return false;

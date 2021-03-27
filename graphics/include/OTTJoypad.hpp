@@ -7,7 +7,7 @@
 #include <memory>
 #include <mutex>
 
-class GLFWwindow;
+struct GLFWwindow;
 
 enum class GamepadInput{
 	A,
@@ -35,6 +35,11 @@ enum class GamepadInput{
 	RT,
 	R3
 };
+
+#if (GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 3)
+	// GLFW version is at least 3.3
+	#define GLFW_VERSION_3_3
+#endif // if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 3
 
 #ifndef GLFW_VERSION_3_3
 
