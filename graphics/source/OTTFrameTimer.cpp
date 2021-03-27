@@ -1,38 +1,137 @@
-#include <iostream>
 #include <thread>
 
 #include "OTTFrameTimer.hpp"
 
+#ifdef USE_GLFW_TIMER
+#include <GLFW/glfw3.h>
+#endif // ifdef WIN32
+
+#ifdef WIN32
+#include <Windows.h>
+#endif // ifdef WIN32
+
+double MovingAverage::operator () (const double& value) {
+	add(value);
+	return (dTotal / nValues);
+}
+
+void MovingAverage::add(const double& value) {
+	dTotal += (value - *iter);
+	*iter = value;
+	iter++;
+	if (!bFull)
+		nValues++;
+	if (iter == dValues.end()) {
+		iter = dValues.begin();
+		bFull = true;
+	}
+}
+
+void MovingAverage::reset() {
+	std::fill(dValues.begin(), dValues.end(), 0);
+	dTotal = 0;
+	iter = dValues.begin();
+	bFull = false;
+}
+
+void MovingAverage::recount() {
+	dTotal = 0;
+	for (auto val = dValues.cbegin(); val != dValues.cend(); val++)
+		dTotal += (*val);
+}
+
+OTTFrameTimer::OTTFrameTimer(const double& fps) :
+	bQuitting(false),
+	dFramerate(0),
+	dFramerateCap(fps),
+	dFramePeriod(1E6 / fps),
+	nFrameCount(0),
+#ifndef USE_GLFW_TIMER
+	timeOfInitialization(hclock::now()),
+	timeOfLastUpdate(hclock::now()),
+	cycleTimer(hclock::now()),
+#else
+	dTimeOfInitialization(0),
+	dTimeOfLastUpdate(0),
+	dCycleTimer(0),
+#endif // ifndef USE_GFLW_TIMER
+	averageCycleTime(1000),
+	averageFramerate((unsigned short)(2 * fps)),
+	averageDeltaTime(1000)
+{
+#ifdef WIN32
+	timeBeginPeriod(1);
+#endif // ifdef WIN32
+}
+
+OTTFrameTimer::~OTTFrameTimer() {
+#ifdef WIN32
+	timeEndPeriod(1);
+#endif // ifdef WIN32
+}
+
 double OTTFrameTimer::getTimeElapsed() const { 
+#ifndef USE_GLFW_TIMER
 	return std::chrono::duration_cast<std::chrono::duration<double> >(hclock::now() - timeOfInitialization).count();
+#else
+	return (glfwGetTime() - dTimeOfInitialization); // in seconds
+#endif // ifndef USE_GLFW_TIMER
 }
 
 void OTTFrameTimer::update(){
 	// Update the timer
+#ifndef USE_GLFW_TIMER
 	timeOfLastUpdate = hclock::now();
+#else
+	dTimeOfLastUpdate = glfwGetTime(); // in seconds
+#endif // ifndef USE_GLFW_TIMER
 }
 
 double OTTFrameTimer::sync() {
 	// Get the time since the frame started
-	double frameTime = std::chrono::duration<double, std::micro>(hclock::now() - timeOfLastUpdate).count(); // in microseconds
-	dTotalRenderTime += frameTime;
+#ifndef USE_GLFW_TIMER
+	double frameTime = std::chrono::duration<double, std::micro>(hclock::now() - timeOfLastUpdate).count(); // Total loop time, in microseconds
+#else
+	double frameTime = 1E6 * (glfwGetTime() - dTimeOfLastUpdate); // Total loop time, in microseconds
+#endif // ifndef USE_GLFW_TIMER
 
-	// Update the total render time and the instantaneous framerate
-	if ((++nFrameCount % (long long)dFramerateCap) == 0) { // Compute framerate (roughly once per second)
-		dFramerate = nFrameCount / (dTotalRenderTime * 1.0E-6);
-	}
+	// Update the moving average loop time
+	averageCycleTime(frameTime);
 
 	// Cap the framerate by sleeping
 	if (dFramerateCap > 0) {
-		long long timeToSleep = (long long)(dFramePeriod - frameTime); // microseconds
-		if (timeToSleep > 0) {
-			std::this_thread::sleep_for(std::chrono::microseconds(timeToSleep));
-			dTotalRenderTime += timeToSleep;
+		double timeToSleep = (dFramePeriod - averageDeltaTime()) - frameTime; // Amount of time remaining until end of frame period (microseconds)
+		if (timeToSleep > 0) { // Sleep until end of frame period
+			std::this_thread::sleep_for(std::chrono::microseconds((long long)timeToSleep));
 		}
 	}
 
-	// Return the time elapsed since last call to sync()
-	return std::chrono::duration<double>(hclock::now() - timeOfLastUpdate).count(); // in seconds
+	// Compute the time elapsed since last call to sync()
+	double totalFrameTime = 0;
+#ifndef USE_GLFW_TIMER
+	totalFrameTime = std::chrono::duration<double>(hclock::now() - timeOfLastUpdate).count(); // Total frame time, in seconds
+	timeOfLastUpdate = hclock::now(); // update()
+#else
+	totalFrameTime = glfwGetTime() - dTimeOfLastUpdate; // Total frame time, in seconds
+	dTimeOfLastUpdate = glfwGetTime(); // update()
+#endif // ifndef USE_GLFW_TIMER
+
+	// Update the moving average framerate with the instantaneous framerate
+	averageFramerate(1.0 / totalFrameTime);
+
+	// Update moving average of difference between target frame period and actual frame period
+	averageDeltaTime(1E6 * totalFrameTime - dFramePeriod);
+
+	// Update the one-second timer
+	nFrameCount++;
+	dCycleTimer += totalFrameTime;
+	if (dCycleTimer >= 1.0) {
+		dFramerate = nFrameCount / dCycleTimer;
+		nFrameCount = 0;
+		dCycleTimer = 0;
+	}
+
+	return totalFrameTime;
 }
 
 void OTTFrameTimer::execute(){
@@ -44,3 +143,21 @@ void OTTFrameTimer::execute(){
 	}
 }
 
+void OTTFrameTimer::resetTimer() {
+	bQuitting = false;
+	dFramerate = 0;
+	nFrameCount = 0;
+	averageCycleTime.reset();
+	averageFramerate.reset();
+	averageDeltaTime.reset();
+#ifndef USE_GLFW_TIMER
+	timeOfInitialization = hclock::now();
+	timeOfLastUpdate = hclock::now();
+	cycleTimer = hclock::now();
+#else
+	dTimeOfInitialization = 0;
+	dTimeOfLastUpdate = 0;
+	dCycleTimer = 0;
+	glfwSetTime(0); // Reset GLFW timer
+#endif // ifndef USE_GLFW_TIMER
+}

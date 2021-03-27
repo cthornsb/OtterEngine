@@ -1,8 +1,8 @@
 #include <iostream>
 
-#ifndef _WIN32
+#ifndef WIN32
 #include <unistd.h>
-#endif
+#endif // ifndef WIN32
 
 #include "scene.hpp"
 #include "camera.hpp"
@@ -89,9 +89,6 @@ void scene::clear(const ColorRGB &color/*=Colors::BLACK*/){
 }
 
 bool scene::update(){
-	// Update the timer
-	timeOfLastUpdate = hclock::now();
-	
 	// Clear the vector of triangles to draw
 	polygonsToDraw.clear();
 
@@ -192,9 +189,6 @@ bool scene::update(){
 }
 
 bool scene::updateOpenGL() {
-	// Update the timer
-	timeOfLastUpdate = hclock::now();
-
 	// Clear the screen with a color
 	clear(Colors::BLACK);
 

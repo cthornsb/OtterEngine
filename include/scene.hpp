@@ -51,26 +51,38 @@ public:
 
 	/** Return true if the window is still open, and return false otherwise
 	  */
-	bool getStatus() const { return isRunning; }
+	bool getStatus() const {
+		return isRunning;
+	}
 
 	/** Get the width of the screen (in pixels)
 	  */
-	int getScreenWidth() const { return screenWidthPixels; }
+	int getScreenWidth() const {
+		return screenWidthPixels;
+	}
 
 	/** Get the height of the screen (in pixels)
 	  */	
-	int getScreenHeight() const { return screenHeightPixels; }
+	int getScreenHeight() const {
+		return screenHeightPixels;
+	}
 	
 	/** Get a pointer to the main camera
 	  */
-	camera *getCamera(){ return cam; }
+	camera *getCamera() {
+		return cam;
+	}
 
 	/* Get a pointer to the main rendering window */
-	OTTWindow3D* getWindow() { return window.get(); }
+	OTTWindow3D* getWindow() {
+		return window.get();
+	}
 
 	/** Get a pointer to the world light source
 	  */
-	lightSource *getWorldLight(){ return &worldLight; }
+	lightSource *getWorldLight() {
+		return &worldLight;
+	}
 
 	/** Get a pointer to the last user keypress event
 	  */
@@ -82,15 +94,21 @@ public:
 
 	/** Get the drawing mode to use when drawing the object to the screen
 	  */
-	drawMode getDrawingMode() const { return mode; }
+	drawMode getDrawingMode() const {
+		return mode;
+	}
 
 	/** Set the width of the screen (in pixels)
 	  */
-	void setScreenWidth(const int &width){ screenWidthPixels = width; }
+	void setScreenWidth(const int &width) {
+		screenWidthPixels = width;
+	}
 	
 	/** Set the height of the screen (in pixels)
 	  */
-	void setScreenHeight(const int &height){ screenHeightPixels = height; }
+	void setScreenHeight(const int &height) {
+		screenHeightPixels = height;
+	}
 	
 	/** Set the main camera for rendering and update its aspect ratio
 	  */
@@ -98,19 +116,27 @@ public:
 
 	/** Enable or disable the drawing of triangle normals
 	  */
-	void setDrawNormals(const bool &enable=true){ drawNorm = enable; }
+	void setDrawNormals(const bool &enable=true) {
+		drawNorm = enable;
+	}
 
 	/** Enable or disable the drawing of the X, Y, and Z axes at the origin
 	  */
-	void setDrawOrigin(const bool &enable=true){ drawOrigin = enable; }
+	void setDrawOrigin(const bool &enable=true) {
+		drawOrigin = enable;
+	}
 
 	/** Enable or disable shading objects with their z-depth value
 	  */
-	void setDrawZDepth(const bool& enable = true) { drawDepthMap = enable; }
+	void setDrawZDepth(const bool& enable = true) {
+		drawDepthMap = enable;
+	}
 
 	/** Set the drawing mode to use when drawing the object to the screen
 	  */
-	void setDrawingMode(const drawMode& dmode) { mode = dmode; }
+	void setDrawingMode(const drawMode& dmode) {
+		mode = dmode;
+	}
 
 	/** Enable OpenGL hardware renderer
 	  */
@@ -126,7 +152,9 @@ public:
 	
 	/** Add a light to the list of lights to be rendered
 	  */
-	void addLight(lightSource* light){ lights.push_back(light); }
+	void addLight(lightSource* light) {
+		lights.push_back(light);
+	}
 
 	/** Clear the screen by filling it with a color (black by default)
 	  */
@@ -146,32 +174,38 @@ public:
 
 private:
 	bool drawNorm; ///< Flag indicating that normal vectors will be drawn on each triangle
+
 	bool drawOrigin; ///< Flag indicating that the X, Y, and Z axes will be drawn at the origin
+
 	bool drawDepthMap; ///< "Shade" objects with their Z-depth (i.e. their depth into the screen)
+
 	bool isRunning; ///< Flag indicating that the window is still open and active
 
 	int screenWidthPixels; ///< Width of the viewing window (in pixels)
+
 	int screenHeightPixels; ///< Height of the viewing window (in pixels)
 
 	int minPixelsX;
+
 	int minPixelsY;
 	
 	int maxPixelsX;
+
 	int maxPixelsY;
 
 	drawMode mode; ///< Current rendering mode
 
-	camera *cam;
+	camera *cam; ///< Pointer to the main camera
 	
 	std::unique_ptr<OTTWindow3D> window; ///< Pointer to the main renderer window
 	
 	directionalLight worldLight; ///< Global light source
 	
-	std::vector<object*> objects;
+	std::vector<object*> objects; ///< Vector of pointers to all 3d objects currently in the scene
 	
-	std::vector<lightSource*> lights;
+	std::vector<lightSource*> lights; ///< Vector of pointers to all light sources currently in the scene
 
-	std::vector<pixelTriplet> polygonsToDraw;
+	std::vector<pixelTriplet> polygonsToDraw; ///< Vector of all polygons to draw (software renderer)
 
 	/** Refresh the screen
 	  * @return True if the update was successful and return false if the user closed the window
