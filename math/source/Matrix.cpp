@@ -1,5 +1,4 @@
 #include "Matrix.hpp"
-#include "camera.hpp"
 
 const Matrix2 identityMatrix2(1.f);
 

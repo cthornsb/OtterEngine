@@ -65,10 +65,11 @@ int main(){
 	myScene.addLight(&myLight);
 
 	// Load the (default) shader
+	myScene.getWindow()->enableVSync();
 	myShape.setShader(myScene.getWindow()->getShader(ShaderType::COLOR));
 
 	// Set the camera to draw surface normal vectors
-	//myScene.setDrawNormals();
+	myScene.setDrawNormals();
 	myScene.setDrawOrigin();
 	//myScene.setDrawZDepth();
 	
@@ -100,11 +101,12 @@ int main(){
 
 	// "Animate" the object by rotating it and moving the camera
 	int count = 0;
-	int dX, dY;
+	double dX, dY;
 	float timeElapsed = 0;
 	bool isDone = false;
 	OTTKeyboard *keys = myScene.getKeypress();
 	OTTMouse* mouse = myScene.getWindow()->getMouse();
+	mouse->setLockPointer(true);
 	while(!isDone && myScene.updateOpenGL()){
 		// Check for keypresses 
 		if(!keys->empty()){
@@ -158,6 +160,7 @@ int main(){
 
 		// Check mouse movement
 		if(mouse->delta(dX, dY)){
+			std::cout << dX << "\t" << dY << std::endl;
 			cam.rotateFPS(dY * cameraSensitivity, dX * cameraSensitivity);
 			//myShape.rotate(dY * cameraSensitivity / 2, 0, dX * cameraSensitivity / 2);
 		}
@@ -181,7 +184,7 @@ int main(){
 		//myLight.setDirection(cam.getDirection());
 
 		// Cap the framerate
-		timeElapsed = myScene.sync();
+		timeElapsed = (float)myScene.sync();
 	}
 	
 	return 0;

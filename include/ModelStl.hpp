@@ -26,8 +26,6 @@ protected:
 
 	virtual unsigned int userRead(std::ifstream&);
 
-	void convertToStandard(Vector3& vec);
-
 	void readStlBlock(float* array);
 
 	bool readAstBlock(const std::vector<std::string>& block);

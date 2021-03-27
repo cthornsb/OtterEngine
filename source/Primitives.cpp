@@ -299,7 +299,7 @@ void Primitives::Mesh::userBuild() {
 		nDivZ = 1;
 
 	// Reserve memory for geometry
-	reserve((nDivX + 1) * (nDivZ + 1), nDivX * nDivZ * 2.f);
+	reserve((nDivX + 1) * (nDivZ + 1), nDivX * nDivZ * 2);
 
 	// Add all vertices
 	float xStep = dX / nDivX;
