@@ -1,5 +1,5 @@
 # Complile core graphics sources
-# External Depends: glfw OpenGL GLU 
+# External Depends: GLFW GLEW OpenGL GLU SOIL
 add_library(
 	OtterCoreObj 
 	OBJECT 
@@ -8,69 +8,24 @@ add_library(
 	OTTImageBuffer.cpp
 	OTTJoypad.cpp
 	OTTKeyboard.cpp
+	OTTLogicalColor.cpp
 	OTTMouse.cpp
+	OTTSprite.cpp
+	OTTTexture.cpp
 	OTTWindow.cpp
 )
 
-# Compile graphics sources
-# External Depends: SOIL
-add_library(
-	OtterGraphicsObj
-	OBJECT
-	OTTLogicalColor.cpp
-	OTTShader.cpp
-	OTTSprite.cpp
-	OTTTexture.cpp
-	OTTWindow3D.cpp
-)
-
-# Compile 3d geometry sources
-# External Depends: GLEW
-#	OTTShader.cpp
-#	OTTWindow3D.cpp
-# PolygonContainer.cpp
-
-# Generate the libraries
-add_library(
-	OtterCoreStatic 
-	STATIC 
-	$<TARGET_OBJECTS:OtterCoreObj>
-)
-add_library(
-	OtterGraphicsStatic 
-	STATIC 
-	$<TARGET_OBJECTS:OtterGraphicsObj>
-)
-
-# Install static libraries
-if(INSTALL_STATIC)
-	install(
-		TARGETS 
-		OtterCoreStatic 
-		OtterGraphicsStatic 
-		DESTINATION 
-		lib
-	)
-endif(INSTALL_STATIC)
-
-# Build and install shared libraries
-if(INSTALL_SHARED)
-	add_library(
-		OtterCore 
+# Build Core library
+if(NOT WIN32)
+	add_library( OtterCore
 		SHARED 
 		$<TARGET_OBJECTS:OtterCoreObj>
 	)
-	add_library(
-		OtterGraphics
-		SHARED 
-		$<TARGET_OBJECTS:OtterGraphicsObj>
-	)
-	install(
-		TARGETS 
-		OtterCore
-		OtterGraphics
-		DESTINATION 
-		lib
-	)
-endif(INSTALL_SHARED)
 
+else()
+	# Building dlls on Windows is a nightmare, so we just won't do it
+	add_library( OtterCore
+		STATIC 
+		$<TARGET_OBJECTS:OtterCoreObj>
+	)
+endif()

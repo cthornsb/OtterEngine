@@ -20,22 +20,24 @@ target_compile_definitions(
 )
 
 # Generate the audio library
-add_library(
-	OtterAudioStatic 
-	STATIC 
-	$<TARGET_OBJECTS:OtterAudioObj>
-)
-
-if(INSTALL_STATIC)
-	install(TARGETS OtterAudioStatic DESTINATION lib)
-endif(INSTALL_STATIC)
-
-if(INSTALL_SHARED)
+if(NOT WIN32)
 	add_library(
 		OtterAudio
-		SHARED
+		SHARED 
 		$<TARGET_OBJECTS:OtterAudioObj>
 	)
-	install(TARGETS OtterAudio DESTINATION lib)
-endif(INSTALL_SHARED)
+else()
+	# Building dlls on Windows is a nightmare, so we just won't do it
+	add_library(
+		OtterAudio
+		STATIC 
+		$<TARGET_OBJECTS:OtterAudioObj>
+	)
+endif()
 
+if(INSTALL_LIBRARIES)
+	install(
+		TARGETS OtterAudio
+		DESTINATION lib
+	)
+endif()

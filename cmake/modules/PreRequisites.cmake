@@ -16,35 +16,17 @@
 #  ott_find_port_audio()   : Find portaudio
 
 # Enable the use of libOtterCore
-# Find packages glfw3 and OpenGL and set
-# OTTER_INCLUDE_CORE
-# OTTER_LIBRARIES
+# Find packages glfw3 and OpenGL
 function(ott_use_core)
-	set(OTTER_INCLUDE_CORE ${OTTER_DIRECTORY}/graphics/include PARENT_SCOPE)
-	set(OTTER_LIBRARIES
-		${OTTER_DIRECTORY}/install/lib/libOtterCore.so
-		PARENT_SCOPE
-	)		
 	ott_find_glfw()
 	ott_find_opengl()
+	ott_find_glew()
+	ott_find_soil()
 endfunction()
 
 # Enable the use of all 2d and 3d libraries
-# Find packages glfw3, OpenGL, GLEW, and SOIL and set
-# OTTER_INCLUDE_CORE
-# OTTER_INCLUDE_3D
-# OTTER_LIBRARIES
+# Find packages glfw3, OpenGL, GLEW, and SOIL
 function(ott_use_3d)
-	set(OTTER_INCLUDE_CORE ${OTTER_DIRECTORY}/graphics/include PARENT_SCOPE)
-	set(OTTER_INCLUDE_3D ${OTTER_DIRECTORY}/include PARENT_SCOPE)
-	set(OTTER_LIBRARIES 
-		${OTTER_DIRECTORY}/install/lib/libOtterCore.so
-		${OTTER_DIRECTORY}/install/lib/libOtter3dCore.so
-		${OTTER_DIRECTORY}/install/lib/libOtter3dGeom.so
-		${OTTER_DIRECTORY}/install/lib/libOtterGraphics.so
-		${OTTER_DIRECTORY}/install/lib/libOtterMath.so
-		PARENT_SCOPE
-	)
 	ott_find_glfw()
 	ott_find_opengl()
 	ott_find_glew()
@@ -52,16 +34,8 @@ function(ott_use_3d)
 endfunction()
 	
 # Enable the use of port audio libraries
-# Find package portaudio and set
-# OTTER_INCLUDE_AUDIO
-# OTTER_LIBRARIES
+# Find package portaudio
 function(ott_use_audio)
-	set(OTTER_INCLUDE_AUDIO ${OTTER_DIRECTORY}/audio/include PARENT_SCOPE)
-	set(OTTER_LIBRARIES 
-		${OTTER_LIBRARIES}
-		${OTTER_DIRECTORY}/install/lib/libOtterAudio.so
-		PARENT_SCOPE
-	)
 	ott_find_port_audio()
 endfunction()
 
@@ -99,7 +73,12 @@ endfunction()
 # GLEW_STATIC_LIBRARIES
 # GLEW_INCLUDE_DIRS
 function(ott_find_glew)
-	find_package(GLEW REQUIRED)
+	if(NOT WIN32)
+		find_package(GLEW REQUIRED)
+	else()
+		# Include this for compatibility with GLEW installs on windows
+		find_package(GLEW_Win REQUIRED)
+	endif()
 	message(STATUS "Found GLEW: ${GLEW_LIBRARY}")
 endfunction()
 

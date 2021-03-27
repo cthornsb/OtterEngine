@@ -7,25 +7,18 @@ add_library(
 	WrappedValue.cpp
 )
 
-# Generate a static library.
-add_library(
-	OtterMathStatic 
-	STATIC 
-	$<TARGET_OBJECTS:OtterMathObj>
-)
-
-# Install static libraries.
-if(INSTALL_STATIC)
-	install(TARGETS OtterMathStatic DESTINATION lib)
-endif(INSTALL_STATIC)
-
-# Install shared libraries.
-if(INSTALL_SHARED)
+# Generate math library
+if(NOT WIN32)
 	add_library(
-		OtterMath 
+		OtterMath
 		SHARED 
 		$<TARGET_OBJECTS:OtterMathObj>
 	)
-	install(TARGETS OtterMath DESTINATION lib)
-endif(INSTALL_SHARED)
-
+else()
+	# Building dlls on Windows is a nightmare, so we just won't do it
+	add_library(
+		OtterMath
+		STATIC 
+		$<TARGET_OBJECTS:OtterMathObj>
+	)
+endif()

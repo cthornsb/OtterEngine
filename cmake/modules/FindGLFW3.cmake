@@ -3,11 +3,11 @@
 # This module defines the following variables:
 #
 # GLFW3_LIBRARY the name of the library;
-# GLFW3_INCLUDE_DIR where to find glfw include files.
-# GLFW3_FOUND true if both the GLFW3_LIBRARY and GLFW3_INCLUDE_DIR have been found.
+# GLFW3_INCLUDE_DIRS where to find glfw include files.
+# GLFW3_FOUND true if both the GLFW3_LIBRARY and GLFW3_INCLUDE_DIRS have been found.
 #
 # To help locate the library and include file, you can define a
-# variable called GLFW3_ROOT which points to the root of the glfw library
+# variable called USER_GLFW3_ROOT which points to the root of the glfw library
 # installation.
 #
 # default search dirs
@@ -28,19 +28,19 @@ set( _glfw3_LIB_SEARCH_DIRS
 )
 
 # Check environment for root search directory
-set( _glfw3_ENV_ROOT $ENV{GLFW3_ROOT} )
-if( NOT GLFW3_ROOT AND _glfw3_ENV_ROOT )
-	set(GLFW3_ROOT ${_glfw3_ENV_ROOT} )
+set( _glfw3_ENV_ROOT $ENV{USER_GLFW3_ROOT} )
+if( NOT USER_GLFW3_ROOT AND _glfw3_ENV_ROOT )
+	set(USER_GLFW3_ROOT ${_glfw3_ENV_ROOT} )
 endif()
 
 # Put user specified location at beginning of search
-if( GLFW3_ROOT )
-	list( INSERT _glfw3_HEADER_SEARCH_DIRS 0 "${GLFW3_ROOT}/include" )
-	list( INSERT _glfw3_LIB_SEARCH_DIRS 0 "${GLFW3_ROOT}/lib" )
+if( USER_GLFW3_ROOT )
+	list( INSERT _glfw3_HEADER_SEARCH_DIRS 0 "${USER_GLFW3_ROOT}/include" )
+	list( INSERT _glfw3_LIB_SEARCH_DIRS 0 "${USER_GLFW3_ROOT}/lib-vc2019" )
 endif()
 
 # Search for the header
-FIND_PATH(GLFW3_INCLUDE_DIR "GLFW/glfw3.h"
+FIND_PATH(GLFW3_INCLUDE_DIRS "GLFW/glfw3.h"
 PATHS ${_glfw3_HEADER_SEARCH_DIRS} )
 
 # Search for the library
@@ -52,11 +52,18 @@ FIND_LIBRARY(
 	PATHS 
 	${_glfw3_LIB_SEARCH_DIRS}
 )
+
+# Remove some unnecessary clutter
+mark_as_advanced(
+	GLFW3_INCLUDE_DIRS
+	GLFW3_LIBRARY
+)
+
 INCLUDE(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(
 	GLFW3 
 	DEFAULT_MSG
 	GLFW3_LIBRARY 
-	GLFW3_INCLUDE_DIR
+	GLFW3_INCLUDE_DIRS
 )
 

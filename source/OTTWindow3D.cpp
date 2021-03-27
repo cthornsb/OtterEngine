@@ -209,13 +209,6 @@ void OTTWindow3D::onUserReshape(){
 }
 
 void OTTWindow3D::onUserInitialize(){
-	if (bFirstInit) { // Initialize GLEW
-		GLenum err = glewInit(); // Initialize GLEW
-		if (err != GLEW_OK) {
-			std::cout << " [ERROR] Failed to initialize GLEW!" << std::endl;
-		}
-	}
-
 	// Initialize default shaders
 	shaders.reset(new OTTDefaultShaders::ShaderList());
 }

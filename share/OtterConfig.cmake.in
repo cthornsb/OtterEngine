@@ -1,0 +1,90 @@
+# - Config file for OtterEngine package (OtterConfig.cmake)
+#
+# Defines the following variables
+#  OTTER_INCLUDE_DIRS - include directories for OtterEngine
+#  OTTER_LIBRARY_DIR  - shared library install directory
+#  OTTER_BINARY_DIR   - binary install directory
+#  OTTER_MODULE_PATH  - path to OtterEngine cmake modules
+#
+# The following libraries will be imported (with their alternative path variables)
+#  Ott::OtterCore   (OTTER_CORE_LIB)   - Core graphics library (2d graphics)
+#  Ott::Otter3dCore (OTTER_3DCORE_LIB) - Core 3d graphics library
+#  Ott::OtterAudio  (OTTER_AUDIO_LIB)  - Sound library
+#  Ott::OtterMath   (OTTER_MATH_LIB)   - Math library
+#
+# The following variables will be set if they are currently undefined
+#  USER_GLFW3_ROOT    - GLFW install root dir
+#  USER_GLEW_ROOT     - GLEW install root dir
+#  USER_SOIL_ROOT     - SOIL install root dir
+#  USER_PORT_AUDIO_ROOT - PortAudio install root dir
+#
+# To use this configuration file, simply add the following line to your project.
+#  include(otter/install/path/OtterConfig.cmake)
+
+# Set paths
+set( OTTER_INCLUDE_DIRS "@INSTALL_INCLUDE_DIR@")
+set( OTTER_LIBRARY_DIR  "@INSTALL_LIB_DIR@")
+set( OTTER_BINARY_DIR   "@INSTALL_BIN_DIR@")
+
+# Add CMake modules path
+set( OTTER_MODULE_PATH "@CMAKE_MODULE_PATH@")
+
+# Remove some unnecessary clutter
+mark_as_advanced(
+	OTTER_INCLUDE_DIRS
+	OTTER_LIBRARY_DIR
+	OTTER_BINARY_DIR
+	OTTER_MODULE_PATH
+)
+
+# Add otter libraries
+set( OTTER_EXPORT_FILE "${CMAKE_CURRENT_LIST_DIR}/cmake/OtterExport.cmake")
+if(EXISTS ${OTTER_EXPORT_FILE})
+	include(${OTTER_EXPORT_FILE})
+else()
+	message(WARNING "Failed to find OtterEngine export file! Use fallback library variables")
+	message(WARNING "Expected export file at ${OTTER_EXPORT_FILE}")
+endif()
+
+find_library( OTTER_CORE_LIB
+	NAMES "OtterCore"
+	PATHS ${CMAKE_CURRENT_LIST_DIR}/lib
+)
+find_library( OTTER_3DCORE_LIB
+	NAMES "Otter3dCore"
+	PATHS ${CMAKE_CURRENT_LIST_DIR}/lib
+)
+find_library( OTTER_AUDIO_LIB
+	NAMES "OtterAudio"
+	PATHS ${CMAKE_CURRENT_LIST_DIR}/lib
+)
+find_library( OTTER_MATH_LIB
+	NAMES "OtterMath"
+	PATHS ${CMAKE_CURRENT_LIST_DIR}/lib
+)
+
+# Remove some unnecessary clutter
+mark_as_advanced(
+	OTTER_INCLUDE_DIRS
+	OTTER_LIBRARY_DIR
+	OTTER_BINARY_DIR
+	OTTER_MODULE_PATH
+	OTTER_CORE_LIB
+	OTTER_3DCORE_LIB
+	OTTER_AUDIO_LIB
+	OTTER_MATH_LIB
+)
+
+# Add external dependency hints to make it slightly less annoying in future projects
+if(NOT USER_GLFW3_ROOT)
+	set( USER_GLFW3_ROOT "@USER_GLFW3_ROOT@")
+endif()
+if(NOT USER_GLEW_ROOT)
+	set( USER_GLEW_ROOT "@USER_GLEW_ROOT@")
+endif()
+if(NOT USER_SOIL_ROOT)
+	set( USER_SOIL_ROOT "@USER_SOIL_ROOT@")
+endif()
+if(NOT USER_PORT_AUDIO_ROOT)
+	set( USER_PORT_AUDIO_ROOT "@USER_PORT_AUDIO_ROOT@")
+endif()

@@ -45,12 +45,7 @@ endif(CMAKE_BUILD_TYPE MATCHES "Debug")
 #------------------------------------------------------------------------------
 
 #Install options
-if(WIN32)
-	option(INSTALL_DLLS "Install required DLLs when installing executable." ON)
-endif(WIN32)
-
-option(INSTALL_STATIC "Install static libraries." OFF)
-option(INSTALL_SHARED "Build and install shared libraries." OFF)
+option(INSTALL_LIBRARIES "Install OtterEngine shared libraries." OFF)
 
 #------------------------------------------------------------------------------
 
@@ -66,13 +61,23 @@ include(PreRequisites)
 #Find glfw, OpenGL, GLU, GLEW, SOIL, and portaudio
 ott_find_all_packages()
 
+set(INSTALL_BIN_DIR     ${CMAKE_INSTALL_PREFIX}/bin)
+set(INSTALL_LIB_DIR     ${CMAKE_INSTALL_PREFIX}/lib)
+set(INSTALL_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include)
+set(INSTALL_SHARE_DIR   ${CMAKE_INSTALL_PREFIX}/cmake)
+
+set(INCLUDE_DIR_GRAPHICS ${CMAKE_SOURCE_DIR}/graphics/include)
+set(INCLUDE_DIR_AUDIO    ${CMAKE_SOURCE_DIR}/audio/include)
+set(INCLUDE_DIR_MATH     ${CMAKE_SOURCE_DIR}/math/include)
+set(INCLUDE_DIR_3D       ${CMAKE_SOURCE_DIR}/3d/include)
+
+#Add the global include directories.
 include_directories(${GLFW3_INCLUDE_DIR})
 include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_DIRS})
 include_directories(${SOIL_INCLUDE_DIR})
 include_directories(${PORT_AUDIO_INCLUDE_DIR})
 
-#Add the include directories.
 include_directories(graphics/include)
 include_directories(audio/include)
 include_directories(math/include)
@@ -82,9 +87,47 @@ include_directories(include)
 add_subdirectory(graphics/source)
 add_subdirectory(audio/source)
 add_subdirectory(math/source)
-
-#Add the source directory.
 add_subdirectory(source)
 
 #Build/install the miscellaneous stuff
-#add_subdirectory(share)
+# Build and install shared libraries.
+if(INSTALL_LIBRARIES)
+	# Install all libraries and header files
+	file(GLOB_RECURSE OTTER_HEADERS *.hpp)
+	install(
+		TARGETS 
+		OtterCore
+		Otter3dCore 
+		OtterAudio
+		OtterMath
+		EXPORT OtterConfig
+		LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+        ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+        RUNTIME DESTINATION ${INSTALL_BIN_DIR}
+		INCLUDES DESTINATION ${INSTALL_INCLUDE_DIR}
+	)
+	# Install header files
+	install(
+		FILES ${OTTER_HEADERS}
+		DESTINATION ${INSTALL_INCLUDE_DIR}
+	)
+	# Export libraries
+	export(
+		TARGETS
+		OtterCore
+		Otter3dCore 
+		OtterAudio
+		OtterMath
+		NAMESPACE Ott::
+		FILE "${INSTALL_SHARE_DIR}/OtterExport.cmake"
+	)
+	install(
+		EXPORT OtterConfig
+		DESTINATION ${INSTALL_INCLUDE_DIR}/cmake
+		NAMESPACE Ott::
+	)
+	# Install configuration file
+	configure_file( "share/OtterConfig.cmake.in"
+		"${CMAKE_INSTALL_PREFIX}/OtterConfig.cmake" @ONLY
+	)
+endif()
