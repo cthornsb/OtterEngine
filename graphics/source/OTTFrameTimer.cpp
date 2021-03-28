@@ -95,7 +95,7 @@ double OTTFrameTimer::sync() {
 #endif // ifndef USE_GLFW_TIMER
 
 	// Update the moving average loop time
-	averageCycleTime(frameTime);
+	averageCycleTime.add(frameTime);
 
 	// Cap the framerate by sleeping
 	if (dFramerateCap > 0) {
@@ -116,10 +116,10 @@ double OTTFrameTimer::sync() {
 #endif // ifndef USE_GLFW_TIMER
 
 	// Update the moving average framerate with the instantaneous framerate
-	averageFramerate(1.0 / totalFrameTime);
+	averageFramerate.add(1.0 / totalFrameTime);
 
 	// Update moving average of difference between target frame period and actual frame period
-	averageDeltaTime(1E6 * totalFrameTime - dFramePeriod);
+	averageDeltaTime.add(1E6 * totalFrameTime - dFramePeriod);
 
 	// Update the one-second timer
 	nFrameCount++;

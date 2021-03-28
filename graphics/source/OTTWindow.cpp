@@ -260,18 +260,6 @@ bool OTTWindow::initialize(const std::string& name){
 	if(!win.get()) // Window creation failed
 		return false;
 
-#ifdef WIN32
-	// Initialize GLEW
-	if (bFirstInit) {
-		setCurrent();
-		GLint err = glewInit(); 
-		if (err != GLEW_OK) {
-			const GLubyte* str = glewGetErrorString(err);
-			std::cout << " [glew] Error! id=" << err << " : " << str << std::endl;
-		}
-	}
-#endif
-
 	// Set the primary monitor pointer
 	monitor = glfwGetPrimaryMonitor();
 	
@@ -338,19 +326,25 @@ void OTTWindow::disableGamepad() {
 }
 
 void OTTWindow::enableVSync() {
-#ifndef WIN32
-
+/*#ifndef WIN32
+	glXSwapIntervalSGI(1);
+	//glXSwapIntervalMESA(1);
 #else
 	wglSwapIntervalEXT(1);
-#endif // ifndef WIN32
+#endif // ifndef WIN32*/
+	setCurrent();
+	glfwSwapInterval(1);
 }
 
 void OTTWindow::disableVSync() {
-#ifndef WIN32
-	
+/*#ifndef WIN32
+	glXSwapIntervalSGI(0);
+	//glXSwapIntervalMESA(0);
 #else
 	wglSwapIntervalEXT(0);
-#endif // ifndef WIN32
+#endif // ifndef WIN32*/
+	setCurrent();
+	glfwSwapInterval(0);
 }
 
 void OTTWindow::handleErrors(int error, const char* description) {

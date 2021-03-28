@@ -7,12 +7,6 @@
 #include <string>
 #include <map>
 
-#ifdef WIN32
-// Note that GLEW must be included BEFORE GLFW!
-#include <GL/glew.h>
-#include <GL/wglew.h>
-#endif // ifdef WIN32
-
 #include <GLFW/glfw3.h>
 
 #include "ColorRGB.hpp"
