@@ -129,6 +129,12 @@ public:
 		return nHeight; 
 	}
 
+	/** Get the number of pixel color channels
+	  */
+	unsigned short getNumChannels() const {
+		return nChannels;
+	}
+
 	/** Return true if buffer data is empty
 	  */
 	bool empty() const {

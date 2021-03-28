@@ -194,13 +194,17 @@ bool OTTTexture::read(const std::string& fname) {
 }
 
 bool OTTTexture::write(const std::string& fname){
+	return OTTTexture::write(*this, fname);
+}
+
+bool OTTTexture::write(const OTTImageBuffer& buffer, const std::string& fname){
 	int retval = SOIL_save_image(
-		fname.c_str(), 
+		(fname + ".bmp").c_str(), 
 		SOIL_SAVE_TYPE_BMP, //(nChannels == 4 ? SOIL_SAVE_TYPE_TGA : SOIL_SAVE_TYPE_BMP), 
-		nWidth, 
-		nHeight, 
-		nChannels, 
-		dptr
+		buffer.getWidth(), 
+		buffer.getHeight(), 
+		buffer.getNumChannels(), 
+		buffer.get()
 	);
 	return (retval == 1);
 }

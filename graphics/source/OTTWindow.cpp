@@ -2,6 +2,7 @@
 
 #include "OTTWindow.hpp"
 #include "OTTJoypad.hpp"
+#include "OTTTexture.hpp"
 
 OTTWindow::OTTWindow(const int &w, const int &h, const int& scale/*=1*/) : 
 	win(),
@@ -26,6 +27,7 @@ OTTWindow::OTTWindow(const int &w, const int &h, const int& scale/*=1*/) :
 	mouse(),
 	joypad(&OTTJoypad::getInstance()),
 	buffer(),
+	previousMouseState(MouseStates::NORMAL),
 	userPathDropCallback(0x0)
 {
 }
@@ -145,10 +147,13 @@ void OTTWindow::setFullScreenMode(bool state/*=true*/){
 			nOldHeight = height;
 			glfwGetWindowPos(win.get(), &nOldPosX, &nOldPosY);
 			glfwSetWindowMonitor(win.get(), monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+			previousMouseState = mouse.getCursorState();
+			mouse.setHideCursor();
 		}
 		else{ // Windowed
 			updateWindowSize(nOldWidth, nOldHeight);
 			glfwSetWindowMonitor(win.get(), NULL, nOldPosX, nOldPosY, width, height, GLFW_DONT_CARE);
+			mouse.setCursorState(previousMouseState);
 		}
 	}
 }
@@ -345,6 +350,17 @@ void OTTWindow::disableVSync() {
 #endif // ifndef WIN32*/
 	setCurrent();
 	glfwSwapInterval(0);
+}
+
+bool OTTWindow::saveImageBufferToBitmap(const std::string& fname){
+	return OTTTexture::write(buffer, fname);
+}
+
+bool OTTWindow::saveFrameBufferToBitmap(const std::string& fname){
+	unsigned char* data = 0x0;
+	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+	delete[] data;
+	return false;
 }
 
 void OTTWindow::handleErrors(int error, const char* description) {

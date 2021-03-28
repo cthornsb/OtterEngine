@@ -5,6 +5,16 @@ struct GLFWwindow;
 struct GLFWcursor;
 
 /// <summary>
+/// GLFW mouse cursor states
+/// </summary>
+enum class MouseStates{
+	NORMAL,   ///< Cursor visible and behaves normally
+	DISABLED, ///< Cursor is hidden and is locked inside the window
+	HIDDEN,   ///< Cursor is hidden but is not restricted from leaving the window
+	RAW       ///< 
+};
+
+/// <summary>
 /// Simple mouse motion and button press wrapper for interfacing with glfw
 /// </summary>
 class OTTMouse {
@@ -67,6 +77,12 @@ public:
 		return dDeltaY;
 	}
 
+	/** Get the current mouse state
+	  */
+	MouseStates getCursorState() const {
+		return state;
+	}
+
 	/** Return true if no mouse button is pressed, and return false otherwise
 	  **/
 	bool empty() const {
@@ -99,6 +115,11 @@ public:
 	  * @return True if raw input mode was enabled
 	  */
 	bool setRawCursor();
+
+	/** Set new mouse cursor state
+	  * @return True if new cursor state set successfully
+	  */
+	bool setCursorState(const MouseStates& newState);
 
 	/** Set a custom mouse cursor image
 	  * @param pixels Array of pixel color data containing four bytes per pixel (RGBA)
@@ -158,6 +179,8 @@ public:
 	static void handleMouseScroll(GLFWwindow* window, double xoffset, double yoffset);
 
 private:
+	MouseStates state; ///< State of the mouse cursor before a mode change
+
 	unsigned short nCount; ///< Number of standard keyboard keys which are currently pressed
 
 	double dPosX; ///< Current mouse position X on the screen

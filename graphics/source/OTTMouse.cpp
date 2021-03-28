@@ -2,6 +2,7 @@
 #include "OTTWindow.hpp"
 
 OTTMouse::OTTMouse() :
+	state(MouseStates::NORMAL),
 	nCount(0),
 	dPosX(0),
 	dPosY(0),
@@ -24,30 +25,50 @@ void OTTMouse::disable(){
 
 void OTTMouse::setNormalCursor(){
 	glfwSetInputMode(parent, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	state = MouseStates::NORMAL;
 }
 
 void OTTMouse::setDisableCursor(){
 	glfwSetInputMode(parent, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	state = MouseStates::DISABLED;
 }
 
 void OTTMouse::setHideCursor(){
 	glfwSetInputMode(parent, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+	state = MouseStates::HIDDEN;
 }
 
-#ifdef GLFW_RAW_MOUSE_MOTION
 bool OTTMouse::setRawCursor(){
+#ifdef GLFW_RAW_MOUSE_MOTION
 	if (glfwRawMouseMotionSupported()){
 		setDisableCursor(); // Disable normal cursor
 		glfwSetInputMode(parent, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+		state = MouseStates::RAW;
 		return true;
+	}
+#else
+	return false;
+#endif // ifdef GLFW_RAW_MOUSE_MOTION
+}
+
+bool OTTMouse::setCursorState(const MouseStates& newState){
+	switch(newState){
+	case MouseStates::NORMAL:
+		setNormalCursor();
+		return true;
+	case MouseStates::DISABLED:
+		setDisableCursor();
+		return true;
+	case MouseStates::HIDDEN:
+		setHideCursor();
+		return true;
+	case MouseStates::RAW:
+		return setRawCursor();
+	default:
+		break;
 	}
 	return false;
 }
-#else
-bool OTTMouse::setRawCursor(){
-	return false;
-}
-#endif // ifdef GLFW_RAW_MOUSE_MOTION
 
 GLFWcursor* OTTMouse::setCustomCursor(unsigned char* pixels, const int& w, const int& h, const int& x0, const int& y0){
 	GLFWimage image;

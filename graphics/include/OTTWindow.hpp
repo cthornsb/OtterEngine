@@ -201,6 +201,7 @@ public:
 
 	/** Enable or disable full screen mode.
 	  * The current monitor video mode will not be changed.
+	  * The current state of the mouse cursor will be preserved if full screen mode is switched back later.
 	  */
 	void setFullScreenMode(bool state=true);
 
@@ -349,6 +350,18 @@ public:
 	  */
 	void disableVSync();
 
+	/** Save current image buffer bitmap to disk
+	  * @param fname Path to output image file
+	  * @return True if image is saved successfully
+	  */
+	bool saveImageBufferToBitmap(const std::string& fname);
+
+	/** Save current OpenGL frame buffer to disk
+	  * @param fname Path to output image file
+	  * @return True if image is saved successfully
+	  */
+	bool saveFrameBufferToBitmap(const std::string& fname);
+
 	/** Handle glfw errors
 	  */
 	static void handleErrors(int error, const char* description);
@@ -411,6 +424,8 @@ protected:
 	OTTJoypad* joypad; ///< GLFW joypad callback wrapper
 	
 	OTTImageBuffer buffer; ///< CPU-side frame buffer
+	
+	MouseStates previousMouseState; ///< State of the mouse cursor before full-screen mode switch
 	
 	void (*userPathDropCallback)(const std::string&);
 	
