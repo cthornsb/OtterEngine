@@ -10,7 +10,6 @@ if(NOT WIN32) # Unix systems (Ubuntu)
 		if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.9")
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=auto")
 		endif()
-
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -fPIC")
 	endif()
 else()
@@ -32,7 +31,7 @@ if(NOT CMAKE_BUILD_TYPE)
       "Build type, options are: None Debug Release RelWithDebInfo MinSizeRel."
       FORCE)
    message(STATUS "Build type not defined, using default: ${CMAKE_BUILD_TYPE}")
-endif(NOT CMAKE_BUILD_TYPE)
+endif()
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 #Add additional CXX flags if we use the Debug option
@@ -40,7 +39,7 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
 	if(NOT WIN32)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
 	endif()
-endif(CMAKE_BUILD_TYPE MATCHES "Debug")
+endif()
 
 #------------------------------------------------------------------------------
 
@@ -55,7 +54,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 #Include helper macro
 include(PreRequisites)
 
-# To install OpenGL and glfw on Ubunut (apt)
+# To install OpenGL, glu, glfw, glew and soil on Ubuntu (apt)
 # sudo apt install libglu1-mesa-dev libglfw3-dev mesa-common-dev libsoil-dev libglew-dev
 
 #Find glfw, OpenGL, GLU, GLEW, SOIL, and portaudio
@@ -92,21 +91,8 @@ add_subdirectory(source)
 #Build/install the miscellaneous stuff
 # Build and install shared libraries.
 if(INSTALL_LIBRARIES)
-	# Install all libraries and header files
-	file(GLOB_RECURSE OTTER_HEADERS *.hpp)
-	install(
-		TARGETS 
-		OtterCore
-		Otter3dCore 
-		OtterAudio
-		OtterMath
-		EXPORT OtterConfig
-		LIBRARY DESTINATION ${INSTALL_LIB_DIR}
-        ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
-        RUNTIME DESTINATION ${INSTALL_BIN_DIR}
-		INCLUDES DESTINATION ${INSTALL_INCLUDE_DIR}
-	)
 	# Install header files
+	file(GLOB_RECURSE OTTER_HEADERS *.hpp)
 	install(
 		FILES ${OTTER_HEADERS}
 		DESTINATION ${INSTALL_INCLUDE_DIR}
@@ -123,7 +109,7 @@ if(INSTALL_LIBRARIES)
 	)
 	install(
 		EXPORT OtterConfig
-		DESTINATION ${INSTALL_INCLUDE_DIR}/cmake
+		DESTINATION "${INSTALL_INCLUDE_DIR}/cmake"
 		NAMESPACE Ott::
 	)
 	# Install configuration file
@@ -131,3 +117,4 @@ if(INSTALL_LIBRARIES)
 		"${CMAKE_INSTALL_PREFIX}/OtterConfig.cmake" @ONLY
 	)
 endif()
+

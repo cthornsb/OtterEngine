@@ -1,6 +1,5 @@
 # 3d base classes
-add_library(
-	Otter3dCoreObj 
+add_library( Otter3dCoreObj 
 	OBJECT
 	camera.cpp 
 	lightSource.cpp
@@ -36,10 +35,21 @@ else()
 	)
 endif()
 
+if(INSTALL_LIBRARIES)
+	# Install libraries
+	install(
+		TARGETS Otter3dCore 
+		EXPORT OtterConfig
+		LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+		ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+		RUNTIME DESTINATION ${INSTALL_BIN_DIR}
+		INCLUDES DESTINATION ${INSTALL_INCLUDE_DIR}
+	)
+endif()
+
 # Build renderer executable.
 add_executable(render3d renderer.cpp)
-target_link_libraries(
-	render3d 
+target_link_libraries( render3d 
 	OtterCore
 	Otter3dCore 
 	OtterAudio
@@ -47,7 +57,7 @@ target_link_libraries(
 	OpenGL::GL
 	OpenGL::GLU
 	${GLFW3_LIBRARY}
-	GLEW::glew
+	GLEW::GLEW
 	${SOIL_LIBRARY}
 	${PORT_AUDIO_LIBRARY}
 )
@@ -60,3 +70,4 @@ install(
 	TARGETS render3d 
 	DESTINATION bin
 )
+
