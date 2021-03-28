@@ -16,11 +16,10 @@
 #  ott_find_port_audio()   : Find portaudio
 
 # Enable the use of libOtterCore
-# Find packages glfw3 and OpenGL
+# Find packages glfw3, OpenGL, and SOIL
 function(ott_use_core)
 	ott_find_glfw()
 	ott_find_opengl()
-	ott_find_glew()
 	ott_find_soil()
 endfunction()
 
