@@ -177,15 +177,13 @@ protected:
 	hclock::time_point timeOfInitialization; ///< The time that the scene was initialized
 
 	hclock::time_point timeOfLastUpdate; ///< The last time that update() was called by the user
-
-	hclock::time_point cycleTimer; ///< The time taken to execute nCycleTimerPeriod update() cycles
 #else
 	double dTimeOfInitialization; ///< The time that the scene was initialized
 
 	double dTimeOfLastUpdate; ///< The last time that update() was called by the user
+#endif // ifndef USE_GFLW_TIMER
 
 	double dCycleTimer; ///< The time taken to execute nCycleTimerPeriod update() cycles
-#endif // ifndef USE_GFLW_TIMER
 
 	MovingAverage averageCycleTime; ///< Moving average cycle time
 

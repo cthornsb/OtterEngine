@@ -49,12 +49,11 @@ OTTFrameTimer::OTTFrameTimer(const double& fps) :
 #ifndef USE_GLFW_TIMER
 	timeOfInitialization(hclock::now()),
 	timeOfLastUpdate(hclock::now()),
-	cycleTimer(hclock::now()),
 #else
 	dTimeOfInitialization(0),
 	dTimeOfLastUpdate(0),
-	dCycleTimer(0),
 #endif // ifndef USE_GFLW_TIMER
+	dCycleTimer(0),
 	averageCycleTime(1000),
 	averageFramerate((unsigned short)(2 * fps)),
 	averageDeltaTime(1000)
@@ -153,11 +152,10 @@ void OTTFrameTimer::resetTimer() {
 #ifndef USE_GLFW_TIMER
 	timeOfInitialization = hclock::now();
 	timeOfLastUpdate = hclock::now();
-	cycleTimer = hclock::now();
 #else
 	dTimeOfInitialization = 0;
 	dTimeOfLastUpdate = 0;
-	dCycleTimer = 0;
 	glfwSetTime(0); // Reset GLFW timer
 #endif // ifndef USE_GLFW_TIMER
+	dCycleTimer = 0;
 }

@@ -260,6 +260,7 @@ bool OTTWindow::initialize(const std::string& name){
 	if(!win.get()) // Window creation failed
 		return false;
 
+#ifdef WIN32
 	// Initialize GLEW
 	if (bFirstInit) {
 		setCurrent();
@@ -269,6 +270,7 @@ bool OTTWindow::initialize(const std::string& name){
 			std::cout << " [glew] Error! id=" << err << " : " << str << std::endl;
 		}
 	}
+#endif
 
 	// Set the primary monitor pointer
 	monitor = glfwGetPrimaryMonitor();
