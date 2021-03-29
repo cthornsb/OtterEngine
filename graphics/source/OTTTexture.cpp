@@ -34,13 +34,6 @@ unsigned int OTTTexture::getTexture() {
 	return nContext;
 }
 
-bool OTTTexture::getPixel(const int& x, const int& y, OTTLogicalColor& color) {
-	if (x >= nWidth || y >= nHeight)
-		return false;
-	color = OTTLogicalColor(&dptr[(nWidth * y + x) * nChannels]);
-	return true;
-}
-
 void OTTTexture::setOpacity(const float& opacity) {
 	if (opacity < 0.f || opacity > 1.f) // Opacity out of range
 		return;
@@ -194,17 +187,39 @@ bool OTTTexture::read(const std::string& fname) {
 }
 
 bool OTTTexture::write(const std::string& fname){
-	return OTTTexture::write(*this, fname);
+	// Note: The image buffer class saves images upside down because that is what
+	// OpenGL expects when pushing pixel data to the frame buffer. In order to save
+	// the image buffer as an image, we need to flip the image data vertically.
+	return OTTTexture::write(*this, fname, false, true);
 }
 
-bool OTTTexture::write(const OTTImageBuffer& buffer, const std::string& fname){
+bool OTTTexture::write(const OTTImageBuffer& buffer, const std::string& fname, bool bFlipX, bool bFlipY){
+	// Make a copy of image buffer data
+	std::vector<unsigned char> copyOfData;
+	buffer.copyImageData(copyOfData);
+	
+	// Reverse the pixels (without reversing the color components)
+	unsigned short W = buffer.getWidth();
+	unsigned short H = buffer.getHeight();
+	unsigned short ch = buffer.getNumChannels();
+	OTTLogicalColor outPixel;
+	for (int i = 0; i < H; i++) { // Over rows
+		for (int j = 0; j < W; j++) { // Over columns
+			const unsigned char* inPixel = buffer.getPixel(
+				(bFlipX ? (W - 1) - j : j), 
+				(bFlipY ? (H - 1) - i : i)
+			);
+			outPixel = &copyOfData[(W * i + j) * ch];
+			outPixel.setColor(inPixel);
+		}
+	}
 	int retval = SOIL_save_image(
 		(fname + ".bmp").c_str(), 
 		SOIL_SAVE_TYPE_BMP, //(nChannels == 4 ? SOIL_SAVE_TYPE_TGA : SOIL_SAVE_TYPE_BMP), 
-		buffer.getWidth(), 
-		buffer.getHeight(), 
-		buffer.getNumChannels(), 
-		buffer.get()
+		W,
+		H,
+		ch,
+		copyOfData.data()
 	);
 	return (retval == 1);
 }

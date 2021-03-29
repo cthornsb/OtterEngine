@@ -117,6 +117,19 @@ public:
 		return &dptr[0];
 	}
 
+	/** Get a logical pixel from a pixel in the loaded image
+	  **/
+	bool getPixel(const int& x, const int& y, OTTLogicalColor& color);
+
+	/** Get a pointer to the start of a pixel color data
+	  **/
+	const unsigned char* getPixel(const int& x, const int& y) const ;
+
+	/** Copy image buffer pixel data to a vector.
+	  * Vector will be cleared before filling with pixel data.
+	  */	
+	void copyImageData(std::vector<unsigned char>& output) const ;
+	
 	/** Get the true width of the loaded image (in pixels)
 	  **/
 	unsigned short getWidth() const {
@@ -133,6 +146,18 @@ public:
 	  */
 	unsigned short getNumChannels() const {
 		return nChannels;
+	}
+	
+	/** Get the total number of image pixels
+	  */
+	unsigned int getNumPixels() const {
+		return nSize;
+	}
+	
+	/** Get the total number of bytes of image data
+	  */
+	unsigned int getNumBytes() const {
+		return nBytes;
 	}
 
 	/** Return true if buffer data is empty

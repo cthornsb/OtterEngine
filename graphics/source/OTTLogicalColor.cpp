@@ -79,11 +79,33 @@ void OTTLogicalColor::operator /= (const ColorRGB& rhs){
 	pArray[3] = 255;
 }
 
+void OTTLogicalColor::operator = (const ColorRGB& rhs){
+	pArray[0] = rhs.r;
+	pArray[1] = rhs.g;
+	pArray[2] = rhs.b;
+	pArray[3] = rhs.a;
+}
+
+void OTTLogicalColor::operator = (const OTTLogicalColor& rhs){
+	for(int i = 0; i < 4; i++)
+		pArray[i] = rhs[i];
+}
+
 void OTTLogicalColor::setColor(const ColorRGB& color) {
 	pArray[0] = color.r;
 	pArray[1] = color.g;
 	pArray[2] = color.b;
 	pArray[3] = color.a;
+}
+
+void OTTLogicalColor::setColor(const OTTLogicalColor& color){
+	for(int i = 0; i < 4; i++)
+		pArray[i] = color[i];
+}
+
+void OTTLogicalColor::setColor(const unsigned char* arr){
+	for(int i = 0; i < 4; i++)
+		pArray[i] = arr[i];
 }
 
 void OTTLogicalColor::setColor(const float& r, const float& g, const float& b, const float& a/*=1*/) {

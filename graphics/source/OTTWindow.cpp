@@ -353,7 +353,7 @@ void OTTWindow::disableVSync() {
 }
 
 bool OTTWindow::saveImageBufferToBitmap(const std::string& fname){
-	return OTTTexture::write(buffer, fname);
+	return OTTTexture::write(buffer, fname, false, true);
 }
 
 bool OTTWindow::saveFrameBufferToBitmap(const std::string& fname){

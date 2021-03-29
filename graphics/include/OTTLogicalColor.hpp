@@ -23,6 +23,18 @@ public:
 
 	bool operator == (const ColorRGB& rhs) const;
 
+	/** Pixel color element access
+	  */
+	unsigned char& operator [] (const unsigned char& index){
+		return pArray[index];
+	}
+
+	/** Const pixel color element access
+	  */
+	unsigned char operator [] (const unsigned char& index) const {
+		return pArray[index];
+	}
+
 	/** Add a color to this color (ignoring alpha) and return the result
 	  */
 	ColorRGB operator + (const ColorRGB& rhs) const;
@@ -58,6 +70,20 @@ public:
 	  * @note Alpha is set to 1
 	  */
 	void operator /= (const ColorRGB& rhs);
+
+	/** Set pixel data array pointer
+	  */
+	void operator = (unsigned char* rhs){
+		pArray = rhs;
+	}
+
+	/** Color assignment operator
+	  */
+	void operator = (const ColorRGB& rhs);
+	
+	/** Color assigment operator
+	  */
+	void operator = (const OTTLogicalColor& rhs);
 
 	/** Invert this color
 	  * @note Alpha is preserved for each pixel
@@ -126,6 +152,15 @@ public:
 	/** Set the color
 	  **/
 	void setColor(const ColorRGB& color);
+
+	/** Set the color
+	  */
+	void setColor(const OTTLogicalColor& color);
+
+	/** Set the color from an input array of integers.
+	  * Input array must contain at least four elements.
+	  */
+	void setColor(const unsigned char* arr);
 
 	/** Set the color with explicit RGBA components
 	  **/

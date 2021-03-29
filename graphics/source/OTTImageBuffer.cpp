@@ -1,6 +1,24 @@
 #include <algorithm>
 
 #include "OTTImageBuffer.hpp"
+#include "OTTLogicalColor.hpp"
+
+bool OTTImageBuffer::getPixel(const int& x, const int& y, OTTLogicalColor& color) {
+	if (x >= nWidth || y >= nHeight)
+		return false;
+	color = OTTLogicalColor(&dptr[(nWidth * y + x) * nChannels]);
+	return true;
+}
+
+const unsigned char* OTTImageBuffer::getPixel(const int& x, const int& y) const {
+	if (x >= nWidth || y >= nHeight)
+		return 0x0;
+	return &dptr[(nWidth * y + x) * nChannels];
+}
+
+void OTTImageBuffer::copyImageData(std::vector<unsigned char>& output) const {
+	output = std::vector<unsigned char>(bitmap.cbegin(), bitmap.cend());
+}
 
 void OTTImageBuffer::resize(const unsigned short& W, const unsigned short& H){
 	nWidth = W;

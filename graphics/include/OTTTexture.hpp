@@ -74,10 +74,6 @@ public:
 	  **/
 	unsigned int getTexture();
 
-	/** Get a logical pixel from a pixel in the loaded image
-	  **/
-	bool getPixel(const int& x, const int& y, OTTLogicalColor& color);
-
 	/** Set an OpenGL texture parameter (not implemented)
 	  */
 	void setParameter() { }
@@ -135,11 +131,16 @@ public:
 	bool write(const std::string& fname);
 
 	/** Save image buffer to disk. If image format is RGBA, output file will be TGA, otherwise it will be BMP.
+	  * The image buffer class saves images upside down because that is what OpenGL expects when pushing pixel 
+	  * data to the frame buffer. In order to save the image buffer as an image, we need to flip the image data 
+	  * vertically.
 	  * @param buffer Image buffer bitmap to write to disk
 	  * @param fname Path to output image file (excluding extension, which will be added automatically)
+	  * @param bFlipX Flip image data horizontally in output file
+	  * @param bFlipY Flip image data vertically in output file
 	  * @return True if image is saved successfully
 	  */
-	static bool write(const OTTImageBuffer& buffer, const std::string& fname);
+	static bool write(const OTTImageBuffer& buffer, const std::string& fname, bool bFlipX=false, bool bFlipY=false);
 
 	/** Fill image buffer with a value
 	  * Uses std::fill to fill entire buffer with specified color component value.
