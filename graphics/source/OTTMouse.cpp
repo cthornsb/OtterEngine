@@ -8,7 +8,6 @@ OTTMouse::OTTMouse() :
 	dPosY(0),
 	dDeltaX(0),
 	dDeltaY(0),
-	bLockPointer(false),
 	bStates{ false, false, false },
 	cursor(0x0),
 	parent(0x0)
@@ -46,9 +45,8 @@ bool OTTMouse::setRawCursor(){
 		state = MouseStates::RAW;
 		return true;
 	}
-#else
-	return false;
 #endif // ifdef GLFW_RAW_MOUSE_MOTION
+	return false;
 }
 
 bool OTTMouse::setCursorState(const MouseStates& newState){
@@ -92,24 +90,10 @@ bool OTTMouse::delta() {
 }
 
 void OTTMouse::setPosition(const double& x, const double& y) {
-	/*static bool firstPosition = true;
-	if (firstPosition) {
-		firstPosition = false;
-		OTTWindow* currentWindow = OTTActiveWindows::get().find(window);
-		glutWarpPointer(win->getWidth() / 2, win->getHeight() / 2);
-	}
-	if (!bLockPointer) {
-		dDeltaX = x - dPosX;
-		dDeltaY = y - dPosY;
-		dPosX = x;
-		dPosY = y;
-	}
-	else{
-		OTTWindow* currentWindow = OTTActiveWindows::get().find(window);
-		dDeltaX = x - win->getWidth() / 2;
-		dDeltaY = y - win->getHeight() / 2;
-		glutWarpPointer(win->getWidth() / 2, win->getHeight() / 2);
-	}*/
+	dDeltaX = x - dPosX;
+	dDeltaY = y - dPosY;
+	dPosX = x;
+	dPosY = y;
 }
 
 bool OTTMouse::delta(double& deltaX, double& deltaY) {

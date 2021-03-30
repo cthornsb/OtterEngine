@@ -188,11 +188,11 @@ public:
 
 	/** Set the current draw color
 	  */
-	static void setDrawColor(ColorRGB *color, const float &alpha=1);
+	void setDrawColor(ColorRGB *color, const float &alpha=1);
 
 	/** Set the current draw color
 	  */
-	static void setDrawColor(const ColorRGB &color, const float &alpha=1);
+	void setDrawColor(const ColorRGB &color, const float &alpha=1);
 
 	/** Set this window as the current glfw window
 	  * May be called from any thread.
@@ -220,22 +220,22 @@ public:
 
 	/** Clear the screen with a given color
 	  */
-	static void clear(const ColorRGB &color=Colors::BLACK);
+	void clear(const ColorRGB &color=Colors::BLACK);
 
 	/** Draw a single pixel at position (x, y)
 	  */
-	static void drawPixel(const int &x, const int &y);
+	void drawPixel(const int &x, const int &y);
 
 	/** Draw multiple pixels at positions (x1, y1) (x2, y2) ... (xN, yN)
 	  * @param x Array of X pixel coordinates
 	  * @param y Array of Y pixel coordinates
 	  * @param N The number of elements in the arrays and the number of pixels to draw
 	  */
-	static void drawPixel(const int *x, const int *y, const size_t &N);
+	void drawPixel(const int *x, const int *y, const size_t &N);
 	
 	/** Draw a single line to the screen between points (x1, y1) and (x2, y2)
 	  */
-	static void drawLine(const int &x1, const int &y1, const int &x2, const int &y2);
+	void drawLine(const int &x1, const int &y1, const int &x2, const int &y2);
 
 	/** Draw multiple lines to the screen
 	  * @param x Array of X pixel coordinates
@@ -243,7 +243,7 @@ public:
 	  * @param N The number of elements in the arrays. Since it is assumed that the number of elements 
 		       in the arrays is equal to @a N, the total number of lines which will be drawn is equal to N-1
 	  */
-	static void drawLine(const int *x, const int *y, const size_t &N);
+	void drawLine(const int *x, const int *y, const size_t &N);
 
 	/** Draw multiple lines to the screen
 	  * @param x1 X coordinate of the upper left corner
@@ -251,7 +251,16 @@ public:
 	  * @param x2 X coordinate of the bottom right corner
 	  * @param y2 Y coordinate of the bottom right corner
 	  */
-	static void drawRectangle(const int &x1, const int &y1, const int &x2, const int &y2);
+	void drawRectangle(const int &x1, const int &y1, const int &x2, const int &y2);
+
+	/** Draw OpenGL texture in the scene within the specified bounds
+	  * @param texture GL texture context
+	  * @param x1 X coordinate of the upper left corner
+	  * @param y1 Y coordinate of the upper left corner
+	  * @param x2 X coordinate of the bottom right corner
+	  * @param y2 Y coordinate of the bottom right corner
+	  **/
+	void drawTexture(const unsigned int& texture, const int& x1, const int& y1, const int& x2, const int& y2);
 
 	/** Write pixel data from an array to the GPU frame buffer
 	  * @param width Width of bitmap (in pixels)
@@ -260,7 +269,7 @@ public:
 	  * @param y0 Y coordinate of bottom left corner
 	  * @param data Array of bitmap pixel data
 	  */
-	static void drawBitmap(const unsigned int& width, const unsigned int& height, const int& x0, const int& y0, const unsigned char* data);
+	void drawBitmap(const unsigned int& width, const unsigned int& height, const int& x0, const int& y0, const unsigned char* data);
 
 	/** Write pixel data from an image buffer to the GPU frame buffer
 	  * @param width Width of image buffer (in pixels)
@@ -269,7 +278,7 @@ public:
 	  * @param y0 Y coordinate of bottom left corner
 	  * @param data Pointer to conventional-memory image buffer
 	  */
-	static void drawPixels(const unsigned int& width, const unsigned int& height, const int& x0, const int& y0, const OTTImageBuffer* data);
+	void drawPixels(const unsigned int& width, const unsigned int& height, const int& x0, const int& y0, const OTTImageBuffer* data);
 
 	/** Write to CPU image buffer
 	  * When drawing on a pixel-by-pixel level, it is much more efficient to modify the image

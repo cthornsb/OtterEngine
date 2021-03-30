@@ -29,12 +29,6 @@ public:
 		parent = ptr;
 	}
 
-	/** Lock the cursor to the center of the screen
-	  **/
-	void setLockPointer(bool state = true) {
-		bLockPointer = state;
-	}
-
 	/** Set the horizontal position of the cursor (in pixels)
 	  **/
 	void setX(const double& x) {
@@ -190,8 +184,6 @@ private:
 	double dDeltaX; ///< Delta X position of mouse
 	
 	double dDeltaY; ///< Delta Y position of mouse
-
-	bool bLockPointer; ///< "Locks" the pointer to the middle of the window
 
 	bool bStates[3]; ///< Mouse button states for left, middle, and right buttons (true indicates button is down) 
 

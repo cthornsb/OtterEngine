@@ -14,7 +14,12 @@
 class object;
 class camera;
 class triangle;
+
+#ifndef SOFTWARE_RENDERER
 class OTTWindow3D;
+#else
+class OTTWindow;
+#endif // ifndef SOFTWARE_RENDERER
 
 /** Supported drawing modes
   */
@@ -55,6 +60,7 @@ public:
 		return isRunning;
 	}
 
+#ifdef SOFTWARE_RENDERER
 	/** Get the width of the screen (in pixels)
 	  */
 	int getScreenWidth() const {
@@ -66,7 +72,8 @@ public:
 	int getScreenHeight() const {
 		return screenHeightPixels;
 	}
-	
+#endif // ifdef SOFTWARE_RENDERER
+
 	/** Get a pointer to the main camera
 	  */
 	camera *getCamera() {
@@ -74,9 +81,15 @@ public:
 	}
 
 	/* Get a pointer to the main rendering window */
+#ifndef SOFTWARE_RENDERER
 	OTTWindow3D* getWindow() {
 		return window.get();
 	}
+#else
+	OTTWindow* getWindow() {
+		return window.get();
+	}
+#endif // ifndef SOFTWARE_RENDERER
 
 	/** Get a pointer to the world light source
 	  */
@@ -92,6 +105,7 @@ public:
 	  */
 	OTTMouse* getMouse();
 
+#ifdef SOFTWARE_RENDERER
 	/** Get the drawing mode to use when drawing the object to the screen
 	  */
 	drawMode getDrawingMode() const {
@@ -109,7 +123,14 @@ public:
 	void setScreenHeight(const int &height) {
 		screenHeightPixels = height;
 	}
-	
+
+	/** Set the drawing mode to use when drawing the object to the screen
+	  */
+	void setDrawingMode(const drawMode& dmode) {
+		mode = dmode;
+	}	
+#endif // ifdef SOFTWARE_RENDERER
+
 	/** Set the main camera for rendering and update its aspect ratio
 	  */
 	void setCamera(camera *cam_);
@@ -132,20 +153,6 @@ public:
 		drawDepthMap = enable;
 	}
 
-	/** Set the drawing mode to use when drawing the object to the screen
-	  */
-	void setDrawingMode(const drawMode& dmode) {
-		mode = dmode;
-	}
-
-	/** Enable OpenGL hardware renderer
-	  */
-	void enableOpenGLRenderer();
-
-	/** Disable OpenGL hardware renderer and use software renderer
-	  */
-	void disableOpenGLRenderer();
-
 	/** Add an object to the list of objects to be rendered
 	  */
 	void addObject(object* obj);
@@ -160,18 +167,12 @@ public:
 	  */
 	void clear(const ColorRGB &color=Colors::BLACK);
 	
-	/** Draw objects on the screen using software renderer
+	/** Draw objects on the screen using OpenGL renderer (or software renderer)
 	  * @note This method should be called once per iteration of the main loop
 	  * @return True if the update was successful and return false if the user closed the window
 	  */
 	bool update();
 	
-	/** Draw objects on the screen using OpenGL renderer
-	  * @note This method should be called once per iteration of the main loop
-	  * @return True if the update was successful and return false if the user closed the window
-	  */
-	bool updateOpenGL();
-
 private:
 	bool drawNorm; ///< Flag indicating that normal vectors will be drawn on each triangle
 
@@ -181,6 +182,11 @@ private:
 
 	bool isRunning; ///< Flag indicating that the window is still open and active
 
+	camera *cam; ///< Pointer to the main camera
+
+#ifndef SOFTWARE_RENDERER
+	std::unique_ptr<OTTWindow3D> window; ///< Pointer to the main renderer window
+#else
 	int screenWidthPixels; ///< Width of the viewing window (in pixels)
 
 	int screenHeightPixels; ///< Height of the viewing window (in pixels)
@@ -195,23 +201,25 @@ private:
 
 	drawMode mode; ///< Current rendering mode
 
-	camera *cam; ///< Pointer to the main camera
-	
-	std::unique_ptr<OTTWindow3D> window; ///< Pointer to the main renderer window
-	
+	std::unique_ptr<OTTWindow> window; ///< Pointer to the main renderer window
+#endif // ifndef SOFTWARE_RENDERER
+
 	directionalLight worldLight; ///< Global light source
 	
 	std::vector<object*> objects; ///< Vector of pointers to all 3d objects currently in the scene
 	
 	std::vector<lightSource*> lights; ///< Vector of pointers to all light sources currently in the scene
 
+#ifdef SOFTWARE_RENDERER
 	std::vector<pixelTriplet> polygonsToDraw; ///< Vector of all polygons to draw (software renderer)
+#endif // ifdef SOFTWARE_RENDERER
 
 	/** Refresh the screen
 	  * @return True if the update was successful and return false if the user closed the window
 	  */
 	bool render();
 
+#ifdef SOFTWARE_RENDERER
 	/** Process all polygons of an object
 	  */
 	void processPolygons(object* obj);
@@ -246,6 +254,7 @@ private:
 	  * @return True if at least one of the vertices is on the screen and return false otherwise
 	  */
 	bool convertToPixelSpace(pixelTriplet &coords) const;
+#endif // ifdef SOFTWARE_RENDERER
 
 	/** Draw a point to the screen
 	  * @param point The point in 3d space to draw
@@ -267,7 +276,8 @@ private:
 	  * @param length The total length to draw
 	  */
 	void drawRay(const ray &proj, const ColorRGB &color, const float &length=1);
-	
+
+#ifdef SOFTWARE_RENDERER
 	/** Draw the outline of a triangle to the screen
 	  * @param coords The pixel coordinate holder for the three vertex projections
 	  * @param color The line color of the triangle
@@ -281,6 +291,7 @@ private:
 	  * @note There must be AT LEAST three elements in each array
 	  */
 	void drawFilledTriangle(const pixelTriplet &coords, const ColorRGB &color);
+#endif // ifdef SOFTWARE_RENDERER
 
 	/** Draw X, Y, and Z unit vector axes
 	  */

@@ -15,6 +15,7 @@ class object;
 /// </summary>
 enum class ShaderType {
 	NONE,    ///< No shader
+	SIMPLE,  ///< Simplest OpenGL shader
 	DEFAULT, ///< Simple vertex and fragment shader. Object color taken from gl_Color
 	COLOR,   ///< Fragment color interpolated from vertex colors
 	NORMAL,  ///< Shader showing differences in polygon normals
@@ -102,6 +103,9 @@ protected:
 
 namespace OTTDefaultShaders {
 	typedef void (*shaderStateFunction)(const object*);
+
+	extern const std::vector<std::string> vertexSimple;
+	extern const std::vector<std::string> fragmentSimple;
 
 	extern const std::vector<std::string> vertexDefault;
 	extern const std::vector<std::string> fragmentDefault;

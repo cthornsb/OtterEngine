@@ -10,8 +10,10 @@
 #include "OTTWindow3D.hpp"
 #include "OTTShader.hpp"
 
+#ifdef SOFTWARE_RENDERER
 #define SCREEN_XLIMIT 1.0 ///< Set the horizontal clipping border as a fraction of the total screen width
 #define SCREEN_YLIMIT 1.0 ///< Set the vertical clipping border as a fraction of the total screen height
+#endif // ifdef SOFTWARE_RENDERER
 
 scene::scene() : 
 	OTTFrameTimer(),
@@ -19,6 +21,11 @@ scene::scene() :
 	drawOrigin(false), 
 	drawDepthMap(false),
 	isRunning(true), 
+	cam(0x0),
+#ifndef SOFTWARE_RENDERER
+	window(new OTTWindow3D(640, 480, 1)),
+#else
+	window(new OTTWindow(640, 480, 1)),
 	screenWidthPixels(640), 
 	screenHeightPixels(480), 
 	minPixelsX(0), 
@@ -26,12 +33,13 @@ scene::scene() :
 	maxPixelsX(640), 
 	maxPixelsY(480),
 	mode(drawMode::WIREFRAME),
-	cam(0x0),
-	window(new OTTWindow3D(screenWidthPixels, screenHeightPixels, 1)),
+#endif // ifdef SOFTWARE_RENDERER
 	worldLight(),
 	objects(),
-	lights(),
-	polygonsToDraw()
+	lights()
+#ifdef SOFTWARE_RENDERER
+	,polygonsToDraw()
+#endif // ifdef SOFTWARE_RENDERER
 { 
 	initialize();
 }
@@ -50,31 +58,23 @@ void scene::initialize(){
 	window->initialize("Render3d");
 	window->enableMouse(); // Set mouse support
 	window->enableKeyboard(); // Set keyboard support
-	window->getMouse()->setLockPointer();
+	window->getMouse()->setCursorState(MouseStates::DISABLED); // Lock cursor inside window and hide it
 
+#ifndef SOFTWARE_RENDERER
+	// Switch to OpenGL renderer mode
+	window->enableZDepth();
+	window->enableCulling();
+	window->enableAlphaBlending();
+#else
 	// Set the pixel coordinate bounds
 	minPixelsX = (int)(screenWidthPixels*(1-SCREEN_YLIMIT)/2);
 	maxPixelsX = (int)(screenWidthPixels-minPixelsX);
 	minPixelsY = (int)(screenHeightPixels*(1-SCREEN_YLIMIT)/2);
 	maxPixelsY = (int)(screenHeightPixels-minPixelsX);
+#endif // ifdef SOFTWARE_RENDERER
 
 	// Add the world light to the list of light sources
 	addLight(&worldLight);
-}
-
-void scene::enableOpenGLRenderer() {
-	// Switch to OpenGL renderer mode
-	window->enableZDepth();
-	window->enableCulling();
-	window->enableAlphaBlending();
-
-	// Setup the camera projection matrix
-	cam->setPerspectiveProjection(0.1f, 100.f);
-}
-
-void scene::disableOpenGLRenderer() {
-	// Switch to software renderer
-	window->disableZDepth();
 }
 
 void scene::addObject(object* obj) { 
@@ -88,6 +88,70 @@ void scene::clear(const ColorRGB &color/*=Colors::BLACK*/){
 	window->clear(color);
 }
 
+#ifndef SOFTWARE_RENDERER
+bool scene::update() {
+	// Clear the screen with a color
+	clear(Colors::BLACK);
+
+	// Update projection and camera view transformation matrices
+	Matrix4* proj = cam->getProjectionMatrix();
+	Matrix4* view = cam->getViewMatrix();
+
+	// Draw the origin
+	if (drawOrigin) { 
+		Matrix4 mvp = Matrix4::concatenate(proj, view, &identityMatrix4);
+		window->enableShader(ShaderType::DEFAULT);
+		window->getShader(ShaderType::DEFAULT)->setMatrix4("MVP", &mvp);
+		drawAxes();
+		window->disableShader();
+	}
+
+	// Draw the vertices of all objects (using OpenGL)
+	//window->enableWireframeMode();
+	window->setDrawColor(Colors::WHITE); // Set draw color (for default shader)
+	for (auto obj = objects.cbegin(); obj != objects.cend(); obj++) {
+		// Setup MVP matrices
+		Matrix4* model = (*obj)->getModelMatrix();
+		Matrix4 mvp = Matrix4::concatenate(proj, view, model);
+
+		// Setup object shader
+		const OTTShader* shdr = (*obj)->getShader();
+		shdr->enableShader();
+		shdr->setMatrix4("MVP", &mvp);
+		Vector3 camPos = cam->getPosition();
+		Vector3 camDir = cam->getDirection();
+		shdr->setVector3("camPos", &camPos);
+		shdr->setVector3("camDir", &camDir);
+
+		// Draw all sub-objects
+		(*obj)->draw(window.get());
+
+		// Disable object shader
+		shdr->disableShader();
+
+		// Debugging
+		if (drawOrigin || drawNorm) {
+			window->enableShader(ShaderType::SIMPLE);
+			window->getShader(ShaderType::DEFAULT)->setMatrix4("MVP", &mvp);
+			if (drawOrigin) { // Draw object unit vectors
+				drawAxes();
+			}
+			if (drawNorm) { // Draw face normals
+				std::vector<triangle>* polys = (*obj)->getPolygonVector();
+				window->setDrawColor(Colors::CYAN);
+				for (auto tri = polys->cbegin(); tri != polys->cend(); tri++) {
+					Vector3 base = tri->getInitialCenterPoint();
+					Vector3 tip = base + tri->getInitialNormal() * 0.25f;
+					window->drawLine(base, tip);
+				}
+			}
+			window->disableShader();
+		}
+	}
+
+	return render();
+}
+#else
 bool scene::update(){
 	// Clear the vector of triangles to draw
 	polygonsToDraw.clear();
@@ -187,76 +251,15 @@ bool scene::update(){
 
 	return render();
 }
-
-bool scene::updateOpenGL() {
-	// Clear the screen with a color
-	clear(Colors::BLACK);
-
-	// Update projection and camera view transformation matrices
-	Matrix4* proj = cam->getProjectionMatrix();
-	Matrix4* view = cam->getViewMatrix();
-
-	// Draw the origin
-	if (drawOrigin) { 
-		Matrix4 mvp = Matrix4::concatenate(proj, view, &identityMatrix4);
-		window->enableShader(ShaderType::DEFAULT);
-		window->getShader(ShaderType::DEFAULT)->setMatrix4("MVP", &mvp);
-		drawAxes();
-		window->disableShader();
-	}
-
-	// Draw the vertices of all objects (using OpenGL)
-	//window->enableWireframeMode();
-	window->setDrawColor(Colors::WHITE); // Set draw color (for default shader)
-	for (auto obj = objects.cbegin(); obj != objects.cend(); obj++) {
-		// Setup MVP matrices
-		Matrix4* model = (*obj)->getModelMatrix();
-		Matrix4 mvp = Matrix4::concatenate(proj, view, model);
-
-		// Setup object shader
-		const OTTShader* shdr = (*obj)->getShader();
-		shdr->enableShader();
-		shdr->setMatrix4("MVP", &mvp);
-		Vector3 camPos = cam->getPosition();
-		Vector3 camDir = cam->getDirection();
-		shdr->setVector3("camPos", &camPos);
-		shdr->setVector3("camDir", &camDir);
-
-		// Draw all sub-objects
-		(*obj)->draw(window.get());
-
-		// Disable object shader
-		shdr->disableShader();
-
-		// Debugging
-		if (drawOrigin || drawNorm) {
-			window->enableShader(ShaderType::DEFAULT);
-			window->getShader(ShaderType::DEFAULT)->setMatrix4("MVP", &mvp);
-			if (drawOrigin) { // Draw object unit vectors
-				drawAxes();
-			}
-			if (drawNorm) { // Draw face normals
-				std::vector<triangle>* polys = (*obj)->getPolygonVector();
-				window->setDrawColor(Colors::CYAN);
-				for (auto tri = polys->cbegin(); tri != polys->cend(); tri++) {
-					Vector3 base = tri->getInitialCenterPoint();
-					Vector3 tip = base + tri->getInitialNormal() * 0.25f;
-					window->drawLine(base, tip);
-				}
-			}
-			window->disableShader();
-		}
-	}
-
-	return render();
-}
+#endif // ifndef SOFTWARE_RENDERER
 
 bool scene::render() {
-	// Update the screen
+	// Update the screen	
 	if (!window->processEvents()) { // Check for events
 		isRunning = false;
 		return false;
 	}
+	window->setCurrent();
 	window->render();
 	return true;
 }
@@ -271,9 +274,11 @@ OTTMouse* scene::getMouse(){
 
 void scene::setCamera(camera *cam_){ 
 	cam = cam_; 
-	cam->setAspectRatio(float(screenWidthPixels)/screenHeightPixels);
+	cam->setAspectRatio(window->getAspectRatio());	
+	cam->setPerspectiveProjection(0.1f, 100.f); // Setup the camera projection matrix
 }
 
+#ifdef SOFTWARE_RENDERER
 void scene::processPolygons(object* obj) {
 	/*if (!obj->isVisible()) { // Check if the object is on screen
 		return;
@@ -342,8 +347,12 @@ bool scene::convertToPixelSpace(pixelTriplet &coords) const {
 	}
 	return retval;
 }
+#endif // ifndef SOFTWARE_RENDERER
 
 void scene::drawPoint(const Vector3 &point, const ColorRGB &color){
+#ifndef SOFTWARE_RENDERER
+	window->drawPixel(point[0], point[1], point[2]);
+#else
 	float cmX, cmY;
 	if(cam->projectPoint(point, cmX, cmY)){
 		int cmpX, cmpY;
@@ -356,10 +365,14 @@ void scene::drawPoint(const Vector3 &point, const ColorRGB &color){
 		window->setDrawColor(color);
 		window->drawPixel(cmpX, cmpY);
 	}
+#endif // ifndef SOFTWARE_RENDERER
 }
 
 void scene::drawVector(const Vector3 &start, const Vector3 &direction, const ColorRGB &color, const float &length/*=1*/){
-	// Compute the normal vector from the center of the triangle
+#ifndef SOFTWARE_RENDERER
+	window->drawLine(start, start + (direction * length));
+#else
+	// Compute the end point
 	Vector3 P = start + (direction * length);
 
 	// Draw the triangle normals
@@ -420,12 +433,14 @@ void scene::drawVector(const Vector3 &start, const Vector3 &direction, const Col
 		window->setDrawColor(color);
 		window->drawLine(cmpX0, cmpY0, cmpX1, cmpY1);
 	}
+#endif // ifndef SOFTWARE_RENDERER
 }
 
 void scene::drawRay(const ray &proj, const ColorRGB &color, const float &length/*=1*/){
 	drawVector(proj.pos, proj.dir, color, length);
 }
 
+#ifdef SOFTWARE_RENDERER
 void scene::drawTriangle(const pixelTriplet &coords, const ColorRGB &color){
 	window->setDrawColor(color);
 	for(size_t i = 0; i < 2; i++)
@@ -446,6 +461,7 @@ void scene::drawFilledTriangle(const pixelTriplet &coords, const ColorRGB &color
 		window->drawLine(x0, scanline, x1, scanline);
 	}
 }
+#endif // ifndef SOFTWARE_RENDERER
 
 void scene::drawAxes() {
 	window->setDrawColor(Colors::RED);

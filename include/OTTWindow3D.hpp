@@ -39,66 +39,44 @@ public:
 	  */
 	OTTShader* getShader(const ShaderType& type);
 
-	/** Draw a pixel at position (x, y) on the screen
+	/** Draw a point at position (x, y, z) in the scene
 	  */
-	static void drawPixel(const int &x, const int &y);
+	void drawPixel(const float& x, const float& y, const float& z);
 
-	/** Draw multiple pixels at positions (x1, y1) (x2, y2) ... (xN, yN) on the screen
-	  * @param x Array of X pixel coordinates
-	  * @param y Array of Y pixel coordinates
-	  * @param N The number of elements in the arrays and the number of pixels to draw
+	/** Draw a 3d line between points (x1, y1, z1) and (x2, y2, z2) in the scene
 	  */
-	static void drawPixel(const int *x, const int *y, const size_t &N);
-
-	/** Draw a pixel at 3d position (x, y, z) on the screen
-	  */
-	static void drawPixel(const float& x, const float& y, const float& z);
-
-	/** Draw a line between points (x1, y1) and (x2, y2) on the screen
-	  */
-	static void drawLine(const int &x1, const int &y1, const int &x2, const int &y2);
-
-	/** Draw multiple lines on the screen
-	  * @param x Array of X pixel coordinates
-	  * @param y Array of Y pixel coordinates
-	  * @param N The number of elements in the arrays. Since it is assumed that the number of elements 
-		       in the arrays is equal to @a N, the total number of lines which will be drawn is equal to N-1
-	  */
-	static void drawLine(const int *x, const int *y, const size_t &N);
-
-	/** Draw a line between 3d points (x1, y1, z1) and (x2, y2, z2) on the screen
-	  */
-	static void drawLine(
+	void drawLine(
 		const float& x1, const float& y1, const float& z1,
 		const float& x2, const float& y2, const float& z2
 	);
 
-	/** Draw a line between 3d points p1=(x1, y1, z1) and p2=(x2, y2, z2) on the screen
+	/** Draw a 3d line between points p1=(x1, y1, z1) and p2=(x2, y2, z2) in the scene
 	  */
-	static void drawLine(const Vector3& p1, const Vector3& p2);
+	void drawLine(const Vector3& p1, const Vector3& p2);
 
-	/** Draw a rectangle on the screen
-	  * @param x1 X coordinate of the upper left corner
-	  * @param y1 Y coordinate of the upper left corner
-	  * @param x2 X coordinate of the bottom right corner
-	  * @param y2 Y coordinate of the bottom right corner
+	/** Draw a 3d polyline in the scene
+	  * @param points Vector of polyline vertices
 	  */
-	static void drawRectangle(const int &x1, const int &y1, const int &x2, const int &y2);
+	void drawPolyline(const std::vector<Vector3>& points);
 
-	/** Draw OpenGL texture on the screen within the specified bounds
+	/** Draw a closed 3d polygon in the scene
+	  * @param points Vector of polygon vertices
+	  */
+	void drawPolygon(const std::vector<Vector3>& points);
+
+	/** Draw OpenGL texture in the scene within the specified bounds
 	  * @param texture GL texture context
-	  * @param x1 X coordinate of the upper left corner
-	  * @param y1 Y coordinate of the upper left corner
-	  * @param x2 X coordinate of the bottom right corner
-	  * @param y2 Y coordinate of the bottom right corner
+	  * @param p1 Top left vertex of texture
+	  * @param p2 Bottom right vertex of texture
+	  * @param norm Normal vector of texture face
 	 **/
-	static void drawTexture(const unsigned int& texture, const int& x1, const int& y1, const int& x2, const int& y2);
+	void drawTexture(const unsigned int& texture, const Vector3& p1, const Vector3& p2, const Vector3& norm);
 
 	/** Draw an array of raw 3d vertices
 	  * @param vertices Array of raw 3d position components formatted as {x0, y0, z0, ... , xN-1, yN-1, zN-1}
 	  * @param indicies Vector of vertex indicies representing the triangles which will be drawn
 	  */
-	static void drawVertexArray(const float* vertices, const std::vector<unsigned short>& indices);
+	void drawVertexArray(const float* vertices, const std::vector<unsigned short>& indices);
 
 	/** Draw a 3d object on the screen
 	  * @param obj Pointer to 3d object which will be drawn

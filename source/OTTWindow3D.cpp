@@ -14,35 +14,10 @@ OTTShader* OTTWindow3D::getShader(const ShaderType& type) {
 	return shaders->get(type);
 }
 
-void OTTWindow3D::drawPixel(const int &x, const int &y){
-	glBegin(GL_POINTS);
-		glVertex2i(x, y);
-	glEnd();
-}
-
-void OTTWindow3D::drawPixel(const int *x, const int *y, const size_t &N){
-	for(size_t i = 0; i < N; i++) // Draw N pixels
-		drawPixel(x[i], y[i]);
-}
-
 void OTTWindow3D::drawPixel(const float& x, const float& y, const float& z) {
 	glBegin(GL_POINTS);
 		glVertex3f(x, y, z);
 	glEnd();
-}
-
-void OTTWindow3D::drawLine(const int &x1, const int &y1, const int &x2, const int &y2){
-	glBegin(GL_LINES);
-		glVertex2i(x1, y1);
-		glVertex2i(x2, y2);
-	glEnd();
-}
-
-void OTTWindow3D::drawLine(const int *x, const int *y, const size_t &N){
-	if(N < 2) // Nothing to draw
-		return;
-	for(size_t i = 0; i < N-1; i++)
-		drawLine(x[i], y[i], x[i+1], y[i+1]);
 }
 
 void OTTWindow3D::drawLine(
@@ -62,24 +37,32 @@ void OTTWindow3D::drawLine(const Vector3& p1, const Vector3& p2) {
 	glEnd();
 }
 
-void OTTWindow3D::drawRectangle(const int &x1, const int &y1, const int &x2, const int &y2){
-	drawLine(x1, y1, x2, y1); // Top
-	drawLine(x2, y1, x2, y2); // Right
-	drawLine(x2, y2, x1, y2); // Bottom
-	drawLine(x1, y2, x1, y1); // Left
+void OTTWindow3D::drawPolyline(const std::vector<Vector3>& points) {
+	glBegin(GL_LINES);
+	for (auto p = points.cbegin(); p != points.cend(); p++) // Draw the points
+		glVertex3f((*p)[0], (*p)[1], (*p)[2]);
+	glEnd();
 }
 
-void OTTWindow3D::drawTexture(const unsigned int& texture, const int& x1, const int& y1, const int& x2, const int& y2) {
-	glBindTexture(GL_TEXTURE_2D, texture);
+void OTTWindow3D::drawPolygon(const std::vector<Vector3>& points) {
+	glBegin(GL_LINES);
+	for (auto p = points.cbegin(); p != points.cend(); p++) // Draw the sides
+		glVertex3f((*p)[0], (*p)[1], (*p)[2]);
+	glVertex3f(points[0][0], points[0][1], points[0][2]); // Close the polygon
+	glEnd();
+}
+
+void OTTWindow3D::drawTexture(const unsigned int& texture, const Vector3& p1, const Vector3& p2, const Vector3& norm) {
+	/*glBindTexture(GL_TEXTURE_2D, texture);
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0, 0); glVertex2i(x1, y1);
-		glTexCoord2i(1, 0); glVertex2i(x2, y1);
-		glTexCoord2i(1, 1); glVertex2i(x2, y2);
-		glTexCoord2i(0, 1); glVertex2i(x1, y2);
+		glTexCoord2i(0, 0); glVertex3f(x1, y1);
+		glTexCoord2i(1, 0); glVertex3f(x2, y1);
+		glTexCoord2i(1, 1); glVertex3f(x2, y2);
+		glTexCoord2i(0, 1); glVertex3f(x1, y2);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);*/
 }
 
 void OTTWindow3D::drawVertexArray(const float* vertices, const std::vector<unsigned short>& indices) {
@@ -123,8 +106,6 @@ void OTTWindow3D::enableAlphaBlending() {
 }
 
 void OTTWindow3D::enableZDepth() {
-	glLoadIdentity();
-	gluPerspective(45.0f, aspect, 0.1f, 100.0f);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);

@@ -185,6 +185,10 @@ OTTDefaultShaders::DefaultShader::DefaultShader(const ShaderType& stype_) :
 	switch (stype_) {
 	case ShaderType::NONE:
 		break;
+	case ShaderType::SIMPLE:
+		name = "simple";
+		good = generate(vertexSimple, fragmentSimple);
+		break;
 	case ShaderType::DEFAULT:
 		name = "default";
 		good = generate(vertexDefault, fragmentDefault);
@@ -236,6 +240,18 @@ bool OTTDefaultShaders::DefaultShader::generate(const std::vector<std::string>& 
 	// Generate the OpenGL shader program
 	return generateProgram();
 }
+
+const std::vector<std::string> OTTDefaultShaders::vertexSimple = {
+	"void main() {\n",
+	"	gl_Position = ftransform();\n",
+	"}\n"
+};
+
+const std::vector<std::string> OTTDefaultShaders::fragmentSimple = {
+	"void main() {\n",
+	"	gl_FragColor = vec4(1,1,1,1);\n",
+	"}\n"
+};
 
 const std::vector<std::string> OTTDefaultShaders::vertexDefault = {
 	"in vec3 vPosition;\n",

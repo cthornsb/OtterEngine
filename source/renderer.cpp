@@ -16,6 +16,8 @@
 #include "Matrix.hpp"
 #include "Vector.hpp"
 
+#include "OTTJoypad.hpp"
+
 constexpr unsigned char KEYBOARD_W     = 0x77;
 constexpr unsigned char KEYBOARD_A     = 0x61;
 constexpr unsigned char KEYBOARD_S     = 0x73;
@@ -47,12 +49,6 @@ int main(){
 	// Setup the scene with our camera
 	scene myScene(&cam);
 
-	// Switch from software renderer to hardware renderer
-	myScene.enableOpenGLRenderer();
-
-	// Set the render mode for our cube
-	myScene.setDrawingMode(drawMode::SOLID); // Currently, draw options [WIREFRAME, MESH, SOLID, RENDER] are supported
-
 	// Set the color of the world light
 	myScene.getWorldLight()->disable();
 
@@ -66,12 +62,11 @@ int main(){
 
 	// Load the (default) shader
 	myScene.getWindow()->enableVSync();
-	myShape.setShader(myScene.getWindow()->getShader(ShaderType::COLOR));
+	myShape.setShader(myScene.getWindow()->getShader(ShaderType::DEFAULT));
 
 	// Set the camera to draw surface normal vectors
 	myScene.setDrawNormals();
 	myScene.setDrawOrigin();
-	//myScene.setDrawZDepth();
 	
 	// Add the cube to the scene
 	myScene.addObject(&myShape);
@@ -102,12 +97,13 @@ int main(){
 	// "Animate" the object by rotating it and moving the camera
 	int count = 0;
 	double dX, dY;
+	float fStickX, fStickY;
 	float timeElapsed = 0;
 	bool isDone = false;
 	OTTKeyboard *keys = myScene.getKeypress();
 	OTTMouse* mouse = myScene.getWindow()->getMouse();
-	mouse->setLockPointer(true);
-	while(!isDone && myScene.updateOpenGL()){
+	OTTJoypad* controller = myScene.getWindow()->getJoypad();
+	while(!isDone && myScene.update()){
 		// Check for keypresses 
 		if(!keys->empty()){
 			// Function keys (0xF1 to 0xFC)
@@ -147,22 +143,16 @@ int main(){
 			if (keys->check(KEYBOARD_X)) // Move the camera up
 				cam.moveUp(cameraMoveRate * timeElapsed);
 		}
-		
-		// Check mouse buttons
-		/*if (!mouse->empty()) {
-			if (mouse->poll(0)) // left button
-				std::cout << " left button\n";
-			if (mouse->poll(1)) // middle button
-				std::cout << " middle button\n";
-			if (mouse->poll(2)) // right button
-				std::cout << " right button\n";
-		}*/
+
+		// Update controller (if connected)
+		if (!controller->empty()) {
+			controller->getLeftStickPosition(fStickX, fStickY);
+			myShape.rotate(fStickY * cameraSensitivity / 2, 0, fStickX * cameraSensitivity / 2);
+		}
 
 		// Check mouse movement
 		if(mouse->delta(dX, dY)){
-			std::cout << dX << "\t" << dY << std::endl;
 			cam.rotateFPS(dY * cameraSensitivity, dX * cameraSensitivity);
-			//myShape.rotate(dY * cameraSensitivity / 2, 0, dX * cameraSensitivity / 2);
 		}
 		
 		if(count++ % 120 == 0) // Frame count (every 2 seconds by default)

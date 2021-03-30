@@ -174,7 +174,7 @@ void OTTWindow::changeVideoMode(const OTTWindow::VideoMode& mode){
 }
 
 void OTTWindow::clear(const ColorRGB &color/*=Colors::BLACK*/){
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void OTTWindow::drawPixel(const int &x, const int &y){
@@ -207,6 +207,19 @@ void OTTWindow::drawRectangle(const int &x1, const int &y1, const int &x2, const
 	drawLine(x2, y1, x2, y2); // Right
 	drawLine(x2, y2, x1, y2); // Bottom
 	drawLine(x1, y2, x1, y1); // Left
+}
+
+void OTTWindow::drawTexture(const unsigned int& texture, const int& x1, const int& y1, const int& x2, const int& y2) {
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glEnable(GL_TEXTURE_2D);
+	glBegin(GL_QUADS);
+		glTexCoord2i(0, 0); glVertex2i(x1, y1);
+		glTexCoord2i(1, 0); glVertex2i(x2, y1);
+		glTexCoord2i(1, 1); glVertex2i(x2, y2);
+		glTexCoord2i(0, 1); glVertex2i(x1, y2);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void OTTWindow::drawBitmap(const unsigned int& width, const unsigned int& height, const int& x0, const int& y0, const unsigned char* data){
