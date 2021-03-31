@@ -173,8 +173,8 @@ public:
 
 	/** Get the OpenGL texture ID
 	  */
-	unsigned int getTexture() const {
-		return textureID;
+	const OTTTexture* getTexture() const {
+		return texture;
 	}
 
 	/** Return true if this object has a parent object and return false otherwise
@@ -340,9 +340,9 @@ protected:
 
 	const OTTShader* shader; ///< Pointer to an OpenGL shader to use for rendering
 
-	Matrix4 modelMatrix; ///< Model rotation and translation matrix used by OpenGL
+	const OTTTexture* texture; ///< OpenGL texture
 
-	unsigned int textureID; ///< OpenGL texture ID
+	Matrix4 modelMatrix; ///< Model rotation and translation matrix used by OpenGL
 
 	/** Update the physical size of the object along the x-axis
 	  * @note The size is only for informational purposes and does not change the scale of the object

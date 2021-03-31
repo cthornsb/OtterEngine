@@ -88,7 +88,9 @@ public:
 
 	/** Move the camera in the direction that it is currently pointed
 	  */
-	void moveBackward(const float& dist){ moveForward(-dist); }
+	void moveBackward(const float& dist){ 
+		moveForward(-dist); 
+	}
 
 	/** Move the camera horizontally along the axis perpendicular to the direction it is facing
 	  */
@@ -96,7 +98,9 @@ public:
 
 	/** Move the camera horizontally along the axis perpendicular to the direction it is facing
 	  */
-	void moveLeft(const float& dist){ moveRight(-dist); }
+	void moveLeft(const float& dist){ 
+		moveRight(-dist); 
+	}
 
 	/** Move the camera vertically along the axis perpendicular to the direction it is facing
 	  */	
@@ -104,7 +108,9 @@ public:
 	
 	/** Move the camera vertically along the axis perpendicular to the direction it is facing
 	  */
-	void moveDown(const float& dist){ moveUp(-dist); }
+	void moveDown(const float& dist){ 
+		moveUp(-dist); 
+	}
 	
 	/** Move the camera along a vector from its current position
 	  */

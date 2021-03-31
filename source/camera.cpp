@@ -92,7 +92,7 @@ void camera::move(const float&x, const float&y, const float&z){
 }
 
 void camera::moveTo(const Vector3 &pos){ 
-	position = position;
+	position = pos;
 	updateViewingPlane();
 }
 

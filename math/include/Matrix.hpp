@@ -690,11 +690,11 @@ public:
 	  */
 	static Matrix3 getPitchMatrix(const float& angle);
 
-	/** Get the rotation matrix for an angle about the x-axis (in radians)
+	/** Get the rotation matrix for an angle about the z-axis (in radians)
 	  */
 	static Matrix3 getRollMatrix(const float& angle);
 
-	/** Get the rotation matrix for an angle about the x-axis (in radians)
+	/** Get the rotation matrix for an angle about the y-axis (in radians)
 	  */
 	static Matrix3 getYawMatrix(const float& angle);
 

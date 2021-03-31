@@ -33,8 +33,8 @@ object::object() :
 	parentOffset(),
 	parent(0x0),
 	shader(0x0),
-	modelMatrix(),
-	textureID(0)
+	texture(0x0),
+	modelMatrix()
 {
 	for (int i = 0; i < 3; i++) {
 		maxSize[i] = -FLT_MAX;
@@ -94,7 +94,7 @@ void object::setShader(const OTTShader* shdr) {
 }
 
 void object::setTexture(OTTTexture* txt) {
-	textureID = txt->getContext();
+	texture = txt;
 	for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
 		(*ch)->setTexture(txt);
 	}

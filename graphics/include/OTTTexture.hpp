@@ -62,6 +62,24 @@ public:
 	  **/
 	~OTTTexture();
 
+	/** Equality operator
+	  */
+	bool operator == (const std::string& name) const {
+		return (name == sName);
+	}
+
+	/** Equality operator
+	  */
+	bool operator == (const unsigned int& id) const {
+		return (id == nContext);
+	}
+
+	/** Get the name of the texture
+	  */
+	std::string getName() const {
+		return sName;
+	}
+
 	/** Get the current OpenGL texture context
 	  **/
 	unsigned int getContext() const { 

@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 
 #include "OTTShader.hpp"
+#include "OTTTexture.hpp"
 #include "object.hpp"
 
 OTTShader::~OTTShader() {
@@ -66,16 +67,16 @@ bool OTTShader::generateProgram() {
 	glLinkProgram(nProgram);
 	glGetProgramiv(nProgram, GL_LINK_STATUS, &retval);
 	if (retval != GL_TRUE) {
-		std::cout << " [error] Failed to create shader program" << std::endl;
+		std::cout << " [Shader] Error! Failed to create shader program" << std::endl;
 		char log[512];
 		glGetProgramInfoLog(nProgram, 512, 0x0, log);
-		std::cout << " [debug]  output log:" << std::endl; // Print compiler output log
+		std::cout << " [Shader]  output log:" << std::endl; // Print compiler output log
 		std::cout << log << std::endl;
 		return false;
 	}
-	std::cout << " [debug] nVertShader=" << nVertShader << std::endl;
-	std::cout << " [debug] nFragShader=" << nFragShader << std::endl;
-	std::cout << " [debug] nProgram=" << nProgram << std::endl;
+	std::cout << " [Shader] debug: nVertShader=" << nVertShader << std::endl;
+	std::cout << " [Shader] debug: nFragShader=" << nFragShader << std::endl;
+	std::cout << " [Shader] debug: nProgram=" << nProgram << std::endl;
 
 	return true;
 }
@@ -164,7 +165,7 @@ bool OTTShader::compileShader(const unsigned int& nShader, const std::string& sB
 	glCompileShader(nShader);
 	glGetShaderiv(nShader, GL_COMPILE_STATUS, &retval);
 	if (retval != GL_TRUE) {
-		std::cout << " [error] Failed to compile shader" << std::endl;
+		std::cout << " [Shader] Error! Failed to compile shader" << std::endl;
 		char log[512];
 		glGetShaderInfoLog(nVertShader, 512, 0x0, log);
 		std::cout << " [debug]  output log:" << std::endl; // Print compiler output log
@@ -223,7 +224,7 @@ bool OTTDefaultShaders::DefaultShader::generate(const std::vector<std::string>& 
 		vertBody += *line;
 	nVertShader = glCreateShader(GL_VERTEX_SHADER);
 	if (!compileShader(nVertShader, vertBody)) {
-		std::cout << " [debug] Failed to generate vertex shader for default shader name=" << name << std::endl;
+		std::cout << " [DefaultShaders] Error! Failed to generate vertex shader for default shader name=" << name << std::endl;
 		return false;
 	}
 
@@ -233,7 +234,7 @@ bool OTTDefaultShaders::DefaultShader::generate(const std::vector<std::string>& 
 		fragBody += *line;
 	nFragShader = glCreateShader(GL_FRAGMENT_SHADER);
 	if (!compileShader(nFragShader, fragBody)) {
-		std::cout << " [debug] Failed to generate fragment shader for default shader name=" << name << std::endl;
+		std::cout << " [DefaultShaders] Error! Failed to generate fragment shader for default shader name=" << name << std::endl;
 		return false;
 	}
 
@@ -358,7 +359,7 @@ void OTTDefaultShaders::defaultShaderDisable(const object*) {
 void OTTDefaultShaders::bindObjectTexture(const object* obj) {
 	// Bind object texture (if available)
 	if (obj->getTexture())
-		glBindTexture(GL_TEXTURE_2D, obj->getTexture());
+		glBindTexture(GL_TEXTURE_2D, obj->getTexture()->getContext());
 }
 
 void OTTDefaultShaders::unbindObjectTexture(const object*) {
