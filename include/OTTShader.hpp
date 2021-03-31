@@ -10,6 +10,8 @@
 
 class object;
 
+typedef void (*shaderStateFunction)(const object*);
+
 /// <summary>
 /// Default shader types
 /// </summary>
@@ -28,14 +30,18 @@ public:
 	OTTShader() :
 		nVertShader(0),
 		nFragShader(0),
-		nProgram(0)
+		nProgram(0),
+		enableFunc(&defaultShaderEnable),
+		disableFunc(&defaultShaderDisable)
 	{ 
 	}
 
 	OTTShader(const std::string& vert, const std::string& frag) :
 		nVertShader(0),
 		nFragShader(0),
-		nProgram(0)
+		nProgram(0),
+		enableFunc(&defaultShaderEnable),
+		disableFunc(&defaultShaderDisable)
 	{
 		generate(vert, frag);
 	}
@@ -53,6 +59,14 @@ public:
 	unsigned int getProgram() const { return nProgram; }
 
 	bool generate(const std::string& vert, const std::string& frag);
+
+	void setShaderEnableFunction(shaderStateFunction func) {
+		enableFunc = func;
+	}
+
+	void setShaderDisableFunction(shaderStateFunction func) {
+		disableFunc = func;
+	}
 
 	void setBool(const std::string& name, const bool& value) const;
 
@@ -84,11 +98,24 @@ public:
 
 	void setMatrix4(const std::string& name, const float* mat) const;
 
+	static void defaultShaderEnable(const object*);
+
+	static void defaultShaderDisable(const object*);
+
+	static void bindObjectTexture(const object* obj);
+
+	static void unbindObjectTexture(const object*);
+
 protected:
 	unsigned int nVertShader; ///< OpenGl shader context ID
+
 	unsigned int nFragShader; ///< OpenGl shader context ID
 
 	unsigned int nProgram; ///< OpenGl program ID
+
+	shaderStateFunction enableFunc;
+
+	shaderStateFunction disableFunc;
 
 	bool readShader(const std::string& fname, std::string& retval);
 
@@ -96,14 +123,14 @@ protected:
 
 	bool generateProgram();
 
-	virtual void onShaderEnable(const object*) const { }
+	virtual void onUserShaderEnable(const object* obj) const {
+	}
 
-	virtual void onShaderDisable(const object*) const { }
+	virtual void onUserShaderDisable(const object* obj) const {
+	}
 };
 
 namespace OTTDefaultShaders {
-	typedef void (*shaderStateFunction)(const object*);
-
 	extern const std::vector<std::string> vertexSimple;
 	extern const std::vector<std::string> fragmentSimple;
 
@@ -122,23 +149,13 @@ namespace OTTDefaultShaders {
 	extern const std::vector<std::string> vertexTexture;
 	extern const std::vector<std::string> fragmentTexture;
 
-	void defaultShaderEnable(const object*);
-
-	void defaultShaderDisable(const object*);
-
-	void bindObjectTexture(const object* obj);
-
-	void unbindObjectTexture(const object*);
-
 	class DefaultShader : public OTTShader {
 	public:
 		DefaultShader() :
 			OTTShader(),
 			good(false),
 			type(ShaderType::NONE),
-			name("none"),
-			enableFunc(&defaultShaderEnable),
-			disableFunc(&defaultShaderDisable)
+			name("none")
 		{
 		}
 
@@ -155,19 +172,7 @@ namespace OTTDefaultShaders {
 
 		std::string name;
 
-		shaderStateFunction enableFunc;
-
-		shaderStateFunction disableFunc;
-
 		bool generate(const std::vector<std::string>& vert, const std::vector<std::string>& frag);
-
-		virtual void onShaderEnable(const object* obj) const { 
-			(*enableFunc)(obj);
-		}
-
-		virtual void onShaderDisable(const object* obj) const {
-			(*disableFunc)(obj);
-		}
 	};
 
 	class ShaderList {

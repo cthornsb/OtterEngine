@@ -18,7 +18,8 @@ void OTTShader::enableShader() const {
 }
 
 void OTTShader::enableObjectShader(const object* obj) const {
-	onShaderEnable(obj);
+	(*enableFunc)(obj);
+	onUserShaderEnable(obj);
 }
 
 void OTTShader::disableShader() const {
@@ -26,7 +27,8 @@ void OTTShader::disableShader() const {
 }
 
 void OTTShader::disableObjectShader(const object* obj) const {
-	onShaderDisable(obj);
+	(*disableFunc)(obj);
+	onUserShaderDisable(obj);
 }
 
 bool OTTShader::generate(const std::string& vert, const std::string& frag) {
@@ -175,13 +177,28 @@ bool OTTShader::compileShader(const unsigned int& nShader, const std::string& sB
 	return true;
 }
 
+void OTTShader::defaultShaderEnable(const object*) {
+}
+
+void OTTShader::defaultShaderDisable(const object*) {
+}
+
+void OTTShader::bindObjectTexture(const object* obj) {
+	// Bind object texture (if available)
+	if (obj->getTexture())
+		glBindTexture(GL_TEXTURE_2D, obj->getTexture()->getContext());
+}
+
+void OTTShader::unbindObjectTexture(const object*) {
+	// Unbind OpenGL texture
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 OTTDefaultShaders::DefaultShader::DefaultShader(const ShaderType& stype_) :
 	OTTShader(),
 	good(false),
 	type(stype_),
-	name("none"),
-	enableFunc(&defaultShaderEnable),
-	disableFunc(&defaultShaderDisable)
+	name("none")
 {
 	switch (stype_) {
 	case ShaderType::NONE:
@@ -350,19 +367,3 @@ const std::vector<std::string> OTTDefaultShaders::fragmentTexture = {
 	"}\n"
 };
 
-void OTTDefaultShaders::defaultShaderEnable(const object*) {
-}
-
-void OTTDefaultShaders::defaultShaderDisable(const object*) {
-}
-
-void OTTDefaultShaders::bindObjectTexture(const object* obj) {
-	// Bind object texture (if available)
-	if (obj->getTexture())
-		glBindTexture(GL_TEXTURE_2D, obj->getTexture()->getContext());
-}
-
-void OTTDefaultShaders::unbindObjectTexture(const object*) {
-	// Unbind OpenGL texture
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
