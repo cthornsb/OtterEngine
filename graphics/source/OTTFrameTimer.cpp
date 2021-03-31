@@ -159,3 +159,7 @@ void OTTFrameTimer::resetTimer() {
 #endif // ifndef USE_GLFW_TIMER
 	dCycleTimer = 0;
 }
+
+void OTTFrameTimer::sleep(const long long& usec) {
+	std::this_thread::sleep_for(std::chrono::microseconds((long long)usec));
+}

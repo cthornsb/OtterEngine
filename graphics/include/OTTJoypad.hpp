@@ -96,7 +96,7 @@ public:
 	
 	float fDY; ///< Change in analog y position since last position update
 	
-	float fDist; ///< Analog stick squared "distance" from center (
+	float fDist; ///< Analog stick squared "distance" from center
 	
 	/** Default constructor
 	  */
@@ -111,34 +111,47 @@ public:
 		fDY(0.f),
 		fDist(0.f),
 		nX(xIndex),
-		nY(yIndex)
+		nY(yIndex),
+		fOffsetX(0.f),
+		fOffsetY(0.f)
 	{
 	}
 
 	/** Set analog stick X and Y positions from an input data array
 	  */
 	void set(const float* data){
-		fDX = data[nX] - fX;
-		fDY = data[nY] - fY;
-		fX = data[nX];
-		fY = data[nY];
+		fDX = (data[nX] - fOffsetX) - fX;
+		fDY = (data[nY] - fOffsetY) - fY;
+		fX = (data[nX] - fOffsetX);
+		fY = (data[nY] - fOffsetY);
 		fDist = fX * fX + fY * fY;
 	}
 	
 	/** Set analog stick X and Y positions from explicit floating point values
 	  */
 	void set(const float& x, const float& y){
-		fDX = x - fX;
-		fDY = y - fY;
-		fX = x;
-		fY = y;
+		fDX = (x - fOffsetX) - fX;
+		fDY = (y - fOffsetX) - fY;
+		fX = (x - fOffsetX);
+		fY = (y - fOffsetY);
 		fDist = fX * fX + fY * fY;
+	}
+
+	/** Set analog stick center point offset calibration
+	  */
+	void setCalibration(const float& x, const float& y) {
+		fOffsetX = x;
+		fOffsetY = y;
 	}
 	
 private:
 	unsigned char nX; ///< Data array index for X value
 	
 	unsigned char nY; ///< Data array index for Y value
+
+	float fOffsetX; ///< Analog stick center x calibration offset
+
+	float fOffsetY; ///< Analog stick center y calibration offset
 };
 
 class Gamepad{
@@ -459,6 +472,46 @@ public:
 	  */
 	float getRightTrigger() const ;
 
+	/** Set the pressure threshold for which the directional pad (DPad) is considered "pressed" (default is 0.05)
+	  * @param sens Pressure threshold in the range 0 to 2, where 0 is not pressed and 2 is fully pressed
+	  */
+	void setDPadThreshold(const float& sens) {
+		fDPadThreshold = sens;
+	}
+
+	/** Set the displacement threshold for which the left analog stick is considered to have been moved from its central position (default is 0.05)
+	  * @param sens The analog stick's displacement from its central position in the range 0 to 2 where 0 is the central position and 2 is its maximum displacement
+	  */
+	void setLeftStickThreshold(const float& sens) {
+		fLeftStickThreshold = sens;
+	}
+
+	/** Set the displacement threshold for which the right analog stick is considered to have been moved from its central position (default is 0.05)
+	  * @param sens The analog stick's displacement from its central position in the range 0 to 2 where 0 is the central position and 2 is its maximum displacement
+	  */
+	void setRightStickThreshold(const float& sens) {
+		fRightStickThreshold = sens;
+	}
+
+	/** Set the pressure threshold for which the left trigger is considered "pressed" (default is 0.05)
+	  * @param sens Pressure threshold in the range 0 to 2, where 0 is not pressed and 2 is fully pressed
+	  */
+	void setLeftTriggerThreshold(const float& sens) {
+		fLeftTriggerThreshold = 1.f - sens;
+	}
+
+	/** Set the pressure threshold for which the right trigger is considered "pressed" (default is 0.05)
+	  * @param sens Pressure threshold in the range 0 to 2, where 0 is not pressed and 2 is fully pressed
+	  */
+	void setRightTriggerThreshold(const float& sens) {
+		fRightTriggerThreshold = 1.f - sens;
+	}
+
+	/** Calibrate the analog sticks of the the currently active gamepad.
+	  * @param cycles Number of gamepad update cycles to perform
+	  */
+	bool calibrate(const int& cycles = 10);
+
 	/** Update the state of all inputs for the most recently connected gamepad
 	  */
 	void update();
@@ -504,6 +557,16 @@ private:
 
 	int nPlayers; ///< Number of connected player gamepads
 
+	float fDPadThreshold; // 0.1
+
+	float fLeftStickThreshold; // 0.1
+
+	float fRightStickThreshold; // 0.1
+
+	float fLeftTriggerThreshold; // 0.9 = 1.0 - input
+
+	float fRightTriggerThreshold; // 0.9 = 1.0 - input
+
 	std::unique_ptr<Gamepad[]> gamepads; ///< Array of all possible gamepad connections
 	
 	std::vector<Gamepad*> connected; ///< Vector of all connected gamepads
@@ -531,6 +594,11 @@ private:
 	  * @return The iterator of the gamepad with the specified player id, or connected.end() if a matching gamepad was not found.
 	  */
 	GamepadIterator findPlayer(const int& player);
+
+	/** Calibrate the analog sticks of a gamepad.
+	  * Calibration readings are averaged for a specified number of cycles, sleeping a short time between each update.
+	  */
+	void calibrate(Gamepad* pad, const int& cycles=10);
 };
 
 #endif

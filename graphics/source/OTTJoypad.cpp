@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 
 #include "OTTJoypad.hpp"
+#include "OTTFrameTimer.hpp"
 
 OTTJoypad& OTTJoypad::getInstance(){
 	static OTTJoypad instance;
@@ -15,6 +16,11 @@ OTTJoypad::OTTJoypad() :
 	bConnected(false),
 	nGamepads(0),
 	nPlayers(0),
+	fDPadThreshold(0.05f),
+	fLeftStickThreshold(0.05f),
+	fRightStickThreshold(0.05f),
+	fLeftTriggerThreshold(0.95f),
+	fRightTriggerThreshold(0.95f),
 	gamepads(new Gamepad[(GLFW_JOYSTICK_LAST - GLFW_JOYSTICK_1) + 1]),
 	connected(),
 	buttonMap(),
@@ -73,24 +79,24 @@ bool OTTJoypad::check(const GamepadInput &input){
 	// Older versions of GLFW treat the DPad as an analog stick, so we need to 
 	// convert the floating point DPad position into a binary button state.
 	case GamepadInput::UP: // Inverted
-		return (lastGamepad->getDPad()->fY <= -0.9f);
+		return (lastGamepad->getDPad()->fY <= -(1.f - fDPadThreshold));
 	case GamepadInput::RIGHT:
-		return (lastGamepad->getDPad()->fX >= 0.9f);
+		return (lastGamepad->getDPad()->fX >= (1.f - fDPadThreshold));
 	case GamepadInput::DOWN: // Inverted
-		return (lastGamepad->getDPad()->fY >= 0.9f);
+		return (lastGamepad->getDPad()->fY >= (1.f - fDPadThreshold));
 	case GamepadInput::LEFT:
-		return (lastGamepad->getDPad()->fX <= -0.9f);
+		return (lastGamepad->getDPad()->fX <= -(1.f - fDPadThreshold));
 #endif // ifndef GLFW_VERSION_3_3
 	case GamepadInput::DPAD:
-		return (lastGamepad->getDPad()->fDist >= 0.1f);
+		return (lastGamepad->getDPad()->fDist >= fDPadThreshold);
 	case GamepadInput::LSTICK:
-		return (lastGamepad->getLeftAnalogStick()->fDist >= 0.1f);
+		return (lastGamepad->getLeftAnalogStick()->fDist >= fLeftStickThreshold);
 	case GamepadInput::RSTICK:
-		return (lastGamepad->getRightAnalogStick()->fDist >= 0.1f);
+		return (lastGamepad->getRightAnalogStick()->fDist >= fRightStickThreshold);
 	case GamepadInput::LT:
-		return (lastGamepad->getLeftTriggerPosition() >= -0.9f);
+		return (lastGamepad->getLeftTriggerPosition() >= -fLeftTriggerThreshold);
 	case GamepadInput::RT:
-		return (lastGamepad->getRightTriggerPosition() >= -0.9f);
+		return (lastGamepad->getRightTriggerPosition() >= -fRightTriggerThreshold);
 	default: // Standard button
 		return (lastGamepad->check(buttonMap[input]));
 	}
@@ -174,6 +180,13 @@ float OTTJoypad::getRightTrigger() const {
 	return 0.f;
 }
 
+bool OTTJoypad::calibrate(const int& cycles/*=10*/) {
+	if (!lastGamepad || cycles <= 0)
+		return false;
+	calibrate(lastGamepad);
+	return true;
+}
+
 void OTTJoypad::update(){
 	if(!bConnected || connected.empty())
 		return;
@@ -182,6 +195,10 @@ void OTTJoypad::update(){
 
 void OTTJoypad::connect(const int& id) {
 	if(id >= GLFW_JOYSTICK_1 && id <= GLFW_JOYSTICK_LAST){
+		auto pad = findGamepad(id);
+		if (pad != connected.end()) { // Gamepad is already connected, nothing to do
+			return;
+		}
 		std::cout << " [joypad] Connected gamepad with id=" << id << std::endl;
 		if(gamepads[id].connect(id) && gamepads[id].update()){
 			connected.push_back(&gamepads[id]);
@@ -192,6 +209,7 @@ void OTTJoypad::connect(const int& id) {
 				lastGamepad = connected.back();
 				bConnected = true;
 			}
+			calibrate(connected.back()); // Calibrate new gamepad
 		}
 		else{
 			std::cout << " [joypad] Warning! Connected device at id=" << id << " is not a valid gamepad.\n";
@@ -327,6 +345,28 @@ GamepadIterator OTTJoypad::findPlayer(const int& player){
 			return pad;
 	}
 	return connected.end();
+}
+
+void OTTJoypad::calibrate(Gamepad* pad, const int& cycles/*=10*/) {
+	if (!pad || cycles <= 0)
+		return;
+	float avgLX = 0.f, avgLY = 0.f;
+	float avgRX = 0.f, avgRY = 0.f;
+	for (int i = 0; i < cycles; i++) {
+		pad->update();
+		avgLX += pad->getLeftAnalogStick()->fX;
+		avgLY += pad->getLeftAnalogStick()->fY;
+		avgRX += pad->getRightAnalogStick()->fX;
+		avgRY += pad->getRightAnalogStick()->fY;
+		OTTFrameTimer::sleep(1000); // Sleep for a short time
+	}
+	avgLX /= cycles;
+	avgLY /= cycles;
+	avgRX /= cycles;
+	avgRY /= cycles;
+	pad->getLeftAnalogStick()->setCalibration(avgLX, avgLY);
+	pad->getRightAnalogStick()->setCalibration(avgRX, avgRY);
+	std::cout << " [joypad] Calibrate: id=" << pad->getID() << ", left=(" << avgLX << ", " << avgLY << "), right=(" << avgRX << ", " << avgRY << ")" << std::endl;
 }
 
 bool Gamepad::connect(const int& id){

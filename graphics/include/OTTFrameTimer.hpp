@@ -172,6 +172,12 @@ public:
 	  */
 	void resetTimer();
 
+	/** Sleep for a specified number of microseconds.
+	  * Note that high-precision timing resolution is platform dependent and sleeping for very short
+	  * periods of time may not be possible on some systems.
+	  */
+	static void sleep(const long long& usec);
+
 protected:
 	bool bQuitting; ///< Set if the main execution loop should exit
 
