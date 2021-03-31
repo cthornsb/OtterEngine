@@ -12,6 +12,7 @@ add_library(
 	OTTMouse.cpp
 	OTTSprite.cpp
 	OTTTexture.cpp
+	OTTTextureManager.cpp
 	OTTWindow.cpp
 )
 
