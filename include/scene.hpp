@@ -153,6 +153,14 @@ public:
 		drawDepthMap = enable;
 	}
 
+	/** Enable vertical sync (VSync), assuming the platform and hardware allow it
+	  */
+	void enableVSync();
+
+	/** Disable vertical sync (VSync) and set the new target framerate 
+	  */
+	void disableVSync(const double& fps=60.0);
+
 	/** Add an object to the list of objects to be rendered
 	  */
 	void addObject(object* obj);

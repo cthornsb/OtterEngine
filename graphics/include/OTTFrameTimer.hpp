@@ -123,11 +123,13 @@ public:
 	}
 
 	/** Set the target maximum framerate for rendering (in Hz)
-	  * @param fps Target number of frames per second (fps), or uncapped for fps < 0
+	  * @param fps Target number of frames per second (fps > 0)
 	  */
 	void setFramerateCap(const double &fps){ 
+		if (fps <= 0)
+			return;
 		dFramerateCap = fps; 
-		dFramePeriod = (fps > 0 ? 1E6 / fps : 0);
+		dFramePeriod = 1E6 / fps;
 	}
 
 	/** Set the period for each successive frame (in microseconds)
@@ -135,6 +137,13 @@ public:
 	void setFrameratePeriod(const double& period) {
 		dFramePeriod = period;
 		dFramerateCap = 1E6 / dFramePeriod;
+	}
+	
+	/** Disable frame timer, frames will be rendered as fast as possible
+	  */
+	void disableFramerateCap() {
+		dFramePeriod = 0;
+		dFramerateCap = -1;
 	}
 
 	/** Exit the main loop started by execute()

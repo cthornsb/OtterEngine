@@ -54,11 +54,8 @@ scene::~scene(){
 }
 
 void scene::initialize(){
-	// Setup the window
+	// Initialize the window
 	window->initialize("Render3d");
-	window->enableMouse(); // Set mouse support
-	window->enableKeyboard(); // Set keyboard support
-	window->getMouse()->setCursorState(MouseStates::DISABLED); // Lock cursor inside window and hide it
 
 #ifndef SOFTWARE_RENDERER
 	// Switch to OpenGL renderer mode
@@ -75,6 +72,20 @@ void scene::initialize(){
 
 	// Add the world light to the list of light sources
 	addLight(&worldLight);
+}
+
+void scene::enableVSync() {
+	if (!window)
+		return;
+	window->enableVSync();
+	disableFramerateCap(); // Disable built-in frame timer
+}
+
+void scene::disableVSync(const double& fps/*=60.0*/) {
+	if (!window)
+		return;
+	window->disableVSync();
+	setFramerateCap(fps); // Update the frame timer with the new target framerate
 }
 
 void scene::addObject(object* obj) { 
