@@ -111,46 +111,44 @@ bool scene::update(const float& fTimeElapsed) {
 	if (drawOrigin) { 
 		Matrix4 mvp = Matrix4::concatenate(proj, view, &identityMatrix4);
 		window->enableShader(ShaderType::DEFAULT);
-		window->getShader(ShaderType::DEFAULT)->setMatrix4("MVP", &mvp);
+		window->getShader(ShaderType::DEFAULT)->setMatrix4("MVP", mvp);
 		drawAxes();
 		window->disableShader();
 	}
 
 	// Draw the vertices of all objects (using OpenGL)
-	//window->enableWireframeMode();
-	window->setDrawColor(Colors::WHITE); // Set draw color (for default shader)
 	for (auto obj = objects.cbegin(); obj != objects.cend(); obj++) {
+		if ((*obj)->isHidden()) // Object is hidden
+			continue;
+
+		// Set object's ambient color (used by some shaders)
+		window->setDrawColor((*obj)->getAmbientColor());
+
+		const OTTShader* shdr = (*obj)->getShader();
+		if (!shdr || shdr->isHidden()) // Object either doesn't have a shader or all objects with its shader are hidden
+			continue;
+
 		// Setup MVP matrices
 		Matrix4* model = (*obj)->getModelMatrix();
 		Matrix4 mvp = Matrix4::concatenate(proj, view, model);
 
-		// Setup object shader
-		const OTTShader* shdr = (*obj)->getShader();
+		// Enable shader and set uniform transformation matrices (used by most shaders)
 		shdr->enableShader();
-		//shdr->doEnableShaderStuff(model, view, proj, obj);
-		shdr->setMatrix4("MVP", &mvp);
+		shdr->setMatrix4("MVP", mvp);
 		shdr->setMatrix4("model", model);
 		shdr->setMatrix4("view", view);
 		shdr->setMatrix4("proj", proj);
-		Vector3 lightPos(0.f, 7.5f, 0.f);
-		Vector3 lightColor(1.f, 1.f, 1.f);
-		Vector3 lightDir(0.f, 0.f, 0.f);
-		float lightPower = 50.f;
-		shdr->setVector3("lightPos", &lightPos);
-		shdr->setVector3("lightColor", &lightColor);
-		shdr->setVector3("lightDirection", &lightDir);
-		shdr->setFloat("lightIntensity", lightPower);
 
-		// Draw all sub-objects
+		// Draw all sub-objects (shaders are automatically enabled, if in use)
 		(*obj)->draw(window.get());
 
-		// Disable object shader
+		// Disable object shader program
 		shdr->disableShader();
 
 		// Debugging
 		if ((*obj)->getDrawOrigin() || (*obj)->getDrawNormals()) {
 			window->enableShader(ShaderType::DEFAULT);
-			window->getShader(ShaderType::DEFAULT)->setMatrix4("MVP", &mvp);
+			window->getShader(ShaderType::DEFAULT)->setMatrix4("MVP", mvp);
 			if ((*obj)->getDrawOrigin()) { // Draw object unit vectors
 				drawAxes();
 			}

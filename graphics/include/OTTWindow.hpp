@@ -7,6 +7,8 @@
 #include <string>
 #include <map>
 
+#include <GL/glew.h>
+#include <GL/wglew.h>
 #include <GLFW/glfw3.h>
 
 #include "ColorRGB.hpp"
@@ -425,6 +427,8 @@ protected:
 	bool bLockAspectRatio; ///< If set, original aspect ratio will be preserved on window resize
 
 	bool bFullScreenMode; ///< Set if window is in full screen mode
+
+	bool bVSync; ///< Set if VSync is enabled
 
 	OTTKeyboard keys; ///< GLFW keyboard callback wrapper
 	

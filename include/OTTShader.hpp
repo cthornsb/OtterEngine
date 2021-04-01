@@ -10,7 +10,9 @@
 
 class object;
 
-typedef void (*shaderStateFunction)(const object*);
+class OTTShader;
+
+typedef void (*shaderStateFunction)(OTTShader*, const object*);
 
 /// <summary>
 /// Default shader types
@@ -28,6 +30,7 @@ enum class ShaderType {
 class OTTShader {
 public:
 	OTTShader() :
+		bHidden(false),
 		nVertShader(0),
 		nFragShader(0),
 		nProgram(0),
@@ -37,6 +40,7 @@ public:
 	}
 
 	OTTShader(const std::string& vert, const std::string& frag) :
+		bHidden(false),
 		nVertShader(0),
 		nFragShader(0),
 		nProgram(0),
@@ -48,6 +52,18 @@ public:
 
 	~OTTShader();
 
+	bool isHidden() const {
+		return bHidden;
+	}
+
+	void hide() {
+		bHidden = true;
+	}
+
+	void show() {
+		bHidden = false;
+	}
+
 	void enableShader() const;
 
 	void enableObjectShader(const object* obj) const;
@@ -56,7 +72,9 @@ public:
 
 	void disableObjectShader(const object* obj) const;
 
-	unsigned int getProgram() const { return nProgram; }
+	unsigned int getProgram() const { 
+		return nProgram; 
+	}
 
 	bool generate(const std::string& vert, const std::string& frag);
 
@@ -74,25 +92,37 @@ public:
 
 	void setFloat(const std::string& name, const float& value) const;
 
+	void setVector2(const std::string& name, const Vector2& value) const;
+
 	void setVector2(const std::string& name, const Vector2* value) const;
 
 	void setVector2(const std::string& name, const float& x, const float& y) const;
+
+	void setVector3(const std::string& name, const Vector3& value) const;
 
 	void setVector3(const std::string& name, const Vector3* value) const;
 
 	void setVector3(const std::string& name, const float& x, const float& y, const float& z) const;
 
+	void setVector4(const std::string& name, const Vector4& value) const;
+
 	void setVector4(const std::string& name, const Vector4* value) const;
 
-	void setVector4(const std::string& name, const float& x, const float& y, const float& z, const float& w);
+	void setVector4(const std::string& name, const float& x, const float& y, const float& z, const float& w) const;
+
+	void setMatrix2(const std::string& name, const Matrix2& value) const;
 
 	void setMatrix2(const std::string& name, const Matrix2* mat) const;
 
 	void setMatrix2(const std::string& name, const float* mat) const;
 
+	void setMatrix3(const std::string& name, const Matrix3& value) const;
+
 	void setMatrix3(const std::string& name, const Matrix3* mat) const;
 
 	void setMatrix3(const std::string& name, const float* mat) const;
+
+	void setMatrix4(const std::string& name, const Matrix4& value) const;
 
 	void setMatrix4(const std::string& name, const Matrix4* mat) const;
 
@@ -100,15 +130,17 @@ public:
 
 	int getUniformLocation(const std::string& name) const ;
 
-	static void defaultShaderEnable(const object*);
+	static void defaultShaderEnable(OTTShader*, const object*);
 
-	static void defaultShaderDisable(const object*);
+	static void defaultShaderDisable(OTTShader*, const object*);
 
-	static void bindObjectTexture(const object* obj);
+	static void bindObjectTexture(OTTShader*, const object* obj);
 
-	static void unbindObjectTexture(const object*);
+	static void unbindObjectTexture(OTTShader*, const object*);
 
 protected:
+	bool bHidden; ///< Set if any object with this shader should be hidden
+
 	unsigned int nVertShader; ///< OpenGl shader context ID
 
 	unsigned int nFragShader; ///< OpenGl shader context ID

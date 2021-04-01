@@ -201,6 +201,18 @@ public:
 		return !children.empty();
 	}
 
+	/** Return true if this object is currently hidden (not rendered)
+	  */
+	bool isHidden() const {
+		return bHidden;
+	}
+
+	/** Get the object's ambient color
+	  */
+	ColorRGB getAmbientColor() const {
+		return ambientColor;
+	}
+
 	/** Get const iterator at the start of the child objects vector
 	  */
 	std::vector<object*>::const_iterator beginChildren() const {
@@ -231,9 +243,12 @@ public:
 	  */
 	void setPosition(const Vector3 &pos);
 
-	/** Set the shader to use for rendering
+	/** Set the shader to use for rendering. 
+	  * Setting a new shader will automatically un-hide an object.
+	  * @param shdr Pointer to the shader to use for rendering this object
+	  * @param bSetChildShaders If set, specified shader will also be set for all child objects (if any)
 	  */
-	void setShader(const OTTShader* shdr);
+	void setShader(const OTTShader* shdr, bool bSetChildShaders=false);
 
 	/** Scale object relative to its current size
 	  */
@@ -278,8 +293,10 @@ public:
 	}
 
 	/** Set object's texture
+	  * @param txt Texture to use for this object
+	  * @param bSetChildShaders If set, specified shader will also be set for all child objects (if any)
 	  */
-	void setTexture(OTTTexture* txt);
+	void setTexture(OTTTexture* txt, bool bSetChildren=false);
 
 	/** Enable or disable drawing object's local unit vectors
 	  */
@@ -291,6 +308,24 @@ public:
 	  */
 	void setDrawNormals(bool state = true) {
 		bDrawNormals = state;
+	}
+
+	/** Hide the object from view
+	  */
+	void hide() {
+		bHidden = true;
+	}
+
+	/** Show the object (default)
+	  */
+	void show() {
+		bHidden = false;
+	}
+
+	/** Set the object's ambient color
+	  */
+	void setAmbientColor(const ColorRGB& color) {
+		ambientColor = color;
 	}
 
 	/** Reset the offset position of the object to its original location
@@ -332,6 +367,8 @@ protected:
 	bool bDrawOrigin; ///< Set if object origin point and local unit vectors will be drawn
 
 	bool bDrawNormals; ///< Set if face normals will be drawn
+
+	bool bHidden; ///< Set if object is hidden
 
 	size_t reservedVertices; ///< The number of expected vertices
 
@@ -376,6 +413,8 @@ protected:
 	const OTTShader* shader; ///< Pointer to an OpenGL shader to use for rendering
 
 	const OTTTexture* texture; ///< OpenGL texture
+
+	ColorRGB ambientColor; ///< Ambient object color
 
 	Matrix4 modelMatrix; ///< Model rotation and translation matrix used by OpenGL
 

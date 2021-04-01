@@ -18,7 +18,7 @@ void OTTShader::enableShader() const {
 }
 
 void OTTShader::enableObjectShader(const object* obj) const {
-	(*enableFunc)(obj);
+	(*enableFunc)(const_cast<OTTShader*>(this), obj);
 	onUserShaderEnable(obj);
 }
 
@@ -27,7 +27,7 @@ void OTTShader::disableShader() const {
 }
 
 void OTTShader::disableObjectShader(const object* obj) const {
-	(*disableFunc)(obj);
+	(*disableFunc)(const_cast<OTTShader*>(this), obj);
 	onUserShaderDisable(obj);
 }
 
@@ -95,12 +95,20 @@ void OTTShader::setFloat(const std::string& name, const float& value) const {
 	glUniform1f(glGetUniformLocation(nProgram, name.c_str()), value);
 }
 
+void OTTShader::setVector2(const std::string& name, const Vector2& vec) const {
+	glUniform2fv(glGetUniformLocation(nProgram, name.c_str()), 1, vec.getConstData());
+}
+
 void OTTShader::setVector2(const std::string& name, const Vector2* vec) const {
 	glUniform2fv(glGetUniformLocation(nProgram, name.c_str()), 1, vec->getConstData());
 }
 
 void OTTShader::setVector2(const std::string& name, const float& x, const float& y) const {
 	glUniform2f(glGetUniformLocation(nProgram, name.c_str()), x, y);
+}
+
+void OTTShader::setVector3(const std::string& name, const Vector3& vec) const {
+	glUniform3fv(glGetUniformLocation(nProgram, name.c_str()), 1, vec.getConstData());
 }
 
 void OTTShader::setVector3(const std::string& name, const Vector3* vec) const {
@@ -111,12 +119,20 @@ void OTTShader::setVector3(const std::string& name, const float& x, const float&
 	glUniform3f(glGetUniformLocation(nProgram, name.c_str()), x, y, z);
 }
 
+void OTTShader::setVector4(const std::string& name, const Vector4& vec) const {
+	glUniform4fv(glGetUniformLocation(nProgram, name.c_str()), 1, vec.getConstData());
+}
+
 void OTTShader::setVector4(const std::string& name, const Vector4* vec) const {
 	glUniform4fv(glGetUniformLocation(nProgram, name.c_str()), 1, vec->getConstData());
 }
 
-void OTTShader::setVector4(const std::string& name, const float& x, const float& y, const float& z, const float& w) {
+void OTTShader::setVector4(const std::string& name, const float& x, const float& y, const float& z, const float& w) const {
 	glUniform4f(glGetUniformLocation(nProgram, name.c_str()), x, y, z, w);
+}
+
+void OTTShader::setMatrix2(const std::string& name, const Matrix2& mat) const {
+	glUniformMatrix2fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat.getConstData());
 }
 
 void OTTShader::setMatrix2(const std::string& name, const Matrix2* mat) const {
@@ -127,12 +143,20 @@ void OTTShader::setMatrix2(const std::string& name, const float* mat) const {
 	glUniformMatrix2fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat);
 }
 
+void OTTShader::setMatrix3(const std::string& name, const Matrix3& mat) const {
+	glUniformMatrix3fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat.getConstData());
+}
+
 void OTTShader::setMatrix3(const std::string& name, const Matrix3* mat) const {
 	glUniformMatrix3fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat->getConstData());
 }
 
 void OTTShader::setMatrix3(const std::string& name, const float* mat) const {
 	glUniformMatrix3fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat);
+}
+
+void OTTShader::setMatrix4(const std::string& name, const Matrix4& mat) const {
+	glUniformMatrix4fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat.getConstData());
 }
 
 void OTTShader::setMatrix4(const std::string& name, const Matrix4* mat) const {
@@ -181,19 +205,19 @@ bool OTTShader::compileShader(const unsigned int& nShader, const std::string& sB
 	return true;
 }
 
-void OTTShader::defaultShaderEnable(const object*) {
+void OTTShader::defaultShaderEnable(OTTShader*, const object*) {
 }
 
-void OTTShader::defaultShaderDisable(const object*) {
+void OTTShader::defaultShaderDisable(OTTShader*, const object*) {
 }
 
-void OTTShader::bindObjectTexture(const object* obj) {
+void OTTShader::bindObjectTexture(OTTShader*, const object* obj) {
 	// Bind object texture (if available)
 	if (obj->getTexture())
 		glBindTexture(GL_TEXTURE_2D, obj->getTexture()->getContext());
 }
 
-void OTTShader::unbindObjectTexture(const object*) {
+void OTTShader::unbindObjectTexture(OTTShader*, const object*) {
 	// Unbind OpenGL texture
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

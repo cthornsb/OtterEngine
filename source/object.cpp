@@ -14,6 +14,7 @@ object::object() :
 	built(false),
 	bDrawOrigin(false),
 	bDrawNormals(false),
+	bHidden(true), // Objects hidden until a shader is set
 	reservedVertices(0),
 	reservedPolygons(0),
 	position(),
@@ -36,6 +37,7 @@ object::object() :
 	parent(0x0),
 	shader(0x0),
 	texture(0x0),
+	ambientColor(1.f, 1.f, 1.f),
 	modelMatrix()
 {
 	for (int i = 0; i < 3; i++) {
@@ -88,17 +90,22 @@ void object::setPosition(const Vector3 &pos){
 	updatePosition();
 }
 
-void object::setShader(const OTTShader* shdr) { 
+void object::setShader(const OTTShader* shdr, bool bSetChildren/*=false*/) {
+	bHidden = (shdr != 0x0);
 	shader = shdr; 
-	/*for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
-		(*ch)->setShader(shdr);
-	}*/
+	if (bSetChildren) {
+		for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
+			(*ch)->setShader(shdr);
+		}
+	}
 }
 
-void object::setTexture(OTTTexture* txt) {
+void object::setTexture(OTTTexture* txt, bool bSetChildren/*=false*/) {
 	texture = txt;
-	for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
-		(*ch)->setTexture(txt);
+	if (bSetChildren) {
+		for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
+			(*ch)->setTexture(txt);
+		}
 	}
 }
 
@@ -169,21 +176,18 @@ void object::build() {
 }
 
 void object::draw(OTTWindow3D* win) {
-	if (shader) {
-		shader->enableObjectShader(this);
-		win->drawObject(this);
-		shader->disableObjectShader(this);
-		for (std::vector<object*>::const_iterator ch = children.cbegin(); ch != children.cend(); ch++) {
-			shader->enableObjectShader(*ch);
-			win->drawObject(*ch);
-			shader->disableObjectShader(*ch);
-		}
-	}
-	else { // No defined shader
-		win->drawObject(this);
-		for (std::vector<object*>::const_iterator ch = children.cbegin(); ch != children.cend(); ch++) {
-			win->drawObject(*ch);
-		}
+	if (!shader) // Cannot draw object without a shader
+		return;
+	shader->enableObjectShader(this);
+	win->drawObject(this);
+	shader->disableObjectShader(this);
+	for (std::vector<object*>::const_iterator ch = children.cbegin(); ch != children.cend(); ch++) {
+		const OTTShader* childShader = (*ch)->getShader(); // Child objects may have different shaders
+		if (!childShader)
+			continue;
+		childShader->enableObjectShader(*ch);
+		win->drawObject(*ch);
+		childShader->disableObjectShader(*ch);
 	}
 }
 
