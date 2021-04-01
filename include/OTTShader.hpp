@@ -98,6 +98,8 @@ public:
 
 	void setMatrix4(const std::string& name, const float* mat) const;
 
+	int getUniformLocation(const std::string& name) const ;
+
 	static void defaultShaderEnable(const object*);
 
 	static void defaultShaderDisable(const object*);

@@ -27,13 +27,14 @@ public:
 		// Add vertex position to VBO
 		addVertexAttribute(3); //position
 		addVertexAttribute(3); //normal
-		addVertexAttribute(3); //color
 		addVertexAttribute(2); //texture
 	}
 
 	~PolygonContainer();
 
-	triangle* operator [] (const size_t& index) { return &polys[index]; }
+	triangle* operator [] (const size_t& index) {
+		return &polys[index];
+	}
 
 	void copy(std::vector<unsigned short>& out);
 
@@ -41,39 +42,69 @@ public:
 
 	void reserve(const size_t& N);
 
-	unsigned int getVertexVBO() const { return vertexVBO; }
+	unsigned int getVertexVBO() const {
+		return vertexVBO;
+	}
 
-	unsigned int getIndexVBO() const { return indexVBO; }
+	unsigned int getIndexVBO() const {
+		return indexVBO;
+	}
 
-	bool empty() const { return polys.empty(); }
+	bool empty() const {
+		return polys.empty();
+	}
 
-	size_t size() const { return polys.size(); }
+	size_t size() const {
+		return polys.size();
+	}
 
-	size_t capacity() const { return polys.capacity(); }
+	size_t capacity() const {
+		return polys.capacity();
+	}
 
-	std::vector<triangle>::iterator begin() { return polys.begin(); }
+	std::vector<triangle>::iterator begin() {
+		return polys.begin();
+	}
 
-	std::vector<triangle>::iterator end() { return polys.end(); }
+	std::vector<triangle>::iterator end() {
+		return polys.end();
+	}
 
 	void append(const std::vector<unsigned short>& in, const object* obj);
 
 	void append(const std::vector<Vertex>& in);
 
-	triangle* back() { return &polys.back(); }
+	triangle* back() {
+		return &polys.back();
+	}
 
-	std::vector<triangle>* getPolygons() { return &polys; }
+	std::vector<triangle>* getPolygons() {
+		return &polys;
+	}
 
-	const std::vector<triangle>* getConstPolygons() const { return &polys; }
+	const std::vector<triangle>* getConstPolygons() const {
+		return &polys;
+	}
 
-	size_t getNumberOfVertexAttributes() const { return nVertexAttributes; }
+	size_t getNumberOfVertexAttributes() const {
+		return nVertexAttributes;
+	}
 
-	size_t getRawDataLength(const size_t& index) const { return rawData.at(index).size(); }
+	size_t getRawDataLength(const size_t& index) const {
+		return rawData.at(index).size();
+	}
 
-	size_t getRawDataOffset(const size_t& index) const { return rawOffsets.at(index); }
+	size_t getRawDataOffset(const size_t& index) const {
+		return rawOffsets.at(index);
+	}
 
-	size_t getNumberOfAttributeElements(const size_t& index) const { return rawNumElements.at(index); }
+	size_t getNumberOfAttributeElements(const size_t& index) const {
+		return rawNumElements.at(index);
+	}
 
-	size_t getNumberOfVertices() const { return nVertices; }
+	size_t getNumberOfVertices() const {
+		return nVertices;
+	}
 
 	void add(const triangle& tri);
 
@@ -95,6 +126,7 @@ public:
 
 private:
 	unsigned int vertexVBO;
+
 	unsigned int indexVBO;
 
 	size_t nReservedVertices; ///< Number of vertices reserved in memory

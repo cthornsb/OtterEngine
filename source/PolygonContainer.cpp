@@ -42,7 +42,7 @@ void PolygonContainer::add(const unsigned short& i0, const unsigned short& i1, c
 }
 
 void PolygonContainer::modifyTextureMap(const Vector2& uv0, const Vector2& uv1, const Vector2& uv2) {
-	auto iter = rawData[3].end() - 6;
+	auto iter = rawData[2].end() - 6;
 	*iter = uv0[0]; iter++;
 	*iter = uv0[1]; iter++;
 	*iter = uv1[0]; iter++;
@@ -75,7 +75,6 @@ void PolygonContainer::addVertex(Vertex* vert) {
 	Vector3 pos  = vert->getInitialPosition();
 	Vector3 norm = back()->getInitialNormal();
 	Vector2 uv = vert->getTextureCoordinates();
-	ColorRGB color = vert->getColor();
 
 	// Add vertex position
 	rawData[0].push_back(pos[0]);
@@ -86,12 +85,8 @@ void PolygonContainer::addVertex(Vertex* vert) {
 	rawData[1].push_back(norm[1]);
 	rawData[1].push_back(norm[2]);
 
-	rawData[2].push_back(color.r);
-	rawData[2].push_back(color.g);
-	rawData[2].push_back(color.b);
-
-	rawData[3].push_back(uv[0]);
-	rawData[3].push_back(uv[1]);
+	rawData[2].push_back(uv[0]);
+	rawData[2].push_back(uv[1]);
 
 	// Increment number of vertices
 	nVertices++;

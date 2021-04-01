@@ -135,12 +135,6 @@ public:
 	  */
 	void setCamera(camera *cam_);
 
-	/** Enable or disable the drawing of triangle normals
-	  */
-	void setDrawNormals(const bool &enable=true) {
-		drawNorm = enable;
-	}
-
 	/** Enable or disable the drawing of the X, Y, and Z axes at the origin
 	  */
 	void setDrawOrigin(const bool &enable=true) {
@@ -179,11 +173,9 @@ public:
 	  * @note This method should be called once per iteration of the main loop
 	  * @return True if the update was successful and return false if the user closed the window
 	  */
-	bool update();
+	bool update(const float& fTimeElapsed);
 	
 private:
-	bool drawNorm; ///< Flag indicating that normal vectors will be drawn on each triangle
-
 	bool drawOrigin; ///< Flag indicating that the X, Y, and Z axes will be drawn at the origin
 
 	bool drawDepthMap; ///< "Shade" objects with their Z-depth (i.e. their depth into the screen)

@@ -17,7 +17,6 @@
 
 scene::scene() : 
 	OTTFrameTimer(),
-	drawNorm(false), 
 	drawOrigin(false), 
 	drawDepthMap(false),
 	isRunning(true), 
@@ -100,7 +99,7 @@ void scene::clear(const ColorRGB &color/*=Colors::BLACK*/){
 }
 
 #ifndef SOFTWARE_RENDERER
-bool scene::update() {
+bool scene::update(const float& fTimeElapsed) {
 	// Clear the screen with a color
 	clear(Colors::BLACK);
 
@@ -128,11 +127,19 @@ bool scene::update() {
 		// Setup object shader
 		const OTTShader* shdr = (*obj)->getShader();
 		shdr->enableShader();
+		//shdr->doEnableShaderStuff(model, view, proj, obj);
 		shdr->setMatrix4("MVP", &mvp);
-		Vector3 camPos = cam->getPosition();
-		Vector3 camDir = cam->getDirection();
-		shdr->setVector3("camPos", &camPos);
-		shdr->setVector3("camDir", &camDir);
+		shdr->setMatrix4("model", model);
+		shdr->setMatrix4("view", view);
+		shdr->setMatrix4("proj", proj);
+		Vector3 lightPos(0.f, 7.5f, 0.f);
+		Vector3 lightColor(1.f, 1.f, 1.f);
+		Vector3 lightDir(0.f, 0.f, 0.f);
+		float lightPower = 50.f;
+		shdr->setVector3("lightPos", &lightPos);
+		shdr->setVector3("lightColor", &lightColor);
+		shdr->setVector3("lightDirection", &lightDir);
+		shdr->setFloat("lightIntensity", lightPower);
 
 		// Draw all sub-objects
 		(*obj)->draw(window.get());
@@ -141,13 +148,13 @@ bool scene::update() {
 		shdr->disableShader();
 
 		// Debugging
-		if (drawOrigin || drawNorm) {
-			window->enableShader(ShaderType::SIMPLE);
+		if ((*obj)->getDrawOrigin() || (*obj)->getDrawNormals()) {
+			window->enableShader(ShaderType::DEFAULT);
 			window->getShader(ShaderType::DEFAULT)->setMatrix4("MVP", &mvp);
-			if (drawOrigin) { // Draw object unit vectors
+			if ((*obj)->getDrawOrigin()) { // Draw object unit vectors
 				drawAxes();
 			}
-			if (drawNorm) { // Draw face normals
+			if ((*obj)->getDrawNormals()) { // Draw face normals
 				std::vector<triangle>* polys = (*obj)->getPolygonVector();
 				window->setDrawColor(Colors::CYAN);
 				for (auto tri = polys->cbegin(); tri != polys->cend(); tri++) {
@@ -163,7 +170,7 @@ bool scene::update() {
 	return render();
 }
 #else
-bool scene::update(){
+bool scene::update(const float& fTimeElapsed){
 	// Clear the vector of triangles to draw
 	polygonsToDraw.clear();
 

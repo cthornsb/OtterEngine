@@ -12,6 +12,8 @@
 
 object::object() :
 	built(false),
+	bDrawOrigin(false),
+	bDrawNormals(false),
 	reservedVertices(0),
 	reservedPolygons(0),
 	position(),
@@ -160,7 +162,8 @@ void object::build() {
 
 	// Free geometry memory
 	vertices.free();
-	polys.free();
+	if(!bDrawNormals)
+		polys.free();
 
 	built = true;
 }

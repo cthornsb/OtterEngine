@@ -143,6 +143,10 @@ void OTTShader::setMatrix4(const std::string& name, const float* mat) const {
 	glUniformMatrix4fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat);
 }
 
+int OTTShader::getUniformLocation(const std::string& name) const {
+	return glGetUniformLocation(nProgram, name.c_str());
+}
+
 bool OTTShader::readShader(const std::string& fname, std::string& retval) {
 	retval = "";
 	std::string line;

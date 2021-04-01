@@ -177,6 +177,18 @@ public:
 		return texture;
 	}
 
+	/** Retrun true if local object unit vectors should be drawn
+	  */
+	bool getDrawOrigin() const {
+		return bDrawOrigin;
+	}
+
+	/** Return true if face normals should be drawn
+	  */
+	bool getDrawNormals() const {
+		return bDrawNormals;
+	}
+
 	/** Return true if this object has a parent object and return false otherwise
 	  */
 	bool isChild() const {
@@ -269,6 +281,18 @@ public:
 	  */
 	void setTexture(OTTTexture* txt);
 
+	/** Enable or disable drawing object's local unit vectors
+	  */
+	void setDrawOrigin(bool state = true) {
+		bDrawOrigin = state;
+	}
+
+	/** Enable or disable drawing object's face normals
+	  */
+	void setDrawNormals(bool state = true) {
+		bDrawNormals = state;
+	}
+
 	/** Reset the offset position of the object to its original location
 	  */
 	void resetPosition();
@@ -305,16 +329,24 @@ public:
 protected:
 	bool built; ///< Flag indicating that the geometry has been constructed
 
+	bool bDrawOrigin; ///< Set if object origin point and local unit vectors will be drawn
+
+	bool bDrawNormals; ///< Set if face normals will be drawn
+
 	size_t reservedVertices; ///< The number of expected vertices
+
 	size_t reservedPolygons; ///< The number of expected polygons which will be built
 
 	Vector3 position; ///< The position offset of the object (not necessarily the center)
+
 	Vector3 position0; ///< The original position offset of the object
 	
 	Matrix3 rotation; ///< The rotation of the object about the offset position
 
 	Vector3 uX; ///< Unit vector for the x-axis
+
 	Vector3 uY; ///< Unit vector for the y-axis
+
 	Vector3 uZ; ///< Unit vector for the z-axis
 
 	Vector3 center; ///< Center of the box which bounds the model
@@ -322,10 +354,13 @@ protected:
 	Vector3 scaleFactor; ///< X, Y, and Z scale of object
 
 	WrappedValue pitchAngle; ///< Angle of camera tilt up or down (i.e. about the horizontal axis)
+
 	WrappedValue rollAngle; ///< Angle of camera roll cw or ccw (i.e. about the depth axis)
+
 	WrappedValue yawAngle; ///< Angle of camera turn left or right (i.e. about the vertical axis
 
 	float maxSize[3]; ///< Maximum extent along the x, y, and z-axes
+
 	float minSize[3]; ///< Minimum extent along the x, y, and z-axes
 
 	VertexContainer vertices; ///< Vector of all unique vertices
