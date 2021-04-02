@@ -91,7 +91,7 @@ void object::setPosition(const Vector3 &pos){
 }
 
 void object::setShader(const OTTShader* shdr, bool bSetChildren/*=false*/) {
-	bHidden = (shdr != 0x0);
+	bHidden = (shdr == 0x0);
 	shader = shdr; 
 	if (bSetChildren) {
 		for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
