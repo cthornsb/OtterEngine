@@ -5,6 +5,13 @@
 #include "ray.hpp"
 #include "PixelTriplet.hpp"
 
+enum class LightType {
+	DISABLED,
+	DIRECTIONAL,
+	POINT,
+	CONE
+};
+
 class lightSource : public ray {
 public:
 	lightSource() : 
@@ -16,34 +23,50 @@ public:
 	{ 
 	}
 
-	void enable() { enabled = true; }
+	void enable() {
+		enabled = true; 
+	}
 
-	void disable() { enabled = false; }
+	void disable() {
+		enabled = false; 
+	}
 
 	/** Get the brightness of the light source
 	  */
-	float getBrightness() const { return brightness; }
+	float getBrightness() const {
+		return brightness; 
+	}
 	
 	/** Get the color of the light source
 	  */
-	ColorRGB getColor() const { return color; }
+	ColorRGB getColor() const {
+		return color; 
+	}
 	
 	/** Get the scaled color of the light source based on the angle between the direction of the
 	  * light source and the normal to a surface
 	  */
-	ColorRGB getColor(const Vertex* vert, const Vector3& norm) const { return (color * getIntensity(vert, norm)); }
+	ColorRGB getColor(const Vertex* vert, const Vector3& norm) const {
+		return (color * getIntensity(vert, norm)); 
+	}
 
 	/** Set the brightness of the light source
 	  */
-	void setBrightness(const float &brightness_){ brightness = brightness_; }
+	void setBrightness(const float &brightness_) { 
+		brightness = brightness_; 
+	}
 
 	/** Set the color of the light source
 	  */
-	void setColor(const ColorRGB &color_){ color = color_; }
+	void setColor(const ColorRGB &color_) { 
+		color = color_; 
+	}
 
 	/** Check that the light source is enabled
 	  */
-	bool isEnabled() const { return enabled; }
+	bool isEnabled() const {
+		return enabled; 
+	}
 
 protected:
 	bool enabled; ///< Light enable flag
@@ -64,14 +87,16 @@ class directionalLight : public lightSource {
 public:
 	/** Default constructor
 	  */
-	directionalLight() : lightSource() { }
+	directionalLight() : lightSource() {
+	}
 };
 
 class pointLight : public lightSource {
 public:
 	/** Default constructor
 	  */
-	pointLight() : lightSource() { }
+	pointLight() : lightSource() {
+	}
 
 protected:
 	/** Get the intensity scaling factor based on the angle between the direction of the
@@ -85,9 +110,15 @@ class coneLight : public lightSource {
 public:
 	/** Default constructor
 	  */
-	coneLight() : lightSource(), openingAngle(0.5236f) { }
+	coneLight() : 
+		lightSource(), 
+		openingAngle(0.5236f) 
+	{
+	}
 	
-	void setOpeningAngle(const float& angle) { openingAngle = angle; }
+	void setOpeningAngle(const float& angle) {
+		openingAngle = angle; 
+	}
 
 protected:
 	float openingAngle; ///< The opening angle of the light cone (in radians)
