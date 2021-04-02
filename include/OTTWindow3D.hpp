@@ -89,6 +89,10 @@ public:
 	  */
 	void drawStaticObject(const object* obj, const Vector3& offset);
 
+	/** Draw X, Y, and Z unit vector axes
+	  */
+	void drawAxes();
+
 	/** Enable OpenGL alpha blending for translucent textures
 	  **/
 	void enableAlphaBlending();

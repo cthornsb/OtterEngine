@@ -100,6 +100,15 @@ void OTTWindow3D::drawObject(const object* obj) {
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
+void OTTWindow3D::drawAxes() {
+	setDrawColor(Colors::RED);
+	drawLine(0.f, 0.f, 0.f, 1.f, 0.f, 0.f);
+	setDrawColor(Colors::GREEN);
+	drawLine(0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
+	setDrawColor(Colors::BLUE);
+	drawLine(0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
+}
+
 void OTTWindow3D::enableAlphaBlending() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -174,7 +174,7 @@ public:
 	  * @return True if the update was successful and return false if the user closed the window
 	  */
 	bool update(const float& fTimeElapsed);
-	
+
 private:
 	bool drawOrigin; ///< Flag indicating that the X, Y, and Z axes will be drawn at the origin
 
@@ -292,10 +292,6 @@ private:
 	  */
 	void drawFilledTriangle(const pixelTriplet &coords, const ColorRGB &color);
 #endif // ifdef SOFTWARE_RENDERER
-
-	/** Draw X, Y, and Z unit vector axes
-	  */
-	void drawAxes();
 };
 
 #endif

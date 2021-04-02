@@ -33,7 +33,6 @@ object::object() :
 	vertices(),
 	polys(),
 	children(),
-	parentOffset(),
 	parent(0x0),
 	shader(0x0),
 	texture(0x0),
@@ -64,6 +63,16 @@ Matrix4* object::getModelMatrix() {
 	return &modelMatrix;
 }
 
+Matrix4* object::getModelMatrix(const Matrix4& mat) {
+	// Update the view matrix as the camera may have moved
+	modelMatrix.setSubMatrixColumn(0, uX * scaleFactor[0], position[0]);
+	modelMatrix.setSubMatrixColumn(1, uY * scaleFactor[1], position[1]);
+	modelMatrix.setSubMatrixColumn(2, uZ * scaleFactor[2], position[2]);
+	modelMatrix.setSubMatrixColumn(3, zeroVector, 1.f);
+	modelMatrix *= mat;
+	return &modelMatrix;
+}
+
 void object::rotate(const float& theta, const float& phi, const float& psi){
 	// Update the rotation matrix
 	rotation.setRotation((pitchAngle += theta), (rollAngle += psi), (yawAngle += phi));
@@ -74,7 +83,6 @@ void object::rotate(const float& theta, const float& phi, const float& psi){
 
 void object::move(const Vector3 &offset){
 	position += offset;
-	updatePosition();
 }
 
 void object::setRotation(const float& theta, const float& phi, const float& psi){
@@ -87,7 +95,6 @@ void object::setRotation(const float& theta, const float& phi, const float& psi)
 
 void object::setPosition(const Vector3 &pos){
 	position = pos;
-	updatePosition();
 }
 
 void object::setShader(const OTTShader* shdr, bool bSetChildren/*=false*/) {
@@ -111,7 +118,6 @@ void object::setTexture(OTTTexture* txt, bool bSetChildren/*=false*/) {
 
 void object::resetPosition(){
 	position = position0;
-	updatePosition();
 }
 
 void object::renderAllVertices(camera* cam) {
@@ -120,24 +126,17 @@ void object::renderAllVertices(camera* cam) {
 	}
 }
 
-void object::addChild(object* child, const Vector3& offset/*=zeroVector*/) {
-	if (!child->built) { // Construct the child geometry (it not already done)
-		child->build();
-	}
+void object::addChild(object* child) {
 	children.push_back(child);
 	if (!child->setParent(this)) {
 		std::cout << " Object: [warning] Child object already had a parent, this may result in undefined behavior!" << std::endl;
 	}
-	child->parentOffset = offset;
-	child->updateRotationForParent(&rotation);
-	child->updatePositionForParent(position);
 }
 
 void object::removeChild(object* child) {
 	auto ch = std::find(children.begin(), children.end(), child);
 	if (ch != children.end()) { // Remove the child and unlink it from this object
 		(*ch)->parent = 0x0;
-		(*ch)->parentOffset = zeroVector;
 		children.erase(ch);
 	}
 	else {
@@ -152,18 +151,6 @@ void object::build() {
 	// Finalize the object geometry
 	this->userBuild();
 
-	// Compute average normal vector at all vertices (very slow and not really needed)
-	/*for (std::vector<triangle>::iterator tri = polys.begin(); tri != polys.end(); tri++) {
-		for (std::vector<Vertex>::iterator vert = vertices.begin(); vert != vertices.end(); vert++) {
-			if (tri->hasVertex(&(*vert)))
-				vert->norm0 += tri->getNormal();
-		}
-	}
-	// Normalize vertex normals
-	for (std::vector<Vertex>::iterator vert = vertices.begin(); vert != vertices.end(); vert++) {
-		vert->norm0.normInPlace();
-	}*/
-
 	// Transfer geometry to the gpu
 	polys.finalize();
 
@@ -172,22 +159,83 @@ void object::build() {
 	if(!bDrawNormals)
 		polys.free();
 
+	// Build any child objects
+	for (std::vector<object*>::const_iterator ch = children.cbegin(); ch != children.cend(); ch++) {
+		(*ch)->build();
+	}
+
 	built = true;
 }
 
-void object::draw(OTTWindow3D* win) {
-	if (!shader) // Cannot draw object without a shader
+void object::draw(OTTWindow3D* win, Matrix4* proj, Matrix4* view) {
+	if (bHidden) // Object is hidden
 		return;
-	shader->enableObjectShader(this);
-	win->drawObject(this);
-	shader->disableObjectShader(this);
-	for (std::vector<object*>::const_iterator ch = children.cbegin(); ch != children.cend(); ch++) {
-		const OTTShader* childShader = (*ch)->getShader(); // Child objects may have different shaders
+
+	// Set object's ambient color (used by some shaders)
+	win->setDrawColor(ambientColor);
+
+	// Setup MVP matrices
+	Matrix4* model = getModelMatrix();
+	Matrix4 mvp = Matrix4::concatenate(proj, view, model);
+
+	// Draw the parent
+	if (polys.getVertexVBO() && (shader && !shader->isHidden())) { // Object must have a shader to be rendered		
+		// Enable shader and set uniform transformation matrices (used by most shaders)
+		shader->enableShader();
+		shader->setMatrix4("MVP", mvp);
+		shader->setMatrix4("model", model);
+		shader->setMatrix4("view", view);
+		shader->setMatrix4("proj", proj);
+
+		// Draw the parent geometry
+		shader->enableObjectShader(this);
+		win->drawObject(this);
+		shader->disableObjectShader(this);
+
+		// Disable shader program
+		shader->disableShader();
+	}
+
+	// Draw all child objects (if any)
+	for (std::vector<object*>::const_iterator ch = children.cbegin(); ch != children.cend(); ch++) { 
+		const OTTShader* childShader = (*ch)->getShader(); // Child objects may have different shaders than the parent
 		if (!childShader)
 			continue;
+
+		// Update child model matrix
+		Matrix4* submodel = (*ch)->getModelMatrix(*model);
+		Matrix4 submvp = Matrix4::concatenate(proj, view, submodel);
+
+		// Set uniform transformation matrices (used by most shaders)
+		childShader->enableShader();
+		childShader->setMatrix4("MVP", submvp);
+		childShader->setMatrix4("model", submodel);
+		childShader->setMatrix4("view", view);
+		childShader->setMatrix4("proj", proj);
+		
 		childShader->enableObjectShader(*ch);
 		win->drawObject(*ch);
 		childShader->disableObjectShader(*ch);
+		childShader->disableShader();
+	}
+
+	// Debugging
+	if (bDrawOrigin || bDrawNormals) {
+		OTTShader* defShader = win->getShader(ShaderType::DEFAULT);
+		defShader->enableShader();
+		defShader->setMatrix4("MVP", mvp);
+		if (bDrawOrigin) { // Draw object unit vectors
+			win->drawAxes();
+		}
+		if (bDrawNormals) { // Draw face normals
+			win->setDrawColor(Colors::CYAN);
+			for (auto tri = polys.getPolygons()->cbegin(); tri != polys.getPolygons()->cend(); tri++) {
+				Vector3 base = tri->getInitialCenterPoint();
+				Vector3 tip = base + tri->getInitialNormal() * 0.25f;
+				win->drawLine(base, tip);
+			}
+		}
+		defShader->disableShader();
 	}
 }
 
@@ -212,28 +260,10 @@ bool object::setParent(const object* obj) {
 	return retval;
 }
 
-void object::updatePosition() {
-	for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
-		(*ch)->updatePositionForParent(position);
-	}
-}
-
-void object::updatePositionForParent(const Vector3& pos) {
-	position = pos + parentOffset;
-}
-
 void object::updateRotation() {
 	uX = rotation.transform(unitVectorX);
 	uY = rotation.transform(unitVectorY);
 	uZ = rotation.transform(unitVectorZ);
-	for (std::vector<object*>::iterator ch = children.begin(); ch != children.end(); ch++) {
-		(*ch)->updateRotationForParent(&rotation);
-		(*ch)->updatePositionForParent(position); // Necessary because the offset position within the parent changed
-	}
-}
-
-void object::updateRotationForParent(const Matrix3* rot) {
-	rot->transformInPlace(parentOffset);
 }
 
 void object::reserve(const size_t& nVert, const size_t& nPoly/*=0*/) {

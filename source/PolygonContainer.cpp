@@ -8,7 +8,6 @@
 PolygonContainer::~PolygonContainer() {
 	// Delete VBOs
 	glDeleteBuffers(1, &vertexVBO);
-	//glDeleteBuffers(1, &indexVBO);
 }
 
 void PolygonContainer::reserve(const size_t& N) {
@@ -65,6 +64,8 @@ void PolygonContainer::modifyNormalVector(const Vector3& n0, const Vector3& n1, 
 }
 
 void PolygonContainer::finalize() {
+	if (polys.empty()) // No geometry
+		return;
 	// Setup buffer objects
 	setupVBOs();	
 	rawData.clear();
@@ -105,9 +106,8 @@ bool PolygonContainer::addVertexAttribute(const size_t& nElements) {
 void PolygonContainer::setupVBOs() {
 	// Generate vertex VBO
 	glCreateBuffers(1, &vertexVBO);
-	//glCreateBuffers(1, &indexVBO);
 
-	std::cout << " [debug] vertexVBO=" << vertexVBO << ", indexVBO=" << indexVBO << std::endl;
+	std::cout << " [debug] vertexVBO=" << vertexVBO << std::endl;
 	
 	// Compute the total
 	nTotalNumberOfBytes = 0;

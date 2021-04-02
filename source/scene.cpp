@@ -112,57 +112,13 @@ bool scene::update(const float& fTimeElapsed) {
 		Matrix4 mvp = Matrix4::concatenate(proj, view, &identityMatrix4);
 		window->enableShader(ShaderType::DEFAULT);
 		window->getShader(ShaderType::DEFAULT)->setMatrix4("MVP", mvp);
-		drawAxes();
+		window->drawAxes();
 		window->disableShader();
 	}
 
-	// Draw the vertices of all objects (using OpenGL)
+	// Draw all objects
 	for (auto obj = objects.cbegin(); obj != objects.cend(); obj++) {
-		if ((*obj)->isHidden()) // Object is hidden
-			continue;
-
-		// Set object's ambient color (used by some shaders)
-		window->setDrawColor((*obj)->getAmbientColor());
-
-		const OTTShader* shdr = (*obj)->getShader();
-		if (!shdr || shdr->isHidden()) // Object either doesn't have a shader or all objects with its shader are hidden
-			continue;
-
-		// Setup MVP matrices
-		Matrix4* model = (*obj)->getModelMatrix();
-		Matrix4 mvp = Matrix4::concatenate(proj, view, model);
-
-		// Enable shader and set uniform transformation matrices (used by most shaders)
-		shdr->enableShader();
-		shdr->setMatrix4("MVP", mvp);
-		shdr->setMatrix4("model", model);
-		shdr->setMatrix4("view", view);
-		shdr->setMatrix4("proj", proj);
-
-		// Draw all sub-objects (shaders are automatically enabled, if in use)
-		(*obj)->draw(window.get());
-
-		// Disable object shader program
-		shdr->disableShader();
-
-		// Debugging
-		if ((*obj)->getDrawOrigin() || (*obj)->getDrawNormals()) {
-			window->enableShader(ShaderType::DEFAULT);
-			window->getShader(ShaderType::DEFAULT)->setMatrix4("MVP", mvp);
-			if ((*obj)->getDrawOrigin()) { // Draw object unit vectors
-				drawAxes();
-			}
-			if ((*obj)->getDrawNormals()) { // Draw face normals
-				std::vector<triangle>* polys = (*obj)->getPolygonVector();
-				window->setDrawColor(Colors::CYAN);
-				for (auto tri = polys->cbegin(); tri != polys->cend(); tri++) {
-					Vector3 base = tri->getInitialCenterPoint();
-					Vector3 tip = base + tri->getInitialNormal() * 0.25f;
-					window->drawLine(base, tip);
-				}
-			}
-			window->disableShader();
-		}
+		(*obj)->draw(window.get(), proj, view);
 	}
 
 	return render();
@@ -478,12 +434,3 @@ void scene::drawFilledTriangle(const pixelTriplet &coords, const ColorRGB &color
 	}
 }
 #endif // ifndef SOFTWARE_RENDERER
-
-void scene::drawAxes() {
-	window->setDrawColor(Colors::RED);
-	window->drawLine(0.f, 0.f, 0.f, 1.f, 0.f, 0.f);
-	window->setDrawColor(Colors::GREEN);
-	window->drawLine(0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
-	window->setDrawColor(Colors::BLUE);
-	window->drawLine(0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
-}

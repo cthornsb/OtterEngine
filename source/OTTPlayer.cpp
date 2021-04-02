@@ -21,31 +21,26 @@ void OTTPlayer::look(const float& pitch, const float& yaw) {
 void OTTPlayer::warp(const Vector3& pos) {
 	position = pos;
 	eyes->moveTo(position + vEyesOffset);
-	updatePosition();
 }
 
 void OTTPlayer::move(const Vector3& displacement) {
 	position += displacement;
 	eyes->moveTo(position + vEyesOffset);
-	updatePosition();
 }
 
 void OTTPlayer::move(const float& forward, const float& strafe) {
 	position += (uZ * (-forward) + uX * (-strafe));
 	eyes->moveTo(position + vEyesOffset);
-	updatePosition();
 }
 
 void OTTPlayer::move(const float& forward) {
 	position += (uZ * (-forward));
 	eyes->moveTo(position + vEyesOffset);
-	updatePosition();
 }
 
 void OTTPlayer::strafe(const float& strafe) {
 	position += (uX * (-strafe));
 	eyes->moveTo(position + vEyesOffset);
-	updatePosition();
 }
 
 void OTTPlayer::rotate(const float& theta) {

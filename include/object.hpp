@@ -167,9 +167,13 @@ public:
 		return polys.getIndexVBO();
 	}
 
-	/** Get the OpenGL modelview matrix
+	/** Get the modelview matrix
 	  */
 	Matrix4* getModelMatrix();
+
+	/** Get the modelview matrix, transformed by an external model matrix (e.g. the model matrix of a parent object)
+	  */
+	Matrix4* getModelMatrix(const Matrix4& mat);
 
 	/** Get the OpenGL texture ID
 	  */
@@ -336,12 +340,12 @@ public:
 	  */
 	void renderAllVertices(camera* cam);
 
-	/** Add a child to this object
+	/** Add a child to this object.
+	  * The child object's current world position is used as its offset within the parent object.
 	  * @note An object with multiple parents may cause undefined behavior
 	  * @param child Pointer to the child object
-	  * @param offset Position offset inside the parent object
 	  */
-	void addChild(object* child, const Vector3& offset = zeroVector);
+	void addChild(object* child);
 
 	/** Remove a child from this object
 	  * @param child Pointer to the child object
@@ -358,8 +362,11 @@ public:
 	virtual void userBuild() { };
 
 	/** Draw all sub-objects
+	  * @param win Pointer to the GLFW window where the object geometry will be drawn
+	  * @param proj Pointer to the current projection matrix
+	  * @param view Pointer to the current camera view matrix
 	  */
-	void draw(OTTWindow3D* win);
+	void draw(OTTWindow3D* win, Matrix4* proj, Matrix4* view);
 	
 protected:
 	bool built; ///< Flag indicating that the geometry has been constructed
@@ -406,8 +413,6 @@ protected:
 
 	std::vector<object*> children; ///< Vector of pointers to child objects
 
-	Vector3 parentOffset; ///< Offset of this object within its parent
-
 	const object* parent; ///< Pointer to parent object
 
 	const OTTShader* shader; ///< Pointer to an OpenGL shader to use for rendering
@@ -438,21 +443,9 @@ protected:
 	  */
 	bool setParent(const object* obj);
 
-	/** Update the position of all child objects to the parent position
-	  */
-	void updatePosition();
-
-	/** Update the position based on new parent position
-	  */
-	void updatePositionForParent(const Vector3& pos);
-
 	/** Update the rotation of all child objects to that of the parent
 	  */
 	void updateRotation();
-
-	/** Update the rotation based on new parent rotation
-	  */
-	void updateRotationForParent(const Matrix3* rot);
 
 	/** Reserve space in the geometry vectors so that they will not resize when being filled
 	  * @param nVert Number of expected vertices
