@@ -197,7 +197,7 @@ bool OTTShader::compileShader(const unsigned int& nShader, const std::string& sB
 	if (retval != GL_TRUE) {
 		std::cout << " [Shader] Error! Failed to compile shader" << std::endl;
 		char log[512];
-		glGetShaderInfoLog(nVertShader, 512, 0x0, log);
+		glGetShaderInfoLog(nShader, 512, 0x0, log);
 		std::cout << " [debug]  output log:" << std::endl; // Print compiler output log
 		std::cout << log << std::endl;
 		return false;

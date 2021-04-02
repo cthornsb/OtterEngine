@@ -30,6 +30,10 @@ public:
 	{
 	}
 
+	Vector3 getEyePosition() const {
+		return (position + vEyesOffset);
+	}
+
 	void setEyeOffset(const Vector3& offset);
 
 	void setEyes(camera* cam);

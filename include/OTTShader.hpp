@@ -35,7 +35,8 @@ public:
 		nFragShader(0),
 		nProgram(0),
 		enableFunc(&defaultShaderEnable),
-		disableFunc(&defaultShaderDisable)
+		disableFunc(&defaultShaderDisable),
+		shaderData(0x0)
 	{ 
 	}
 
@@ -45,7 +46,8 @@ public:
 		nFragShader(0),
 		nProgram(0),
 		enableFunc(&defaultShaderEnable),
-		disableFunc(&defaultShaderDisable)
+		disableFunc(&defaultShaderDisable),
+		shaderData(0x0)
 	{
 		generate(vert, frag);
 	}
@@ -76,6 +78,10 @@ public:
 		return nProgram; 
 	}
 
+	void* getShaderDataPointer() {
+		return shaderData;
+	}
+
 	bool generate(const std::string& vert, const std::string& frag);
 
 	void setShaderEnableFunction(shaderStateFunction func) {
@@ -84,6 +90,10 @@ public:
 
 	void setShaderDisableFunction(shaderStateFunction func) {
 		disableFunc = func;
+	}
+
+	void setShaderDataPointer(void* ptr) {
+		shaderData = ptr;
 	}
 
 	void setBool(const std::string& name, const bool& value) const;
@@ -150,6 +160,8 @@ protected:
 	shaderStateFunction enableFunc;
 
 	shaderStateFunction disableFunc;
+
+	void* shaderData;
 
 	bool readShader(const std::string& fname, std::string& retval);
 

@@ -175,6 +175,24 @@ public:
 	  */
 	Matrix4* getModelMatrix(const Matrix4& mat);
 
+	/** Get the object's local X-axis unit vector
+	  */
+	Vector3 getUnitVectorX() const {
+		return uX;
+	}
+
+	/** Get the object's local Y-axis unit vector
+	  */
+	Vector3 getUnitVectorY() const {
+		return uY;
+	}
+
+	/** Get the object's local Z-axis unit vector
+	  */
+	Vector3 getUnitVectorZ() const {
+		return uZ;
+	}
+
 	/** Get the OpenGL texture ID
 	  */
 	const OTTTexture* getTexture() const {

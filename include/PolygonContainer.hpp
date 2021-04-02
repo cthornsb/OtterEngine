@@ -12,6 +12,7 @@ class VertexContainer;
 class PolygonContainer {
 public:
 	PolygonContainer() :
+		bDebugMode(false),
 		vertexVBO(0),
 		indexVBO(0),
 		nReservedVertices(0),
@@ -125,6 +126,8 @@ public:
 	void free();
 
 private:
+	bool bDebugMode;
+
 	unsigned int vertexVBO;
 
 	unsigned int indexVBO;

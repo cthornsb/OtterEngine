@@ -34,15 +34,21 @@ public:
 
 	/** Get the current position of the focal point of the camera
 	  */
-	Vector3 getPosition() const { return position; }
+	Vector3 getPosition() const {
+		return position;
+	}
 
 	/** Get the current direction the camera is facing
 	  */
-	Vector3 getDirection() const { return uZ; }
+	Vector3 getDirection() const {
+		return uZ;
+	}
 
 	/** Get a pointer to the OpenGL scene projection matrix
 	  */
-	Matrix4* getProjectionMatrix() { return &projection; }
+	Matrix4* getProjectionMatrix() {
+		return &projection;
+	}
 
 	/** Update the OpenGL camera view matrix and return its pointer
 	  */
@@ -50,21 +56,29 @@ public:
 
 	/** Get the pitch-angle of the camera (about the x-axis, in radians)
 	  */
-	float getPitchAngle() const { return pitchAngle.get(); }
+	float getPitchAngle() const {
+		return pitchAngle.get();
+	}
 
 	/** Get the yaw-angle of the camera (about the y-axis, in radians)
 	  */
-	float getYawAngle() const { return yawAngle.get(); }
+	float getYawAngle() const {
+		return yawAngle.get();
+	}
 
 	/** Get the roll-angle of the camera (about the z-axis, in radians)
 	  */
-	float getRollAngle() const { return rollAngle.get(); }
+	float getRollAngle() const {
+		return rollAngle.get();
+	}
 
 	/** Get a ray which originates at the focal point and travels through the viewplane
 	  * @param x Horizontal coordinate in screen space (-1, 1)
 	  * @param y Vertical coordinate in screen space (-1, 1)
 	  */
-	ray getRay(const float& x, const float& y) const { return ray(position, (p + uX * x + uY * y - position).normalize()); }
+	ray getRay(const float& x, const float& y) const {
+		return ray(position, (p + uX * x + uY * y - position).normalize());
+	}
 
 	/** Set the field-of-view of the camera (in degrees)
 	  */
@@ -241,24 +255,33 @@ public:
 	
 private:
 	float fov; ///< Field-of-view (in radians)
+
 	float L; ///< Focal length (in m)
+
 	float A; ///< Aspect ratio
+
 	float W; ///< Viewing plane width (in m)
+
 	float H; ///< Viewing plane height (in m)
 	
 	Vector3 position; ///< The focal point of the camera (its position)
 
 	Vector3 uX; ///< Unit vector for the x-axis
+
 	Vector3 uY; ///< Unit vector for the y-axis
+
 	Vector3 uZ; ///< Unit vector for the z-axis
 
 	WrappedValue pitchAngle; ///< Angle of camera tilt up or down (i.e. about the horizontal axis)
+
 	WrappedValue rollAngle; ///< Angle of camera roll cw or ccw (i.e. about the depth axis)
+
 	WrappedValue yawAngle; ///< Angle of camera turn left or right (i.e. about the vertical axis
 
 	Matrix3 rotation; ///< 3d camera rotation matrix
 
 	Matrix4 projection; ///< Camera projection matrix (perspective or orthographic)
+
 	Matrix4 viewMatrix; ///< Camera view matrix (rotation and translation)
 
 	/** Initialize the camera by setting initial values and computing all geometric parameters

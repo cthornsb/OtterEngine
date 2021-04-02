@@ -107,7 +107,8 @@ void PolygonContainer::setupVBOs() {
 	// Generate vertex VBO
 	glCreateBuffers(1, &vertexVBO);
 
-	std::cout << " [debug] vertexVBO=" << vertexVBO << std::endl;
+	if (bDebugMode)
+		std::cout << " [debug] vertexVBO=" << vertexVBO << std::endl;
 	
 	// Compute the total
 	nTotalNumberOfBytes = 0;
@@ -119,19 +120,17 @@ void PolygonContainer::setupVBOs() {
 	}
 	
 	// Bind buffer and reserve vertex buffer memory
-	//glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
 	glNamedBufferData(vertexVBO, nTotalNumberOfBytes, 0x0, GL_STATIC_DRAW);
 
 	// Copy data to GPU
 	for (size_t i = 0; i < nVertexAttributes; i++) {
 		glNamedBufferSubData(vertexVBO, (GLintptr)rawOffsets[i], (GLsizeiptr)rawLengths[i], (const void*)rawData[i].data());
-		std::cout << " [debug]  (location = " << i <<") elements=" << rawNumElements[i] << ", size=" << rawLengths[i] << " B" << std::endl;
+		if (bDebugMode)
+			std::cout << " [debug]  (location = " << i <<") elements=" << rawNumElements[i] << ", size=" << rawLengths[i] << " B" << std::endl;
 	}
 
-	// Unbind buffer
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	std::cout << " [debug] VBO: triangles=" << polys.size() << ", vertices=" << nVertices << std::endl;
+	if(bDebugMode)
+		std::cout << " [debug] VBO: triangles=" << polys.size() << ", vertices=" << nVertices << std::endl;
 }
 
 void PolygonContainer::free() {
