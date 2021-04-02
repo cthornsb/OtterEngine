@@ -7,8 +7,8 @@
 #include <string>
 #include <map>
 
-#include <GL/glew.h>
-#include <GL/wglew.h>
+//#include <GL/glew.h>
+//#include <GL/wglew.h>
 #include <GLFW/glfw3.h>
 
 #include "ColorRGB.hpp"
@@ -124,6 +124,12 @@ public:
 	  */
 	bool getFullScreenMode() const {
 		return bFullScreenMode;
+	}
+
+	/** Return true if VSync is currently enabled
+	  */
+	bool getVSync() const {
+		return bVSync;
 	}
 
 	/** Get a pointer to the last user keypress event

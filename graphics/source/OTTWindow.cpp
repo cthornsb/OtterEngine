@@ -23,6 +23,7 @@ OTTWindow::OTTWindow(const int &w, const int &h, const int& scale/*=1*/) :
 	bFirstInit(true),
 	bLockAspectRatio(false),
 	bFullScreenMode(false),
+	bVSync(false),
 	keys(),
 	mouse(),
 	joypad(&OTTJoypad::getInstance()),
@@ -155,6 +156,10 @@ void OTTWindow::setFullScreenMode(bool state/*=true*/){
 			glfwSetWindowMonitor(win.get(), NULL, nOldPosX, nOldPosY, width, height, GLFW_DONT_CARE);
 			mouse.setCursorState(previousMouseState);
 		}
+		if (bVSync)
+			enableVSync();
+		else
+			disableVSync();
 	}
 }
 
@@ -268,7 +273,7 @@ bool OTTWindow::initialize(const std::string& name){
 	// Open the graphics window
 	if (bFirstInit)
 		glfwInit();
-	
+
 	// Create the window
 	if(!bFullScreenMode) // Windowed mode
 		win.reset(glfwCreateWindow(nNativeWidth, nNativeHeight, name.c_str(), NULL, NULL)); // Windowed
@@ -352,6 +357,7 @@ void OTTWindow::enableVSync() {
 #endif // ifndef WIN32*/
 	setCurrent();
 	glfwSwapInterval(1);
+	bVSync = true;
 }
 
 void OTTWindow::disableVSync() {
@@ -363,6 +369,7 @@ void OTTWindow::disableVSync() {
 #endif // ifndef WIN32*/
 	setCurrent();
 	glfwSwapInterval(0);
+	bVSync = false;
 }
 
 bool OTTWindow::saveImageBufferToBitmap(const std::string& fname){

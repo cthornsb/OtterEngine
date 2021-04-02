@@ -170,10 +170,9 @@ public:
 	void clear(const ColorRGB &color=Colors::BLACK);
 	
 	/** Draw objects on the screen using OpenGL renderer (or software renderer)
-	  * @note This method should be called once per iteration of the main loop
 	  * @return True if the update was successful and return false if the user closed the window
 	  */
-	bool update(const float& fTimeElapsed);
+	bool update();
 
 private:
 	bool drawOrigin; ///< Flag indicating that the X, Y, and Z axes will be drawn at the origin

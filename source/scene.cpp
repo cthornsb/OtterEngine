@@ -99,7 +99,7 @@ void scene::clear(const ColorRGB &color/*=Colors::BLACK*/){
 }
 
 #ifndef SOFTWARE_RENDERER
-bool scene::update(const float& fTimeElapsed) {
+bool scene::update() {
 	// Clear the screen with a color
 	clear(Colors::BLACK);
 
@@ -124,7 +124,7 @@ bool scene::update(const float& fTimeElapsed) {
 	return render();
 }
 #else
-bool scene::update(const float& fTimeElapsed){
+bool scene::update(){
 	// Clear the vector of triangles to draw
 	polygonsToDraw.clear();
 
