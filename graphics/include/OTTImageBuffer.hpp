@@ -84,7 +84,7 @@ public:
 	/** Get a const pointer to color data for a specified pixel
 	  */
 	const unsigned char* operator [] (const unsigned int& pixel) const {
-		return static_cast<const unsigned char*>(&dptr[pixel * nChannels]);
+		return const_cast<unsigned char*>(&dptr[pixel * nChannels]);
 	}
 
 	/** Get a pointer to color data for a specified pixel
@@ -96,7 +96,7 @@ public:
 	/** Get a const pointer to color data for a specified pixel
 	  */
 	const unsigned char* get(const unsigned short& x, const unsigned short& y) const {
-		return static_cast<const unsigned char*>(&dptr[(nWidth * (nHeight - y - 1) + x) * nChannels]);
+		return const_cast<unsigned char*>(&dptr[(nWidth * (nHeight - y - 1) + x) * nChannels]);
 	}
 
 	/** Get a pointer to color data for a specified pixel
@@ -108,7 +108,7 @@ public:
 	/** Get a const pointer to start of image data
 	  */
 	const unsigned char* get() const {
-		return static_cast<const unsigned char*>(&dptr[0]);
+		return const_cast<unsigned char*>(&dptr[0]);
 	}
 
 	/** Get a pointer to start of image data

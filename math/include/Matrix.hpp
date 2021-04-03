@@ -950,7 +950,7 @@ public:
 
 	/** Get an orthographic projection transformation matrix for a given scene
 	  */
-	static Matrix4 getOrthographicMatrix(const float& fov, const float& aspectRatio, const float& nearPlane, const float& farPlane);
+	static Matrix4 getOrthographicMatrix(const float& left, const float& right, const float& bottom, const float& top, const float& nearPlane = -1.f, const float& farPlane = 1.f);
 
 	/** Perform the triple matrix multiplication MVP = (P * (V * M))
 	  * Note that this multiplication is the opposite of what you would normally

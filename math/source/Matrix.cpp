@@ -295,12 +295,20 @@ Matrix4 Matrix4::getPerspectiveMatrix(const float& fov, const float& aspectRatio
 		cotan / aspectRatio, 0.f, 0.f, 0.f,
 		0.f, cotan, 0.f, 0.f,
 		0.f, 0.f, (farPlane + nearPlane) / (nearPlane - farPlane), -1.f,
-		0.f, 0.f, 2 * farPlane * nearPlane / (nearPlane - farPlane), 0.f
+		0.f, 0.f, 2.f * farPlane * nearPlane / (nearPlane - farPlane), 0.f
 	);
 }
 
-Matrix4 Matrix4::getOrthographicMatrix(const float& fov, const float& aspectRatio, const float& nearPlane, const float& farPlane) {
-	return Matrix4();
+Matrix4 Matrix4::getOrthographicMatrix(const float& left, const float& right, const float& bottom, const float& top, const float& nearPlane/*=-1.f*/, const float& farPlane/*=1.f*/) {
+	float Tx = -(right + left) / (right - left);
+	float Ty = -(top + bottom) / (top - bottom);
+	float Tz = -(farPlane + nearPlane) / (farPlane - nearPlane);
+	return Matrix4(
+		2.f / (right - left), 0.f, 0.f, 0.f,
+		0.f, 2.f / (top - bottom), 0.f, 0.f,
+		0.f, 0.f, 2.f / (nearPlane - farPlane), 0.f,
+		Tx, Ty, Tz, 1.f
+	);
 }
 
 Matrix4 Matrix4::concatenate(const Matrix4* P, const Matrix4* V, const Matrix4* M) {
