@@ -48,6 +48,11 @@ option(INSTALL_LIBRARIES "Install OtterEngine shared libraries." OFF)
 
 #------------------------------------------------------------------------------
 
+# Optional assets directory string
+if(NOT ASSETS_DIRECTORY)
+	set(ASSETS_DIRECTORY "" CACHE STRING "Set optional assets directory for easier file loading." FORCE)
+endif()
+
 #Find required packages.
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 

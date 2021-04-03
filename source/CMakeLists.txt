@@ -50,6 +50,13 @@ endif()
 
 # Build renderer executable.
 add_executable(render3d renderer.cpp)
+if(ASSETS_DIRECTORY)
+	message(STATUS "Assets directory: ${ASSETS_DIRECTORY}")
+	target_compile_definitions( render3d
+		PUBLIC 
+		ASSETS_DIRECTORY="${ASSETS_DIRECTORY}"
+	)
+endif()
 target_link_libraries( render3d 
 	OtterCore
 	Otter3dCore 

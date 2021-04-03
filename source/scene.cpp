@@ -121,7 +121,12 @@ bool scene::update() {
 		(*obj)->draw(window.get(), proj, view);
 	}
 
-	return render();
+	//return render();
+	if (!window->processEvents()) { // Check for events
+		isRunning = false;
+		return false;
+	}
+	return true;
 }
 #else
 bool scene::update(){
