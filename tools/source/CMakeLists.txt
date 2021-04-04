@@ -28,7 +28,6 @@ get_filename_component(
 
 if(NOT WIN32)
 	add_custom_command(
-		COMMAND "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${GLEW_DLL_DIRECTORY}:${GLFW_LIB_DIRECTORY}" # I think this should work, CRT
 		COMMAND glVersionFinder ${CMAKE_CURRENT_BINARY_DIR}
 		OUTPUT ${VERSION_HEADER_FILENAME}
 		DEPENDS glVersionFinder

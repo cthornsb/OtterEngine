@@ -83,6 +83,6 @@ namespace ott {
 		int nVersionRevision; ///< Revision number
 	};
 
-}; // namespace ott
+} // namespace ott
 
 #endif
