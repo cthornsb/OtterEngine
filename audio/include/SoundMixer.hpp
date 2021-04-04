@@ -4,14 +4,12 @@
 #include "SoundBuffer.hpp"
 #include "UnitTimer.hpp"
 
-const unsigned short MIXER_CLOCK_PERIOD = 64;
-
 class SoundMixer : public UnitTimer, public SoundBuffer {
 public:
 	/** Default constructor
 	  */
 	SoundMixer() :
-		UnitTimer(64),
+		UnitTimer(1),
 		SoundBuffer(),
 		bModified(false),
 		bStereoOutput(true),
@@ -133,24 +131,6 @@ public:
 	void setInputSample(const unsigned char& ch, const unsigned char& vol){
 		bModified = true;
 		fInputSamples[ch] = clamp(vol / 15.f, 0.f, 1.f);
-	}
-	
-	/** Set mixer timer period multiplier to account for non-standard clock speed
-	  */
-	void setSampleRateMultiplier(const float &freq){
-		nPeriod = (unsigned short)(MIXER_CLOCK_PERIOD * freq);
-	}
-	
-	/** Modify mixer timer period for CGB double speed mode (2 MHz)
-	  */
-	void setDoubleSpeedMode(){
-		nPeriod = MIXER_CLOCK_PERIOD * 2; 
-	}
-
-	/** Modify mixer timer period for CGB normal speed mode (1 MHz)
-	  */
-	void setNormalSpeedMode(){
-		nPeriod = MIXER_CLOCK_PERIOD;
 	}
 	
 	void reset() override;
