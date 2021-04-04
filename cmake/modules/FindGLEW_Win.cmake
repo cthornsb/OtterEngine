@@ -4,6 +4,7 @@
 #
 # GLEW_STATIC_LIBRARIES 
 # GLEW_SHARED_LIBRARIES
+# GLEW_DLL_DIRECTORY
 # GLEW_INCLUDE_DIRS where to find glfw include files.
 # GLEW_FOUND true if both the GLEW_LIBRARIES and GLEW_INCLUDE_DIR have been found.
 #
@@ -20,6 +21,9 @@ set( _GLEW_HEADER_SEARCH_DIRS
 set( _GLEW_LIB_SEARCH_DIRS
 	"C:/Program Files (x86)/glew-2.1.0/lib/x64"
 )
+set( _GLEW_BIN_SEARCH_DIRS
+	"C:/Program Files (x86)/glew-2.1.0/bin/x64"
+)
 
 # Check environment for root search directory
 set( _GLEW_ENV_ROOT $ENV{USER_GLEW_ROOT} )
@@ -31,34 +35,31 @@ endif()
 if( USER_GLEW_ROOT )
 	list( INSERT _GLEW_HEADER_SEARCH_DIRS 0 "${USER_GLEW_ROOT}/include" )
 	list( INSERT _GLEW_LIB_SEARCH_DIRS 0 "${USER_GLEW_ROOT}/lib/x64" "${USER_GLEW_ROOT}/lib/Debug/x64" )
+	list( INSERT _GLEW_BIN_SEARCH_DIRS 0 "${USER_GLEW_ROOT}/bin/x64" "${USER_GLEW_ROOT}/bin/Debug/x64" )
 endif()
 
 # Search for the header
-FIND_PATH(
-	GLEW_INCLUDE_DIRS
-	"GL/glew.h"
-	PATHS 
-	${_GLEW_HEADER_SEARCH_DIRS} 
+FIND_PATH( GLEW_INCLUDE_DIRS
+	NAMES "GL/glew.h"
+	PATHS ${_GLEW_HEADER_SEARCH_DIRS} 
+)
+
+# Search for dll install
+find_path( GLEW_DLL_DIRECTORY
+	NAMES "glew32.dll" "glew32d.dll"
+	PATHS ${_GLEW_BIN_SEARCH_DIRS} 
 )
 
 # Search for the library
-FIND_LIBRARY(
-	GLEW_SHARED_LIBRARIES 
-	NAMES 
-	"glew32"
-	"glew32d"
-	PATHS 
-	${_GLEW_LIB_SEARCH_DIRS} 
+FIND_LIBRARY( GLEW_SHARED_LIBRARIES 
+	NAMES "glew32" "glew32d"
+	PATHS ${_GLEW_LIB_SEARCH_DIRS} 
 )
 
 # And the static library
-FIND_LIBRARY(
-	GLEW_STATIC_LIBRARIES 
-	NAMES 
-	"glew32s"
-	"glew32sd"
-	PATHS 
-	${_GLEW_LIB_SEARCH_DIRS} 
+FIND_LIBRARY( GLEW_STATIC_LIBRARIES 
+	NAMES "glew32s" "glew32sd"
+	PATHS ${_GLEW_LIB_SEARCH_DIRS} 
 )
 
 # Set glew library

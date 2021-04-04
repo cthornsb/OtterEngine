@@ -76,16 +76,23 @@ set(INCLUDE_DIR_MATH     ${CMAKE_SOURCE_DIR}/math/include)
 set(INCLUDE_DIR_3D       ${CMAKE_SOURCE_DIR}/3d/include)
 
 #Add the global include directories.
-include_directories(${GLFW3_INCLUDE_DIR})
-include_directories(${OPENGL_INCLUDE_DIR})
-include_directories(${GLEW_INCLUDE_DIRS})
-include_directories(${SOIL_INCLUDE_DIR})
-include_directories(${PORT_AUDIO_INCLUDE_DIR})
+include_directories(
+	${GLFW3_INCLUDE_DIR}
+	${OPENGL_INCLUDE_DIR}
+	${GLEW_INCLUDE_DIRS}
+	${SOIL_INCLUDE_DIR}
+	${PORT_AUDIO_INCLUDE_DIR}
+	graphics/include
+	audio/include
+	math/include
+	include
+)
 
-include_directories(graphics/include)
-include_directories(audio/include)
-include_directories(math/include)
-include_directories(include)
+#Check OpenGL, GLFW, and GLEW versions
+add_subdirectory(tools/source)
+
+#Add the newly generated library versions header
+include_directories(${VERSION_HEADER_DIR})
 
 #Add the graphics directory.
 add_subdirectory(graphics/source)
@@ -99,7 +106,7 @@ if(INSTALL_LIBRARIES)
 	# Install header files
 	file(GLOB_RECURSE OTTER_HEADERS *.hpp)
 	install(
-		FILES ${OTTER_HEADERS}
+		FILES ${OTTER_HEADERS} "${VERSION_HEADER_DIR}/OTTVersions.hpp"
 		DESTINATION ${INSTALL_INCLUDE_DIR}
 	)
 	# Export libraries
