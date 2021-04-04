@@ -20,6 +20,7 @@
 function(ott_use_core)
 	ott_find_glfw()
 	ott_find_opengl()
+	ott_find_glew()
 	ott_find_soil()
 endfunction()
 

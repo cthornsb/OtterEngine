@@ -4,9 +4,21 @@
 #include "OTTJoypad.hpp"
 #include "OTTTexture.hpp"
 
+void GLAPIENTRY MessageCallback(GLenum source,
+	GLenum type,
+	GLuint id,
+	GLenum severity,
+	GLsizei length,
+	const GLchar* message,
+	const void* userParam)
+{
+	std::cout << " [opengl] debug: " << message << std::endl;
+}
+
 OTTWindow::OTTWindow(const int &w, const int &h, const int& scale/*=1*/) : 
 	win(),
 	monitor(0x0),
+	nTexture(0),
 	nNativeWidth(w), 
 	nNativeHeight(h),
 	fNativeAspect(float(w)/h),
@@ -24,6 +36,8 @@ OTTWindow::OTTWindow(const int &w, const int &h, const int& scale/*=1*/) :
 	bLockAspectRatio(false),
 	bFullScreenMode(false),
 	bVSync(false),
+	bDebugMode(false),
+	mOrthoProjection(identityMatrix4),
 	keys(),
 	mouse(),
 	joypad(&OTTJoypad::getInstance()),
@@ -35,6 +49,9 @@ OTTWindow::OTTWindow(const int &w, const int &h, const int& scale/*=1*/) :
 
 OTTWindow::~OTTWindow(){
 	// glfw window will automatically be destroyed by its unique_ptr destructor
+	if (nTexture) { // Delete frame buffer texture
+		glDeleteTextures(1, &nTexture);
+	}
 }
 
 void OTTWindow::close(){
@@ -218,23 +235,38 @@ void OTTWindow::drawTexture(const unsigned int& texture, const int& x1, const in
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0, 0); glVertex2i(x1, y1);
-		glTexCoord2i(1, 0); glVertex2i(x2, y1);
-		glTexCoord2i(1, 1); glVertex2i(x2, y2);
-		glTexCoord2i(0, 1); glVertex2i(x1, y2);
+		glTexCoord2i(0, 1); glVertex2i(x1, y1);
+		glTexCoord2i(1, 1); glVertex2i(x2, y1);
+		glTexCoord2i(1, 0); glVertex2i(x2, y2);
+		glTexCoord2i(0, 0); glVertex2i(x1, y2);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void OTTWindow::drawBitmap(const unsigned int& width, const unsigned int& height, const int& x0, const int& y0, const unsigned char* data){
-	glRasterPos2i(x0, y0);
-	glBitmap(width, height, 0, 0, 0, 0, data);
+void OTTWindow::drawTexture(const unsigned int& texture) {
+	drawTexture(texture, 0, 0, nNativeWidth, nNativeHeight);
 }
 
-void OTTWindow::drawPixels(const unsigned int& width, const unsigned int& height, const int& x0, const int& y0, const OTTImageBuffer* data){
+void OTTWindow::drawBitmap(const unsigned int& W, const unsigned int& H, const int& x0, const int& y0, const unsigned char* data){
 	glRasterPos2i(x0, y0);
-	glDrawPixels(width, height, GL_RGB, GL_UNSIGNED_BYTE, data->get());
+	glBitmap(W, H, 0, 0, 0, 0, data);
+}
+
+void OTTWindow::drawBuffer(const unsigned int& W, const unsigned int& H, const int& x0, const int& y0, const OTTImageBuffer* data){
+	// Update texture pixels
+#if (OPENGL_VERSION_MAJOR >= 4 && OPENGL_VERSION_MAJOR >= 5)
+	glTextureSubImage2D(nTexture, 0, x0, y0, W, H, GL_RGB, GL_UNSIGNED_BYTE, data->get()); // Since 4.5
+#else
+	glBindTexture(GL_TEXTURE_2D, nTexture);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, x0, y0, W, H, GL_RGB, GL_UNSIGNED_BYTE, data->get()); // Since 2.0
+	glBindTexture(GL_TEXTURE_2D, 0);
+#endif // if (OPENGL_VERSION >= 4.5)
+}
+
+void OTTWindow::drawBuffer(){
+	drawBuffer(nNativeWidth, nNativeHeight, 0, 0, &buffer);
+	drawTexture(nTexture, 0, 0, nNativeWidth, nNativeHeight);
 }
 
 void OTTWindow::buffWrite(const unsigned short& x, const unsigned short& y, const ColorRGB& color){
@@ -248,10 +280,6 @@ void OTTWindow::buffWriteLine(const unsigned short& y, const ColorRGB& color){
 void OTTWindow::render(){
 	glFlush();
 	glfwSwapBuffers(win.get());
-}
-
-void OTTWindow::drawBuffer(){
-	drawPixels(nNativeWidth, nNativeHeight, 0, nNativeHeight, &buffer);
 }
 
 void OTTWindow::renderBuffer(){
@@ -268,11 +296,16 @@ bool OTTWindow::initialize(const std::string& name){
 		return false;
 
 	// Set the GLFW error callback
-	glfwSetErrorCallback(handleErrors);
+	if(bDebugMode)
+		glfwSetErrorCallback(handleErrors);
 
 	// Open the graphics window
 	if (bFirstInit)
 		glfwInit();
+
+	// Enable OpenGL debug output
+	if (bDebugMode) 
+		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
 	// Create the window
 	if(!bFullScreenMode) // Windowed mode
@@ -288,9 +321,6 @@ bool OTTWindow::initialize(const std::string& name){
 	
 	// Add window to the map
 	OTTActiveWindows::get().add(win.get(), this);
-
-	// Setup frame buffer
-	buffer.resize(nNativeWidth, nNativeHeight);
 
 	// Set initialization flag
 	init = true;
@@ -311,6 +341,37 @@ bool OTTWindow::initialize(const std::string& name){
 	mouse.setParentWindow(win.get());
 	keys.setParentWindow(win.get());
 	
+	// Initialize GLEW
+	if (bFirstInit) {
+		setCurrent();
+		GLint err = glewInit();
+		if (err != GLEW_OK) {
+			const GLubyte* str = glewGetErrorString(err);
+			std::cout << " [glew] Error! id=" << err << " : " << str << std::endl;
+		}
+	}
+
+	if (bDebugMode) {
+		// OpenGL debug message callback (since 4.3)
+		glEnable(GL_DEBUG_OUTPUT);
+		glDebugMessageCallback(MessageCallback, 0);
+	}
+
+	// Setup frame buffer
+	buffer.resize(nNativeWidth, nNativeHeight);
+
+	// Generate new buffer texture
+	glGenTextures(1, &nTexture);
+	glBindTexture(GL_TEXTURE_2D, nTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // Results in a sharper image when magnified
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Results in a softer image, default
+#if (OPENGL_VERSION_MAJOR >= 4 && OPENGL_VERSION_MAJOR >= 2)
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, nNativeWidth, nNativeHeight); // Since 4.2
+#else
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, nNativeWidth, nNativeHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL); // Since 2.0
+#endif // if (OPENGL_VERSION >= 4.2)
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 	// Further intitialization for derived classes
 	onUserInitialize();
 	
@@ -387,13 +448,13 @@ void OTTWindow::handleErrors(int error, const char* description) {
 	std::cout << " [glfw] Error! id=" << error << " : " << description << std::endl;
 }
 
-void OTTWindow::handleReshapeScene(GLFWwindow* window, int width, int height){
+void OTTWindow::handleReshapeScene(GLFWwindow* window, int W, int H){
 	OTTWindow* currentWindow = OTTActiveWindows::get().find(window);
 	if(!currentWindow)
 		return;
 	
 	// Update window size
-	currentWindow->updateWindowSize(width, height);
+	currentWindow->updateWindowSize(W, H);
 }
 
 void OTTWindow::handleWindowFocus(GLFWwindow* window, int focused){
@@ -434,10 +495,13 @@ void OTTWindow::reshape(){
 
 	// Update viewport
 	glViewport(nOffsetX, nOffsetY, width, height); // x, y, width, height
-	glOrtho(0, nNativeWidth, nNativeHeight, 0, -1, 1); // left, right, bottom, top, near, far
+	glOrtho(0, nNativeWidth, nNativeHeight, 0, -1, 1); // left, right, bottom, top, near, far (deprecated)
 	glMatrixMode(GL_MODELVIEW);
 
-	// Clear the window.
+	// Orthographic projection matrix
+	mOrthoProjection = Matrix4::getOrthographicMatrix(0.f, (float)nNativeWidth, (float)nNativeHeight, 0.f, -1.f, 1.f); // left, right, bottom, top, near, far
+
+	// Clear the window
 	clear();
 }
 

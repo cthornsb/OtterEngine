@@ -10,6 +10,8 @@
 
 class object;
 
+class OTTTexture;
+
 /// <summary>
 /// Wrapper class for interfacing with glfw and OpenGL, and for managing graphical windows
 /// </summary>
@@ -64,13 +66,23 @@ public:
 	  */
 	void drawPolygon(const std::vector<Vector3>& points);
 
-	/** Draw OpenGL texture in the scene within the specified bounds
-	  * @param texture GL texture context
-	  * @param p1 Top left vertex of texture
-	  * @param p2 Bottom right vertex of texture
-	  * @param norm Normal vector of texture face
+	/** Draw a 2d texture on the screen within the specified pixel bounds.
+	  * Does not allow for 2d rotation.
+	  * @param texture Pointer to OpenGL texture
+	  * @param p1 Top left vertex of texture (in screen space)
+	  * @param p2 Bottom right vertex of texture (in screen space)
+	  * @param depth Depth into the scene (as a fraction of the distance between the near and far clipping planes)
 	 **/
-	void drawTexture(const unsigned int& texture, const Vector3& p1, const Vector3& p2, const Vector3& norm);
+	void drawTexture(const GLuint& texture, const Vector2& p1, const Vector2& p2, const float& depth = 0.f);
+
+	/** Draw a 2d texture on the screen within the specified NDC bounds (-1 to 1).
+	  * Does not allow for 2d rotation.
+	  * @param texture Pointer to OpenGL texture
+	  * @param p1 Bottom left vertex of texture (in NDC space)
+	  * @param p2 Top right vertex of texture (in NDC space)
+	  * @param depth Depth into the scene (in NDC space)
+	 **/
+	void drawTextureNDC(const GLuint& texture, const Vector2& p1, const Vector2& p2, const float& depth = -1.f);
 
 	/** Draw an array of raw 3d vertices
 	  * @param vertices Array of raw 3d position components formatted as {x0, y0, z0, ... , xN-1, yN-1, zN-1}

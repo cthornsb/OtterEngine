@@ -7,14 +7,17 @@
 #include <string>
 #include <map>
 
-//#include <GL/glew.h>
-//#include <GL/wglew.h>
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include "ColorRGB.hpp"
 #include "OTTKeyboard.hpp"
 #include "OTTMouse.hpp"
 #include "OTTImageBuffer.hpp"
+#include "Matrix.hpp"
+
+// Include graphics library version header
+#include "OTTVersions.hpp"
 
 class GPU;
 
@@ -165,6 +168,18 @@ public:
 	  */
 	bool getCurrentVideoMode(OTTWindow::VideoMode& mode) const ;
 
+	/** Get a pointer to the raw image buffer
+	  */
+	OTTImageBuffer* getBuffer() {
+		return &buffer;
+	}
+
+	/** Get the OpenGL frame buffer texture context ID number
+	  */
+	GLuint getFrameBufferTextureContext() const {
+		return nTexture;
+	}
+
 	/** Print all available native monitor video modes
 	  */
 	void printVideoModes() const ;
@@ -261,7 +276,7 @@ public:
 	  */
 	void drawRectangle(const int &x1, const int &y1, const int &x2, const int &y2);
 
-	/** Draw OpenGL texture in the scene within the specified bounds
+	/** Draw OpenGL texture on the screen within the specified bounds
 	  * @param texture GL texture context
 	  * @param x1 X coordinate of the upper left corner
 	  * @param y1 Y coordinate of the upper left corner
@@ -270,23 +285,32 @@ public:
 	  **/
 	void drawTexture(const unsigned int& texture, const int& x1, const int& y1, const int& x2, const int& y2);
 
+	/** Draw OpenGL texture, covering the viewport
+	  * @param texture GL texture context
+	  **/
+	void drawTexture(const GLuint& texture);
+
 	/** Write pixel data from an array to the GPU frame buffer
-	  * @param width Width of bitmap (in pixels)
-	  * @param height Height of bitmap (in pixels)
+	  * @param W Width of bitmap (in pixels)
+	  * @param H Height of bitmap (in pixels)
 	  * @param x0 X coordinate of bottom left corner
 	  * @param y0 Y coordinate of bottom left corner
 	  * @param data Array of bitmap pixel data
 	  */
-	void drawBitmap(const unsigned int& width, const unsigned int& height, const int& x0, const int& y0, const unsigned char* data);
+	void drawBitmap(const unsigned int& W, const unsigned int& H, const int& x0, const int& y0, const unsigned char* data);
 
-	/** Write pixel data from an image buffer to the GPU frame buffer
-	  * @param width Width of image buffer (in pixels)
-	  * @param height Height of image buffer (in pixels)
+	/** Write pixel data from an external image buffer to a region on frame buffer texture
+	  * @param W Width of image buffer (in pixels)
+	  * @param H Height of image buffer (in pixels)
 	  * @param x0 X coordinate of bottom left corner
 	  * @param y0 Y coordinate of bottom left corner
 	  * @param data Pointer to conventional-memory image buffer
 	  */
-	void drawPixels(const unsigned int& width, const unsigned int& height, const int& x0, const int& y0, const OTTImageBuffer* data);
+	void drawBuffer(const unsigned int& W, const unsigned int& H, const int& x0, const int& y0, const OTTImageBuffer* data);
+
+	/** Write pixel data from the image buffer to the frame buffer texture, filling the entire viewport
+	  */
+	void drawBuffer();
 
 	/** Write to CPU image buffer
 	  * When drawing on a pixel-by-pixel level, it is much more efficient to modify the image
@@ -302,11 +326,6 @@ public:
 	/** Render the current frame
 	  */
 	void render();
-
-	/** Draw the image buffer but do not render the frame
-	  * Useful if you wish to do additional processing on top of the image buffer.
-	  */
-	void drawBuffer();
 
 	/** Draw the image buffer and render the frame
 	  */
@@ -367,6 +386,20 @@ public:
 	  */
 	void disableVSync();
 
+	/** Enable debug output mode.
+	  * Will have no effect on GLFW, GLEW, and OpenGL if they have already been initialized.
+	  */
+	void enableDebugMode() {
+		bDebugMode = true;
+	}
+
+	/** Disable debug output mode.
+	  * Will have no effect on GLFW, GLEW, and OpenGL if they have already been initialized.
+	  */
+	void disableDebugMode() {
+		bDebugMode = false;
+	}
+
 	/** Save current image buffer bitmap to disk
 	  * @param fname Path to output image file
 	  * @return True if image is saved successfully
@@ -384,10 +417,10 @@ public:
 	static void handleErrors(int error, const char* description);
 
 	/** Handle window resizes
-	  * @param width The new width of the window after the user has resized it
-	  * @param height The new height of the window after the user has resized it
+	  * @param W The new width of the window after the user has resized it
+	  * @param H The new height of the window after the user has resized it
 	  */
-	static void handleReshapeScene(GLFWwindow* window, int width, int height);
+	static void handleReshapeScene(GLFWwindow* window, int W, int H);
 
 	/** Handle window coming into and going out of focus
 	  */
@@ -396,11 +429,13 @@ public:
 	/** Handle GLFW window path / directory string drop event
 	  */
 	static void handlePathDrop(GLFWwindow* window, int count, const char** paths);
-	
+
 protected:
 	std::unique_ptr<GLFWwindow, DestroyGLFWwindow> win; ///< Pointer to glfw graphics output window
 
 	GLFWmonitor* monitor; ///< Pointer to primary display device
+
+	GLuint nTexture; ///< OpenGL frame buffer texture context ID number
 
 	int nNativeWidth; ///< Original width of the window (in pixels)
 	
@@ -435,6 +470,10 @@ protected:
 	bool bFullScreenMode; ///< Set if window is in full screen mode
 
 	bool bVSync; ///< Set if VSync is enabled
+
+	bool bDebugMode; ///< Set if debug output mode is enabled
+
+	Matrix4 mOrthoProjection; ///< Orthographic projection matrix (for 2d graphics)
 
 	OTTKeyboard keys; ///< GLFW keyboard callback wrapper
 	

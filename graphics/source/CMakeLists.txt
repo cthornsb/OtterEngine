@@ -15,6 +15,9 @@ add_library(
 	OTTTextureManager.cpp
 	OTTWindow.cpp
 )
+add_dependencies( OtterCoreObj 
+	OtterVersionHeader
+)
 
 # Build Core library
 if(NOT WIN32)
