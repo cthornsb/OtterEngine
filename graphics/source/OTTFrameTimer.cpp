@@ -29,9 +29,10 @@ void MovingAverage::add(const double& value) {
 
 void MovingAverage::reset() {
 	std::fill(dValues.begin(), dValues.end(), 0);
+	bFull = false;
+	nValues = 0;
 	dTotal = 0;
 	iter = dValues.begin();
-	bFull = false;
 }
 
 void MovingAverage::recount() {
@@ -77,6 +78,25 @@ double OTTFrameTimer::getTimeElapsed() const {
 #endif // ifndef USE_GLFW_TIMER
 }
 
+void OTTFrameTimer::setFramerateCap(const double &fps){ 
+	if (fps <= 0)
+		return;
+	dFramerateCap = fps; 
+	dFramePeriod = 1E6 / fps;
+	averageDeltaTime.reset(); // Reset frame delta time since the frame period has changed
+}
+
+void OTTFrameTimer::setFrameratePeriod(const double& period) {
+	dFramePeriod = period;
+	dFramerateCap = 1E6 / dFramePeriod;
+	averageDeltaTime.reset(); // Reset frame delta time since the frame period has changed
+}
+
+void OTTFrameTimer::disableFramerateCap() {
+	dFramePeriod = 0;
+	dFramerateCap = -1;
+}
+
 void OTTFrameTimer::update(){
 	// Update the timer
 #ifndef USE_GLFW_TIMER
@@ -119,7 +139,8 @@ double OTTFrameTimer::sync() {
 	averageFramerate.add(1.0 / totalFrameTime);
 
 	// Update moving average of difference between target frame period and actual frame period
-	averageDeltaTime.add(1E6 * totalFrameTime - dFramePeriod);
+	if (dFramerateCap > 0)
+		averageDeltaTime.add(1E6 * totalFrameTime - dFramePeriod);
 
 	// Update the one-second timer
 	nFrameCount++;
