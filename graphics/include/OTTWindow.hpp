@@ -209,6 +209,11 @@ public:
 	  */
 	void setPathDropCallback(void (*callback)(const std::string&));
 
+	/** Set GLFW window focus / unfocus callback function.
+	  * Function will be called whenever the window gains or loses focus.
+	  */
+	void setWindowFocusCallback(void (*callback)(const bool&));
+
 	/** Set the current draw color
 	  */
 	void setDrawColor(ColorRGB *color, const float &alpha=1);
@@ -486,6 +491,8 @@ protected:
 	MouseStates previousMouseState; ///< State of the mouse cursor before full-screen mode switch
 	
 	void (*userPathDropCallback)(const std::string&);
+
+	void (*userWindowFocusCallback)(const bool&);
 	
 	/** Update viewport and projection matrix after resizing window
 	  * This method should be called for setting up a viewport and projection matrix for 2d displays.
@@ -496,6 +503,10 @@ protected:
 	  */
 	void dropSystemPaths(const std::vector<std::string>& path);
 	
+	/** Call the user window focus callback function whenever the window gains or loses focus
+	  */
+	void setWindowFocus(const bool& focused);
+
 	/** Called whenever the user updates the size of the window
 	  */
 	virtual void onUserReshape(){

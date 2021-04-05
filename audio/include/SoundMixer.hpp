@@ -11,6 +11,7 @@ public:
 	SoundMixer() :
 		UnitTimer(1),
 		SoundBuffer(),
+		bMuted(false),
 		bModified(false),
 		bStereoOutput(true),
 		fMasterVolume(1.f),

@@ -143,8 +143,12 @@ void OTTWindow::setClipboardString(const std::string& str) const {
 	glfwSetClipboardString(NULL, str.c_str());
 }
 
-void OTTWindow::setPathDropCallback(void (*callback)(const std::string&)){
+void OTTWindow::setPathDropCallback(void (*callback)(const std::string&)) {
 	userPathDropCallback = callback;
+}
+
+void OTTWindow::setWindowFocusCallback(void (*callback)(const bool&)) {
+	userWindowFocusCallback = callback;
 }
 
 void OTTWindow::setDrawColor(ColorRGB *color, const float &alpha/*=1*/){
@@ -462,10 +466,10 @@ void OTTWindow::handleReshapeScene(GLFWwindow* window, int W, int H){
 }
 
 void OTTWindow::handleWindowFocus(GLFWwindow* window, int focused){
-	if (focused){ // The window gained input focus
-	}
-	else{ // The window lost input focus
-	}
+	OTTWindow* currentWindow = OTTActiveWindows::get().find(window);
+	if (!currentWindow)
+		return;
+	currentWindow->setWindowFocus(focused == GLFW_TRUE);
 }
 
 void OTTWindow::handlePathDrop(GLFWwindow* window, int count, const char** paths){
@@ -513,6 +517,12 @@ void OTTWindow::dropSystemPaths(const std::vector<std::string>& paths){
 	if(userPathDropCallback){
 		for(auto str = paths.cbegin(); str != paths.cend(); str++)
 			(*userPathDropCallback)(*str);
+	}
+}
+
+void OTTWindow::setWindowFocus(const bool& focused) {
+	if (userWindowFocusCallback) {
+		(*userWindowFocusCallback)(focused);
 	}
 }
 
