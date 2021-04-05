@@ -255,7 +255,7 @@ void OTTWindow::drawBitmap(const unsigned int& W, const unsigned int& H, const i
 
 void OTTWindow::drawBuffer(const unsigned int& W, const unsigned int& H, const int& x0, const int& y0, const OTTImageBuffer* data){
 	// Update texture pixels
-#if (OPENGL_VERSION_MAJOR >= 4 && OPENGL_VERSION_MAJOR >= 5)
+#if (OPENGL_VERSION_MAJOR >= 4 && OPENGL_VERSION_MINOR >= 5)
 	glTextureSubImage2D(nTexture, 0, x0, y0, W, H, GL_RGB, GL_UNSIGNED_BYTE, data->get()); // Since 4.5
 #else
 	glBindTexture(GL_TEXTURE_2D, nTexture);
@@ -365,7 +365,7 @@ bool OTTWindow::initialize(const std::string& name){
 	glBindTexture(GL_TEXTURE_2D, nTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // Results in a sharper image when magnified
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Results in a softer image, default
-#if (OPENGL_VERSION_MAJOR >= 4 && OPENGL_VERSION_MAJOR >= 2)
+#if (OPENGL_VERSION_MAJOR >= 4 && OPENGL_VERSION_MINOR >= 2)
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, nNativeWidth, nNativeHeight); // Since 4.2
 #else
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, nNativeWidth, nNativeHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL); // Since 2.0
