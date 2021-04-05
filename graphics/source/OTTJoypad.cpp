@@ -28,27 +28,27 @@ OTTJoypad::OTTJoypad() :
 	parent(0x0)
 {
 	// Default button input map (360-like)
-	buttonMap[GamepadInput::A]     = GLFW_GAMEPAD_BUTTON_A;
-	buttonMap[GamepadInput::B]     = GLFW_GAMEPAD_BUTTON_B;
-	buttonMap[GamepadInput::X]     = GLFW_GAMEPAD_BUTTON_X;
-	buttonMap[GamepadInput::Y]     = GLFW_GAMEPAD_BUTTON_Y;
-	buttonMap[GamepadInput::LB]    = GLFW_GAMEPAD_BUTTON_LEFT_BUMPER;
-	buttonMap[GamepadInput::RB]    = GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER;
-	buttonMap[GamepadInput::BACK]  = GLFW_GAMEPAD_BUTTON_BACK;
-	buttonMap[GamepadInput::START] = GLFW_GAMEPAD_BUTTON_START;
-	buttonMap[GamepadInput::GUIDE] = GLFW_GAMEPAD_BUTTON_GUIDE;
-	buttonMap[GamepadInput::L3]    = GLFW_GAMEPAD_BUTTON_LEFT_THUMB;
-	buttonMap[GamepadInput::R3]    = GLFW_GAMEPAD_BUTTON_RIGHT_THUMB;
-	buttonMap[GamepadInput::UP]    = GLFW_GAMEPAD_BUTTON_DPAD_UP;
-	buttonMap[GamepadInput::RIGHT] = GLFW_GAMEPAD_BUTTON_DPAD_RIGHT;
-	buttonMap[GamepadInput::DOWN]  = GLFW_GAMEPAD_BUTTON_DPAD_DOWN;
-	buttonMap[GamepadInput::LEFT]  = GLFW_GAMEPAD_BUTTON_DPAD_LEFT;
+	buttonMap[GamepadInput::A]     = std::make_pair(GLFW_GAMEPAD_BUTTON_A, "A");
+	buttonMap[GamepadInput::B]     = std::make_pair(GLFW_GAMEPAD_BUTTON_B, "B");
+	buttonMap[GamepadInput::X]     = std::make_pair(GLFW_GAMEPAD_BUTTON_X, "X");
+	buttonMap[GamepadInput::Y]     = std::make_pair(GLFW_GAMEPAD_BUTTON_Y, "Y");
+	buttonMap[GamepadInput::LB]    = std::make_pair(GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, "LB");
+	buttonMap[GamepadInput::RB]    = std::make_pair(GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER, "RB");
+	buttonMap[GamepadInput::BACK]  = std::make_pair(GLFW_GAMEPAD_BUTTON_BACK, "back");
+	buttonMap[GamepadInput::START] = std::make_pair(GLFW_GAMEPAD_BUTTON_START, "start");
+	buttonMap[GamepadInput::GUIDE] = std::make_pair(GLFW_GAMEPAD_BUTTON_GUIDE, "guide");
+	buttonMap[GamepadInput::L3]    = std::make_pair(GLFW_GAMEPAD_BUTTON_LEFT_THUMB, "L3");
+	buttonMap[GamepadInput::R3]    = std::make_pair(GLFW_GAMEPAD_BUTTON_RIGHT_THUMB, "R3");
+	buttonMap[GamepadInput::UP]    = std::make_pair(GLFW_GAMEPAD_BUTTON_DPAD_UP, "up");
+	buttonMap[GamepadInput::RIGHT] = std::make_pair(GLFW_GAMEPAD_BUTTON_DPAD_RIGHT, "right");
+	buttonMap[GamepadInput::DOWN]  = std::make_pair(GLFW_GAMEPAD_BUTTON_DPAD_DOWN, "down");
+	buttonMap[GamepadInput::LEFT]  = std::make_pair(GLFW_GAMEPAD_BUTTON_DPAD_LEFT, "left");
 
 	// Face button aliases (PS-like)
-	buttonMap[GamepadInput::CROSS]    = GLFW_GAMEPAD_BUTTON_A;
-	buttonMap[GamepadInput::CIRCLE]   = GLFW_GAMEPAD_BUTTON_B;
-	buttonMap[GamepadInput::SQUARE]   = GLFW_GAMEPAD_BUTTON_X;
-	buttonMap[GamepadInput::TRIANGLE] = GLFW_GAMEPAD_BUTTON_Y;
+	buttonMap[GamepadInput::CROSS]    = std::make_pair(GLFW_GAMEPAD_BUTTON_A, "cross");
+	buttonMap[GamepadInput::CIRCLE]   = std::make_pair(GLFW_GAMEPAD_BUTTON_B, "circle");
+	buttonMap[GamepadInput::SQUARE]   = std::make_pair(GLFW_GAMEPAD_BUTTON_X, "square");
+	buttonMap[GamepadInput::TRIANGLE] = std::make_pair(GLFW_GAMEPAD_BUTTON_Y, "triangle");
 	
 	// Set GLFW gamepad ID numbers
 	for(int i = GLFW_JOYSTICK_1; i <= GLFW_JOYSTICK_LAST; i++){
@@ -68,7 +68,7 @@ void OTTJoypad::disable(){
 bool OTTJoypad::poll(const GamepadInput &input){ 
 	if(!lastGamepad || !lastGamepad->isGood())
 		return false;
-	return (lastGamepad->poll(buttonMap[input]));
+	return (lastGamepad->poll(buttonMap[input].first));
 }
 
 bool OTTJoypad::check(const GamepadInput &input){ 
@@ -98,7 +98,7 @@ bool OTTJoypad::check(const GamepadInput &input){
 	case GamepadInput::RT:
 		return (lastGamepad->getRightTriggerPosition() >= -fRightTriggerThreshold);
 	default: // Standard button
-		return (lastGamepad->check(buttonMap[input]));
+		return (lastGamepad->check(buttonMap[input].first));
 	}
 	return false;
 }
@@ -285,6 +285,16 @@ void OTTJoypad::print(){
 	for(auto pad = connected.cbegin(); pad != connected.cend(); pad++){
 		(*pad)->print();
 	}
+}
+
+bool OTTJoypad::findNamedButton(const std::string& name, GamepadInput& button) const {
+	for(auto btn = buttonMap.cbegin(); btn != buttonMap.cend(); btn++){
+		if(btn->second.second == name){
+			button = btn->first;
+			return true;
+		}
+	}
+	return false;
 }
 
 void OTTJoypad::joystickCallback(int id, int event) {

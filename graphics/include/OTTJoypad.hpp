@@ -546,6 +546,14 @@ public:
 	  */
 	void print();
 
+	/** Find a gamepad button by name.
+	  * @param name The name of a gamepad button. Must be one of the following lowercase strings; a, b, x, y, lb, rb, back, 
+	  *  start, guide, l3, r3, up, right, down, left [or for PS-like controllers; cross, circle, square, triangle].
+	  * @param button Returned gamepad button, if button name found successfully
+	  * @return True if the button with the specified name is found
+	  */
+	bool findNamedButton(const std::string& name, GamepadInput& button) const ;
+
 	/** Handle joystick connected / disconnected events
 	  */
 	static void joystickCallback(int id, int event);
@@ -571,7 +579,7 @@ private:
 	
 	std::vector<Gamepad*> connected; ///< Vector of all connected gamepads
 	
-	std::unordered_map<GamepadInput, unsigned char> buttonMap; ///< Input map for 360-style gamepad buttons
+	std::unordered_map<GamepadInput, std::pair<unsigned char, std::string> > buttonMap; ///< Input map for 360-style gamepad buttons
 	
 	Gamepad* lastGamepad; ///< Pointer to most recently connected gamepad
 
