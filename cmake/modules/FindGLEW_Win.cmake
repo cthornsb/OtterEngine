@@ -34,8 +34,8 @@ endif()
 # Put user specified location at beginning of search
 if( USER_GLEW_ROOT )
 	list( INSERT _GLEW_HEADER_SEARCH_DIRS 0 "${USER_GLEW_ROOT}/include" )
-	list( INSERT _GLEW_LIB_SEARCH_DIRS 0 "${USER_GLEW_ROOT}/lib/x64" "${USER_GLEW_ROOT}/lib/Debug/x64" )
-	list( INSERT _GLEW_BIN_SEARCH_DIRS 0 "${USER_GLEW_ROOT}/bin/x64" "${USER_GLEW_ROOT}/bin/Debug/x64" )
+	list( INSERT _GLEW_LIB_SEARCH_DIRS 0 "${USER_GLEW_ROOT}/lib/x64" "${USER_GLEW_ROOT}/lib/Release/x64" "${USER_GLEW_ROOT}/lib/Debug/x64" )
+	list( INSERT _GLEW_BIN_SEARCH_DIRS 0 "${USER_GLEW_ROOT}/bin/x64" "${USER_GLEW_ROOT}/bin/Release/x64" "${USER_GLEW_ROOT}/bin/Debug/x64" )
 endif()
 
 # Search for the header
