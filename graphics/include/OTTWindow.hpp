@@ -187,7 +187,7 @@ public:
 	/** Set the size of graphical window
 	  * Has no effect if window has not been initialized.
 	  */
-	void updateWindowSize(const int& w, const int& h);
+	void updateWindowSize(const int& w, const int& h, bool updatePhysicalSize = false);
 
 	/** Set the size of graphical window
 	  * Has no effect if window has not been initialized.

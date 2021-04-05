@@ -105,13 +105,17 @@ void OTTWindow::printVideoModes() const {
 	}
 }
 
-void OTTWindow::updateWindowSize(const int& w, const int& h){
+void OTTWindow::updateWindowSize(const int& w, const int& h, bool updatePhysicalSize/*=false*/){
+	if (!init)
+		return;
 	width = w;
 	height = (h > 0 ? h : 1); // Prevent division by zero
 	aspect = float(w) / float(h);
 	nOffsetX = 0;
 	nOffsetY = 0;
-	if(bLockAspectRatio){ // Preserve original aspect ratio
+	if (!bLockAspectRatio)
+		bLockAspectRatio = true;
+	if(bLockAspectRatio){ // Preserve original aspect ratio		
 		if(aspect >= fNativeAspect){ // New window is too wide (pillarbox)
 			float wprime = fNativeAspect * height;
 			nOffsetX = (int)((width - wprime) / 2.f);
@@ -124,15 +128,15 @@ void OTTWindow::updateWindowSize(const int& w, const int& h){
 			nOffsetY = (int)((height - hprime) / 2.f);
 			height = (int)hprime;
 		}
+		aspect = float(width) / float(height);
 	}
-	if(init){
+	if(updatePhysicalSize)
 		glfwSetWindowSize(win.get(), width, height); // Update physical window size
-		onUserReshape();
-	}
+	onUserReshape();
 }
 
 void OTTWindow::updateWindowSize(const int& scale){
-	updateWindowSize(nNativeWidth * scale, nNativeHeight * scale);
+	updateWindowSize(nNativeWidth * scale, nNativeHeight * scale, true);
 }
 
 void OTTWindow::setClipboardString(const std::string& str) const {
