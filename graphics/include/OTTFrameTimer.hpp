@@ -122,6 +122,13 @@ public:
 		return averageFramerate();
 	}
 
+	/** Set the constant frame period time offset to fine tune frame timing.
+	  * Setting the frame period offset will disable time offset averaging. Set the period to <= 0 to re-enable default time averaging behavior.
+	  */
+	void setFramePeriodOffset(const double& offset) {
+		dConstantOffset = offset;
+	}
+
 	/** Set the target maximum framerate for rendering (in Hz)
 	  * @param fps Target number of frames per second (fps > 0)
 	  */
@@ -175,6 +182,8 @@ protected:
 	double dFramerateCap; ///< The target render framerate (in Hz)
 
 	double dFramePeriod; ///< Target frame period (microseconds)
+
+	double dConstantOffset; ///< Constant frame period time offset (microseconds)
 
 	unsigned long long nFrameCount; ///< The number of frames which have been rendered
 

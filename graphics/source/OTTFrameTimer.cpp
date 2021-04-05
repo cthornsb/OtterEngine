@@ -46,6 +46,7 @@ OTTFrameTimer::OTTFrameTimer(const double& fps) :
 	dFramerate(0),
 	dFramerateCap(fps),
 	dFramePeriod(1E6 / fps),
+	dConstantOffset(0),
 	nFrameCount(0),
 #ifndef USE_GLFW_TIMER
 	timeOfInitialization(hclock::now()),
@@ -119,7 +120,7 @@ double OTTFrameTimer::sync() {
 
 	// Cap the framerate by sleeping
 	if (dFramerateCap > 0) {
-		double timeToSleep = (dFramePeriod - averageDeltaTime()) - frameTime; // Amount of time remaining until end of frame period (microseconds)
+		double timeToSleep = (dFramePeriod - (dConstantOffset > 0 ? dConstantOffset : averageDeltaTime())) - frameTime; // Amount of time remaining until end of frame period (microseconds)
 		if (timeToSleep > 0) { // Sleep until end of frame period
 			std::this_thread::sleep_for(std::chrono::microseconds((long long)timeToSleep));
 		}
@@ -139,7 +140,7 @@ double OTTFrameTimer::sync() {
 	averageFramerate.add(1.0 / totalFrameTime);
 
 	// Update moving average of difference between target frame period and actual frame period
-	if (dFramerateCap > 0)
+	if (dFramerateCap > 0 && dConstantOffset > 0)
 		averageDeltaTime.add(1E6 * totalFrameTime - dFramePeriod);
 
 	// Update the one-second timer

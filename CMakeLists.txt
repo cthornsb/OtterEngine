@@ -77,11 +77,11 @@ set(INCLUDE_DIR_3D       ${CMAKE_SOURCE_DIR}/3d/include)
 
 #Add the global include directories.
 include_directories(
-	${GLFW3_INCLUDE_DIR}
+	${GLFW3_INCLUDE_DIRS}
 	${OPENGL_INCLUDE_DIR}
 	${GLEW_INCLUDE_DIRS}
-	${SOIL_INCLUDE_DIR}
-	${PORT_AUDIO_INCLUDE_DIR}
+	${SOIL_INCLUDE_DIRS}
+	${PORT_AUDIO_INCLUDE_DIRS}
 	graphics/include
 	audio/include
 	math/include
