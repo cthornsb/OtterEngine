@@ -122,6 +122,24 @@ public:
 		return averageFramerate();
 	}
 
+	/** Get the current framerate cap (in frames per second, fps)
+	  */
+	double getFramerateCap() const {
+		return dFramerateCap;
+	}
+
+	/** Get the current frame period (in microseconds)
+	  */
+	double getFramePeriod() const {
+		return dFramePeriod;
+	}
+
+	/** Get the current frame period time offset (in microseconds)
+	  */
+	double getFramePeriodOffet() const {
+		return dConstantOffset;
+	}
+
 	/** Set the constant frame period time offset to fine tune frame timing.
 	  * Setting the frame period offset will disable time offset averaging. Set the period to <= 0 to re-enable default time averaging behavior.
 	  */
