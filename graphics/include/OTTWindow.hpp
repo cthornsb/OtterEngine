@@ -233,6 +233,10 @@ public:
 	  */
 	void setFullScreenMode(bool state=true);
 
+	/** Set the title string of the graphical window
+	  */
+	void setWindowTitle(const std::string& title);
+
 	/** Toggle full screen mode.
 	  * The current monitor video mode will not be changed.
 	  * @return True if the window is now in full screen mode

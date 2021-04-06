@@ -188,6 +188,10 @@ void OTTWindow::setFullScreenMode(bool state/*=true*/){
 	}
 }
 
+void OTTWindow::setWindowTitle(const std::string& title) {
+	glfwSetWindowTitle(win.get(), title.c_str());
+}
+
 bool OTTWindow::toggleFullScreenMode(){
 	if(bFullScreenMode)
 		setFullScreenMode(false);
