@@ -19,15 +19,15 @@ add_dependencies( OtterCoreObj
 )
 
 # Build Core library
-if(NOT WIN32)
-	add_library( OtterCore
-		SHARED 
-		$<TARGET_OBJECTS:OtterCoreObj>
-	)
-else()
+if(WIN32 OR INSTALL_STATIC_LIBRARIES)
 	# Building dlls on Windows is a nightmare, so we just won't do it
 	add_library( OtterCore
 		STATIC 
+		$<TARGET_OBJECTS:OtterCoreObj>
+	)
+else()
+	add_library( OtterCore
+		SHARED 
 		$<TARGET_OBJECTS:OtterCoreObj>
 	)
 endif()

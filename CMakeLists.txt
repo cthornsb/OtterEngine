@@ -45,6 +45,10 @@ endif()
 
 #Install options
 option(INSTALL_LIBRARIES "Install OtterEngine shared libraries." OFF)
+if(NOT WIN32)
+	#Build static libraries instead of shared (Linux)
+	option(INSTALL_STATIC_LIBRARIES "Build static libraries instead of shared." OFF)
+endif()
 
 #------------------------------------------------------------------------------
 

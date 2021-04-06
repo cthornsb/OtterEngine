@@ -24,15 +24,15 @@ add_library( Otter3dCoreObj
 )
 
 # Build 3d libraries
-if(NOT WIN32)
-	add_library( Otter3dCore
-		SHARED 
-		$<TARGET_OBJECTS:Otter3dCoreObj>
-	)
-else()
+if(WIN32 OR INSTALL_STATIC_LIBRARIES)
 	# Building dlls on Windows is a nightmare, so we just won't do it
 	add_library( Otter3dCore
 		STATIC 
+		$<TARGET_OBJECTS:Otter3dCoreObj>
+	)
+else()
+	add_library( Otter3dCore
+		SHARED 
 		$<TARGET_OBJECTS:Otter3dCoreObj>
 	)
 endif()
