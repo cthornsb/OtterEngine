@@ -4,7 +4,8 @@
 #
 # GLEW_STATIC_LIBRARIES 
 # GLEW_SHARED_LIBRARIES
-# GLEW_DLL_DIRECTORY
+# GLEW_DLL_DIRECTORY (on Windows only)
+# GLEW_DLL_PATH (on Windows only)
 # GLEW_INCLUDE_DIRS where to find glfw include files.
 # GLEW_FOUND true if both the GLEW_LIBRARIES and GLEW_INCLUDE_DIR have been found.
 #
@@ -42,12 +43,6 @@ endif()
 FIND_PATH( GLEW_INCLUDE_DIRS
 	NAMES "GL/glew.h"
 	PATHS ${_GLEW_HEADER_SEARCH_DIRS} 
-)
-
-# Search for dll install
-find_path( GLEW_DLL_DIRECTORY
-	NAMES "glew32.dll" "glew32d.dll"
-	PATHS ${_GLEW_BIN_SEARCH_DIRS} 
 )
 
 # Search for the library
@@ -89,6 +84,18 @@ elseif(GLEW_STATIC_LIBRARIES)
 	add_library(GLEW::GLEW ALIAS GLEW::glew_s)
 else()
 	message(FATAL_ERROR "Failed to find GLEW library")
+endif()
+
+# Search for dll install
+find_file( GLEW_DLL_PATH
+	NAMES "glew32.dll" "glew32d.dll"
+	PATHS ${_GLEW_BIN_SEARCH_DIRS} 
+)
+if(GLEW_DLL_PATH)
+	get_filename_component( GLEW_DLL_DIRECTORY
+		${GLEW_DLL_PATH}
+		DIRECTORY
+	)
 endif()
 
 # Remove some unnecessary clutter

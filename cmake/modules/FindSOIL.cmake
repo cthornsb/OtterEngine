@@ -15,10 +15,12 @@
 set( _SOIL_HEADER_SEARCH_DIRS
 	"/usr/include"
 	"/usr/local/include"
+	"C:/Program Files (x86)/soil" 
 )
 set( _SOIL_LIB_SEARCH_DIRS
 	"/usr/lib"
 	"/usr/local/lib"
+	"C:/Program Files (x86)/soil" 
 )
 
 # Check environment for root search directory

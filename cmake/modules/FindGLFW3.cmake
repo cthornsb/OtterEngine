@@ -5,6 +5,8 @@
 # GLFW3_LIBRARY the name of the library;
 # GLFW3_INCLUDE_DIRS where to find glfw include files.
 # GLFW3_FOUND true if both the GLFW3_LIBRARY and GLFW3_INCLUDE_DIRS have been found.
+# GLFW3_DLL_DIRECTORY (on Windows only)
+# GLFW3_DLL_PATH (on Windows only)
 #
 # To help locate the library and include file, you can define a
 # variable called USER_GLFW3_ROOT which points to the root of the glfw library
@@ -24,7 +26,10 @@ set( _glfw3_LIB_SEARCH_DIRS
 	"/usr/lib"
 	"/usr/local/lib"
 	"${CMAKE_SOURCE_DIR}/lib"
-	"C:/Program Files (x86)/glfw/lib-msvc110" 
+	"C:/Program Files (x86)/glfw/lib-vc2019" 
+)
+set( _glfw3_BIN_SEARCH_DIRS
+	"C:/Program Files (x86)/glfw/lib-vc2019" 
 )
 
 # Check environment for root search directory
@@ -37,6 +42,7 @@ endif()
 if( USER_GLFW3_ROOT )
 	list( INSERT _glfw3_HEADER_SEARCH_DIRS 0 "${USER_GLFW3_ROOT}/include" )
 	list( INSERT _glfw3_LIB_SEARCH_DIRS 0 "${USER_GLFW3_ROOT}/lib-vc2019" )
+	list( INSERT _glfw3_BIN_SEARCH_DIRS 0 "${USER_GLFW3_ROOT}/lib-vc2019" )
 endif()
 
 # Search for the header
@@ -52,6 +58,20 @@ FIND_LIBRARY(
 	PATHS 
 	${_glfw3_LIB_SEARCH_DIRS}
 )
+
+if(WIN32)
+	# Search for dll install
+	find_file( GLFW3_DLL_PATH
+		NAMES "glfw3.dll"
+		PATHS ${_glfw3_BIN_SEARCH_DIRS} 
+	)	
+	if(GLFW3_DLL_PATH)
+		get_filename_component( GLFW3_DLL_DIRECTORY
+			${GLFW3_DLL_PATH}
+			DIRECTORY
+		)
+	endif()
+endif()
 
 # Remove some unnecessary clutter
 mark_as_advanced(

@@ -5,6 +5,8 @@
 # PORT_AUDIO_LIBRARY the name of the library;
 # PORT_AUDIO_INCLUDE_DIRS where to find glfw include files.
 # PORT_AUDIO_FOUND true if both the PORT_AUDIO_LIBRARY and PORT_AUDIO_INCLUDE_DIRS have been found.
+# PORT_AUDIO_DLL_DIRECTORY (on Windows only)
+# PORT_AUDIO_DLL_PATH (on Windows only)
 #
 # To help locate the library and include file, you can define a
 # variable called USER_PORT_AUDIO_ROOT which points to the root of the portaudio library
@@ -15,10 +17,15 @@
 set( _PORT_AUDIO_HEADER_SEARCH_DIRS
 	"/usr/include"
 	"/usr/local/include"
+	"C:/Program Files (x86)/portaudio/include"
 )
 set( _PORT_AUDIO_LIB_SEARCH_DIRS
 	"/usr/lib"
 	"/usr/local/lib"
+	"C:/Program Files (x86)/portaudio/lib/x64" 
+)
+set( _PORT_AUDIO_BIN_SEARCH_DIRS
+	"C:/Program Files (x86)/portaudio/bin/x64"
 )
 
 # Check environment for root search directory
@@ -31,6 +38,7 @@ endif()
 if( USER_PORT_AUDIO_ROOT )
 	list( INSERT _PORT_AUDIO_HEADER_SEARCH_DIRS 0 "${USER_PORT_AUDIO_ROOT}/include" )
 	list( INSERT _PORT_AUDIO_LIB_SEARCH_DIRS 0 "${USER_PORT_AUDIO_ROOT}/lib/x64/" )
+	list( INSERT _PORT_AUDIO_BIN_SEARCH_DIRS 0 "${USER_PORT_AUDIO_ROOT}/bin/x64/" )
 endif()
 
 # Search for the header
@@ -50,6 +58,20 @@ FIND_LIBRARY(
 	PATHS 
 	${_PORT_AUDIO_LIB_SEARCH_DIRS}
 )
+
+if(WIN32)
+	# Search for dll install
+	find_file( PORT_AUDIO_DLL_PATH
+		NAMES "portaudio_x64.dll"
+		PATHS ${_PORT_AUDIO_BIN_SEARCH_DIRS} 
+	)
+	if(PORT_AUDIO_DLL_PATH)
+		get_filename_component( PORT_AUDIO_DLL_DIRECTORY
+			${PORT_AUDIO_DLL_PATH}
+			DIRECTORY
+		)
+	endif()
+endif()
 
 # Remove some unnecessary clutter
 mark_as_advanced(
