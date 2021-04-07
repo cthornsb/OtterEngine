@@ -49,6 +49,7 @@ if(NOT WIN32)
 	#Build static libraries instead of shared (Linux)
 	option(INSTALL_STATIC_LIBRARIES "Build static libraries instead of shared." OFF)
 endif()
+option(STRICT_OPENGL_VERSION "Enable the use of the OpenGL library version number header." OFF)
 
 #------------------------------------------------------------------------------
 
@@ -92,11 +93,13 @@ include_directories(
 	include
 )
 
-#Check OpenGL, GLFW, and GLEW versions
-add_subdirectory(tools/source)
+if(STRICT_OPENGL_VERSION)
+	#Check OpenGL, GLFW, and GLEW versions
+	add_subdirectory(tools/source)
 
-#Add the newly generated library versions header
-include_directories(${VERSION_HEADER_DIR})
+	#Add the newly generated library versions header
+	include_directories(${VERSION_HEADER_DIR})
+endif()
 
 #Add the graphics directory.
 add_subdirectory(graphics/source)
@@ -109,8 +112,11 @@ add_subdirectory(source)
 if(INSTALL_LIBRARIES)
 	# Install header files
 	file(GLOB_RECURSE OTTER_HEADERS *.hpp)
+	if(STRICT_OPENGL_VERSION)
+		set( OTTER_HEADERS ${OTTER_HEADERS} "${VERSION_HEADER_DIR}/OTTVersions.hpp" )
+	endif()
 	install(
-		FILES ${OTTER_HEADERS} "${VERSION_HEADER_DIR}/OTTVersions.hpp"
+		FILES ${OTTER_HEADERS}
 		DESTINATION ${INSTALL_INCLUDE_DIR}
 	)
 	# Export libraries

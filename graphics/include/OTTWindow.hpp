@@ -16,9 +16,6 @@
 #include "OTTImageBuffer.hpp"
 #include "Matrix.hpp"
 
-// Include graphics library version header
-#include "OTTVersions.hpp"
-
 class GPU;
 
 class OTTJoypad;

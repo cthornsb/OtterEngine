@@ -14,9 +14,12 @@ add_library(
 	OTTTexture.cpp
 	OTTWindow.cpp
 )
-add_dependencies( OtterCoreObj 
-	OtterVersionHeader
-)
+
+if(STRICT_OPENGL_VERSION)
+	add_dependencies( OtterCoreObj 
+		OtterVersionHeader
+	)
+endif()
 
 # Build Core library
 if(WIN32 OR INSTALL_STATIC_LIBRARIES)

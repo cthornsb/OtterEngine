@@ -113,8 +113,6 @@ void OTTWindow::updateWindowSize(const int& w, const int& h, bool updatePhysical
 	aspect = float(w) / float(h);
 	nOffsetX = 0;
 	nOffsetY = 0;
-	if (!bLockAspectRatio)
-		bLockAspectRatio = true;
 	if(bLockAspectRatio){ // Preserve original aspect ratio		
 		if(aspect >= fNativeAspect){ // New window is too wide (pillarbox)
 			float wprime = fNativeAspect * height;
@@ -267,13 +265,7 @@ void OTTWindow::drawBitmap(const unsigned int& W, const unsigned int& H, const i
 
 void OTTWindow::drawBuffer(const unsigned int& W, const unsigned int& H, const int& x0, const int& y0, const OTTImageBuffer* data){
 	// Update texture pixels
-#if (OPENGL_VERSION_MAJOR >= 4 && OPENGL_VERSION_MINOR >= 5)
 	glTextureSubImage2D(nTexture, 0, x0, y0, W, H, GL_RGB, GL_UNSIGNED_BYTE, data->get()); // Since 4.5
-#else
-	glBindTexture(GL_TEXTURE_2D, nTexture);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, x0, y0, W, H, GL_RGB, GL_UNSIGNED_BYTE, data->get()); // Since 2.0
-	glBindTexture(GL_TEXTURE_2D, 0);
-#endif // if (OPENGL_VERSION >= 4.5)
 }
 
 void OTTWindow::drawBuffer(){
@@ -338,7 +330,7 @@ bool OTTWindow::initialize(const std::string& name){
 	init = true;
 
 	// Update projection matrix
-	updateWindowSize(width, height);
+	updateWindowSize(width, height, true);
 
 	// Set window size handler
 	glfwSetWindowSizeCallback(win.get(), OTTWindow::handleReshapeScene);
@@ -377,11 +369,7 @@ bool OTTWindow::initialize(const std::string& name){
 	glBindTexture(GL_TEXTURE_2D, nTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // Results in a sharper image when magnified
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Results in a softer image, default
-#if (OPENGL_VERSION_MAJOR >= 4 && OPENGL_VERSION_MINOR >= 2)
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, nNativeWidth, nNativeHeight); // Since 4.2
-#else
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, nNativeWidth, nNativeHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL); // Since 2.0
-#endif // if (OPENGL_VERSION >= 4.2)
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Further intitialization for derived classes
