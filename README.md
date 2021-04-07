@@ -17,9 +17,7 @@ Repository: <https://github.com/cthornsb/OtterEngine>
 
 ## Acknowledgements
 
-OtterGB would not be possible without the following resources:
-
-### External Libraries
+OtterEngine would not be possible without the following resources:
 
 [OpenGL](https://www.opengl.org/)
 
@@ -141,10 +139,10 @@ by default).
 | Option                   | Default | Description |
 |--------------------------|---------|-------------|
 | CMAKE_BUILD_TYPE         | Release | CMake build type: None Debug Release RelWithDebInfo MinSizeRel |
-| INSTALL_DIR              | ""      | Install Prefix                                              |
+| INSTALL_DIR              |         | Install Prefix                                              |
 | INSTALL_LIBRARIES        | OFF     | Install OtterEngine libraries                               |
 | INSTALL_STATIC_LIBRARIES | OFF     | Build static libraries instead of shared (Linux)            |
-| ASSETS_DIRECTORY         | ""      | Path string supplied as a target definition at compile time |
+| ASSETS_DIRECTORY         |         | Path string supplied as a target definition at compile time |
 
 Since most OtterEngine classes use graphical or audio libraries, you will almost
 always want to set **CMAKE_BUILD_TYPE** to *Release* or *RelWithDebInfo* for
@@ -194,12 +192,12 @@ that they require. The configuration script sets the following path variables:
 
 As well as the following libraries:
 
-| Library          | Associated Path    | Description                         |
-|------------------|--------------------|-------------------------------------|
-| Ott::OtterCore   | (OTTER_CORE_LIB)   | Core graphics library (2d graphics) |
-| Ott::Otter3dCore | (OTTER_3DCORE_LIB) | Core 3d graphics library            |
-| Ott::OtterAudio  | (OTTER_AUDIO_LIB)  | Audio output management library     |
-| Ott::OtterMath   | (OTTER_MATH_LIB)   | Math library, including vectors and matrices |
+| Library          | Associated Path  | Description                         |
+|------------------|------------------|-------------------------------------|
+| Ott::OtterCore   | OTTER_CORE_LIB   | Core graphics library (2d graphics) |
+| Ott::Otter3dCore | OTTER_3DCORE_LIB | Core 3d graphics library            |
+| Ott::OtterAudio  | OTTER_AUDIO_LIB  | Audio output management library     |
+| Ott::OtterMath   | OTTER_MATH_LIB   | Math library, including vectors and matrices |
 
 These libraries are static on Windows and shared on Linux (by default, but you
 can make them static by setting the CMake variable *-DINSTALL_STATIC_LIBRARIES=ON*). 
@@ -248,38 +246,18 @@ of the graphical and audio libraries such as:
 
 ```cmake
     target_link_libraries( <TARGET>
-	    Ott::OtterCore
-	    Ott::Otter3dCore 
-	    Ott::OtterAudio
-	    Ott::OtterMath	
-	    OpenGL::GL
-	    OpenGL::GLU
-        GLEW::GLEW
-	    ${GLFW3_LIBRARY}
-	    ${SOIL_LIBRARY}
-	    ${PORT_AUDIO_LIBRARY}
+		Ott::OtterCore
+		Ott::Otter3dCore 
+		Ott::OtterAudio
+		Ott::OtterMath	
+		OpenGL::GL
+		OpenGL::GLU
+		GLEW::GLEW
+		${GLFW3_LIBRARY}
+		${SOIL_LIBRARY}
+		${PORT_AUDIO_LIBRARY}
     )
 ```
-
-### 2d Graphics
-
-[TBD]
-
-### 3d Graphics
-
-[TBD]
-
-#### Primitives
-
-[TBD]
-
-#### Meshes
-
-[TBD]
-
-### Audio Output
-
-[TBD]
 
 ## Documentation
 
