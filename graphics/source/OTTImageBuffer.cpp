@@ -108,6 +108,18 @@ void OTTImageBuffer::drawPixel(const unsigned short& x, const unsigned short& y)
 	blendPixel(x, y);
 }
 
+void OTTImageBuffer::drawPixels(const std::vector<std::pair<unsigned short, unsigned short> >& vertices) {
+	for (auto vert = vertices.cbegin(); vert != vertices.cend(); vert++) {
+		blendPixel(vert->first, vert->second);
+	}
+}
+
+void OTTImageBuffer::drawPixels(const unsigned short* vertices, const size_t& N) {
+	for (size_t i = 0; i < N; i++) {
+		blendPixel(vertices[2 * i], vertices[2 * i + 1]);
+	}
+}
+
 void OTTImageBuffer::drawLine(
 	const unsigned short& x0, const unsigned short& y0,
 	const unsigned short& x1, const unsigned short& y1
@@ -354,6 +366,9 @@ void OTTImageBuffer::blendPixel(const unsigned short& px, const unsigned short& 
 		break;
 	case BlendMode::LIGHTEN:
 		pixel.lighten(currentDrawColor);
+		break;
+	case BlendMode::AVERAGE:
+		pixel.average(currentDrawColor);
 		break;
 	case BlendMode::REPLACE:
 		pixel.setColor(currentDrawColor);

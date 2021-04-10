@@ -20,6 +20,7 @@ enum class BlendMode {
 	DIVIDE,  ///< Components of bottom color are divided by components of top color
 	DARKEN,  ///< The minimum value is taken for each of the color components of the top and bottom layers
 	LIGHTEN, ///< The maximum value is taken for each of the color components of the top and bottom layers
+	AVERAGE, ///< Average the bottom and top layer colors
 	REPLACE  ///< Functionally the same as NORMAL
 };
 
@@ -236,6 +237,15 @@ public:
 	/** Draw a pixel at the position (x,y)
 	  */
 	void drawPixel(const unsigned short& x, const unsigned short& y);
+
+	/** Draw a series of (x,y) pairs
+	  */
+	void drawPixels(const std::vector<std::pair<unsigned short, unsigned short> >& vertices);
+
+	/** Draw a series of N (x,y) pairs.
+	  * Input vertex array should be an ordered list of X and Y pairs and must be at least 2 * N elements long.
+	  */
+	void drawPixels(const unsigned short* vertices, const size_t& N);
 
 	/** Draw a line between the two points (x0,y0) and (x1,y1)
 	  */

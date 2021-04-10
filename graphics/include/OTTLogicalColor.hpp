@@ -188,6 +188,10 @@ public:
 	  **/
 	void difference(const ColorRGB& color);
 
+	/** Compute the average between each color component of the current color and an input color, scaled by its alpha value
+	  */
+	void average(const ColorRGB& color);
+
 	/** Compare this color to an input color within a given margin of error
 	  **/
 	bool compareColor(const ColorRGB& color, const float& margin = 0.0f);

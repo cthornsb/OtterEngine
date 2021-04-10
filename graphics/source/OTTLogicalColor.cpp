@@ -142,10 +142,24 @@ void OTTLogicalColor::difference(const ColorRGB& color) {
 	setAlpha(1.f);
 }
 
+void OTTLogicalColor::average(const ColorRGB& color) {
+	auto getComponentAlpha = [](const unsigned char& prevComp, const unsigned char& nextComp, const float& alpha) {
+		if (!nextComp) // Prevent division by zero
+			return 0.f;
+		return (nextComp * (alpha + ((float)prevComp / (float)nextComp) * (1.f - alpha)) / 255.f);
+	};	
+	pArray[0] = clampUChar((getR() + getComponentAlpha(pArray[0], color.r, color.a / 255.f)) / 2.f);
+	pArray[1] = clampUChar((getG() + getComponentAlpha(pArray[1], color.g, color.a / 255.f)) / 2.f);
+	pArray[2] = clampUChar((getB() + getComponentAlpha(pArray[2], color.b, color.a / 255.f)) / 2.f);
+	setAlpha(1.f);
+}
+
 bool OTTLogicalColor::compareColor(const ColorRGB& color, const float& margin/*=0.0f*/) {
-	return ((std::abs(getR() - color.r) <= margin) && 
+	return (
+		(std::abs(getR() - color.r) <= margin) && 
 		(std::abs(getG() - color.g) <= margin) && 
-		(std::abs(getB() - color.b) <= margin));
+		(std::abs(getB() - color.b) <= margin)
+	);
 }
 
 void OTTLogicalColor::dump() const {
