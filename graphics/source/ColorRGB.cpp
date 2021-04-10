@@ -19,7 +19,7 @@ ColorRGB::ColorRGB(const float& red, const float& green, const float& blue, cons
 }
 
 ColorRGB ColorRGB::invert() const {
-	return ColorRGB(255 - r, 255 - g, 255 - b);
+	return ColorRGB((255 - r) / 255.f, (255 - g) / 255.f, (255 - b) / 255.f);
 }
 
 unsigned char& ColorRGB::operator [] (const unsigned char& index){
@@ -116,3 +116,25 @@ ColorRGB ColorRGB::heatMap(const float& x, const float& xmax, const float& xmin/
 	return ColorRGB(rgb, rgb, rgb);
 }
 
+const ColorRGB Colors::BLACK(0.f, 0.f, 0.f);
+const ColorRGB Colors::DKGRAY(2 / 3.0f, 2 / 3.0f, 2 / 3.0f);
+const ColorRGB Colors::LTGRAY(1 / 3.0f, 1 / 3.0f, 1 / 3.0f);
+const ColorRGB Colors::WHITE(1.f, 1.f, 1.f);
+
+// Primary colors
+const ColorRGB Colors::RED(1.f, 0.f, 0.f);
+const ColorRGB Colors::GREEN(0.f, 1.f, 0.f);
+const ColorRGB Colors::BLUE(0.f, 0.f, 1.f);
+
+// Secondary colors
+const ColorRGB Colors::YELLOW(1.f, 1.f, 0.f);
+const ColorRGB Colors::MAGENTA(1.f, 0.f, 1.f);
+const ColorRGB Colors::CYAN(0.f, 1.f, 1.f);
+
+// Tertiary colors
+const ColorRGB Colors::ORANGE(1.f, 0.5f, 0.f);
+const ColorRGB Colors::CHARTREUSE(0.5f, 1.f, 0.f);
+const ColorRGB Colors::SPRING(0.f, 1.f, 0.5f);
+const ColorRGB Colors::AZURE(0.f, 0.5f, 1.f);
+const ColorRGB Colors::VIOLET(0.5f, 0.f, 1.f);
+const ColorRGB Colors::ROSE(1.f, 0.f, 0.5f);

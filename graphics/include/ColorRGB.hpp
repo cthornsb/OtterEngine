@@ -109,28 +109,28 @@ public:
 
 namespace Colors{
 	// Grayscale colors
-	const ColorRGB BLACK(0, 0, 0);
-	const ColorRGB DKGRAY(2/3.0f, 2/3.0f, 2/3.0f);
-	const ColorRGB LTGRAY(1/3.0f, 1/3.0f, 1/3.0f);
-	const ColorRGB WHITE(1, 1, 1);
+	extern const ColorRGB BLACK;
+	extern const ColorRGB DKGRAY;
+	extern const ColorRGB LTGRAY;
+	extern const ColorRGB WHITE;
 	
 	// Primary colors
-	const ColorRGB RED(1, 0, 0);
-	const ColorRGB GREEN(0, 1, 0);
-	const ColorRGB BLUE(0, 0, 1);
+	extern const ColorRGB RED;
+	extern const ColorRGB GREEN;
+	extern const ColorRGB BLUE;
 	
 	// Secondary colors
-	const ColorRGB YELLOW(1, 1, 0);
-	const ColorRGB MAGENTA(1, 0, 1);
-	const ColorRGB CYAN(0, 1, 1);
+	extern const ColorRGB YELLOW;
+	extern const ColorRGB MAGENTA;
+	extern const ColorRGB CYAN;
 	
 	// Tertiary colors
-	const ColorRGB ORANGE(1.f, 0.5f, 0.f);
-	const ColorRGB CHARTREUSE(0.5f, 1.f, 0.f);
-	const ColorRGB SPRING(0.f, 1.f, 0.5f);
-	const ColorRGB AZURE(0.f, 0.5f, 1.f);
-	const ColorRGB VIOLET(0.5f, 0.f, 1.f);
-	const ColorRGB ROSE(1.f, 0.f, 0.5f);
+	extern const ColorRGB ORANGE;
+	extern const ColorRGB CHARTREUSE;
+	extern const ColorRGB SPRING;
+	extern const ColorRGB AZURE;
+	extern const ColorRGB VIOLET;
+	extern const ColorRGB ROSE;
 }
 
 #endif
