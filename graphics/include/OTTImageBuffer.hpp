@@ -11,6 +11,7 @@ typedef void (*imageManipulationFunc)(OTTLogicalColor*, const int&, const int&);
 /** Layer blending modes
   **/
 enum class BlendMode {
+	NONE,    ///< Do not modify existing pixel
 	NORMAL,  ///< The bottom layer is completely overwritten by the top layer, alpha values are ignored
 	ADD,     ///< Components of top layer are added to components of bottom layer
 	SUB,     ///< Components of top layer are subtracted from components of bottom layer
@@ -20,6 +21,12 @@ enum class BlendMode {
 	DARKEN,  ///< The minimum value is taken for each of the color components of the top and bottom layers
 	LIGHTEN, ///< The maximum value is taken for each of the color components of the top and bottom layers
 	REPLACE  ///< Functionally the same as NORMAL
+};
+
+enum class DrawMode {
+	NONE,    ///< Do not modify existing pixels
+	OUTLINE, ///< Draw only the outline of shapes
+	FILL     ///< Fill all pixels inside of drawn shapes
 };
 
 class OTTImageBuffer{
@@ -34,7 +41,9 @@ public:
 		nSize(0),
 		nBytes(0),
 		bitmap(),
-		dptr(0x0)
+		dptr(0x0),
+		colorBlendMode(BlendMode::NORMAL),
+		currentDrawColor(Colors::WHITE)
 	{
 	}
 	
@@ -48,7 +57,9 @@ public:
 		nSize(W * H),
 		nBytes(nSize * ch), // ch Color channels
 		bitmap(nBytes, 0),
-		dptr(&bitmap[0])
+		dptr(&bitmap[0]),
+		colorBlendMode(BlendMode::NORMAL),
+		currentDrawColor(Colors::WHITE)
 	{
 	}
 	
@@ -63,7 +74,9 @@ public:
 		nSize(other.nSize),
 		nBytes(other.nBytes), // ch Color channels
 		bitmap(),
-		dptr(other.dptr)
+		dptr(other.dptr),
+		colorBlendMode(BlendMode::NORMAL),
+		currentDrawColor(Colors::WHITE)
 	{
 	}
 	
@@ -169,14 +182,126 @@ public:
 	/** Resize image buffer
 	  */
 	void resize(const unsigned short& W, const unsigned short& H);
+
+	/** Set the current pixel color blending mode. The default blending mode is 
+	  * BlendMode::NORMAL, which simply replaces the existing color with a new one.
+	  */
+	void setBlendMode(const BlendMode& mode = BlendMode::NORMAL) {
+		colorBlendMode = mode;
+	}
+
+	/** Set the draw color
+	  */
+	void setDrawColor(const ColorRGB& color) {
+		currentDrawColor = color;
+	}
 	
-	/** Set the color of a pixel in the buffer
+	/** Set the color of a pixel in the buffer, ignoring the current color blending mode
 	  */
 	void setPixel(const unsigned short& x, const unsigned short& y, const ColorRGB& color);
 
-	/** Set the color of a horizontal row of pixels
+	/** Set the color of a horizontal row of pixels, ignoring the current color blending mode
 	  */
 	void setPixelRow(const unsigned short& y, const ColorRGB& color);
+
+	/** Set multiplicitive opacity of the texture
+	  * @param opacity Opacity of texture, in range [0, 1]
+	  **/
+	void setOpacity(const float& opacity);
+
+	/** Invert image colors
+	  **/
+	void invertColors();
+
+	/** Convert image to grayscale based on sRGB convention
+	  **/
+	void toGrayscale();
+
+	/** Set all pixel alpha values to one (i.e. remove alpha channel). This may not be undone
+	  **/
+	void removeAlpha();
+
+	/** Set a color in the image to translucent
+	  * @param chroma Color to make translucent (chroma key)
+	  * @param margin Margin of error for color match (0 is exact match, 1 accepts any color)
+	  * @param opacity Opacity of translucent pixels (default is 0, i.e. fully transparent)
+	  **/
+	void colorToAlpha(const ColorRGB& chroma, const float& margin = 0, const float& opacity = 0);
+
+	/** Fill the image with a color
+	  * @param color Color to fill the image with
+	  **/
+	void fillColor(const ColorRGB& color);
+
+	/** Draw a pixel at the position (x,y)
+	  */
+	void drawPixel(const unsigned short& x, const unsigned short& y);
+
+	/** Draw a line between the two points (x0,y0) and (x1,y1)
+	  */
+	void drawLine(
+		const unsigned short& x0, const unsigned short& y0, 
+		const unsigned short& x1, const unsigned short& y1
+	);
+
+	/** Draw a sequence of lines between a series of (x,y) pairs
+	  */
+	void drawLines(const std::vector<std::pair<unsigned short, unsigned short> >& vertices);
+
+	/** Draw a sequence of lines between a series of N (x,y) pairs.
+	  * Input vertex array should be an ordered list of X and Y pairs and must be at least 2 * N elements long.
+	  */
+	void drawLines(const unsigned short* vertices, const size_t& N);
+
+	/** Draw a closed polygon with N sides using a series of N (x,y) pairs
+	  */
+	void drawPolygon(const std::vector<std::pair<unsigned short, unsigned short> >& vertices);
+
+	/** Draw a closed polygon with N sides.
+	  * Input vertex array should be an ordered list of X and Y pairs and must be at least 2 * N elements long.
+	  */
+	void drawPolygon(const unsigned short* vertices, const size_t& N);
+
+	/** Draw a rectangle with top left corner (x0,y0) and bottom right corner (x1,y1)
+	  */
+	void drawRectangle(
+		const unsigned short& x0, const unsigned short& y0,
+		const unsigned short& x1, const unsigned short& y1
+	);
+
+	/** Draw a circle with a specified center (x0,y0) and radius
+	  */
+	void drawCircle(const unsigned short& x0, const unsigned short& y0, const float& radius);
+
+	/** Draw an ellipse with a specified center (x0,y0), semi-major radius (A), and semi-minor radius (B)
+	  */
+	void drawEllipse(const unsigned short& x0, const unsigned short& y0, const float& A, const float& B);
+
+	/** Draw a regular N-sided polygon centered at (x0,y0) and whose vertices are circumscribed by a circle with the specified radius
+	  */
+	void drawRegularPolygon(const unsigned short& x0, const unsigned short& y0,	const unsigned short& N, const float& radius);
+
+	/** Draw an arbitrary triangle with three specified vertices (x0,y0), (x1,y1), and (x2,y2)
+	  */
+	void drawTriangle(
+		const unsigned short& x0, const unsigned short& y0,
+		const unsigned short& x1, const unsigned short& y1,
+		const unsigned short& x2, const unsigned short& y2
+	);
+
+	/** Draw an arbitrary quad with four specified vertices (x0,y0), (x1,y1), (x2,y2), and (x3,y3)
+	  */
+	void drawQuad(
+		const unsigned short& x0, const unsigned short& y0,
+		const unsigned short& x1, const unsigned short& y1,
+		const unsigned short& x2, const unsigned short& y2,
+		const unsigned short& x3, const unsigned short& y3
+	);
+
+	/** Manipulate the loaded image on the pixel level
+	  * @param func Function pointer which will be called for every pixel in the image
+	  **/
+	void processImage(imageManipulationFunc func);
 
 	/** Clear image buffer to a specified color
 	  * For monochromatic colors, it should be faster to use fill().
@@ -208,6 +333,14 @@ protected:
 	std::vector<unsigned char> bitmap; ///< Image data
 	
 	unsigned char* dptr; ///< Internal pointer to image data
+
+	BlendMode colorBlendMode; ///< The current pixel blend mode
+
+	ColorRGB currentDrawColor; ///< Current drawing color for pixel color blending operations
+
+	/** Blend a single pixel color into the image
+	  */
+	void blendPixel(const unsigned short& px, const unsigned short& py);
 };
 
 #endif

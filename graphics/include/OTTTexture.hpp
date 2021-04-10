@@ -55,7 +55,7 @@ public:
 		sName(name),
 		data()
 	{
-		fillColor(color, BlendMode::NORMAL);
+		fillColor(color);
 	}
 
 	/** Destructor
@@ -99,41 +99,6 @@ public:
 	/** Generate OpenGL mipmaps (not implemented)
 	  */
 	void generateMipmaps() { }
-
-	/** Set multiplicitive opacity of the texture
-	  * @param opacity Opacity of texture, in range [0, 1]
-	  **/
-	void setOpacity(const float& opacity);
-
-	/** Invert image colors
-	  **/
-	void invertColors();
-
-	/** Convert image to grayscale based on sRGB convention
-	  **/
-	void toGrayscale();
-
-	/** Set all pixel alpha values to one (i.e. remove alpha channel). This may not be undone
-	  **/
-	void removeAlpha();
-
-	/** Set a color in the image to translucent
-	  * @param chroma Color to make translucent (chroma key)
-	  * @param margin Margin of error for color match (0 is exact match, 1 accepts any color)
-	  * @param opacity Opacity of translucent pixels (default is 0, i.e. fully transparent)
-	  **/
-	void colorToAlpha(const ColorRGB& chroma, const float& margin = 0, const float& opacity = 0);
-
-	/** Fill the image with a color
-	  * @param color Color to fill the image with
-	  * @param mode Blending mode of color (default is normal blending)
-	  **/
-	void fillColor(const ColorRGB& color, const BlendMode& mode = BlendMode::NORMAL);
-
-	/** Manipulate the loaded image on the pixel level
-	  * @param func Function pointer which will be called for every pixel in the image
-	  **/
-	void processImage(imageManipulationFunc func);
 
 	/** Load an image into memory
 	  * @note Image is loaded into conventional memory, getTexture() must be used to convert to OpenGL texture

@@ -7,17 +7,21 @@ class OTTLogicalColor {
 public:
 	unsigned char* pArray; ///< Start of color component array
 
+	bool bAlpha; ///< Set if each pixel contains an alpha channel
+
 	/** Default constructor (empty)
 	  */
-	OTTLogicalColor() :
-		pArray(0x0)
+	OTTLogicalColor(bool alpha = true) :
+		pArray(0x0),
+		bAlpha(alpha)
 	{
 	}
 
 	/** Array constructor. Expects at least four elements
 	  **/
 	OTTLogicalColor(unsigned char* arr) :
-		pArray(arr)
+		pArray(arr),
+		bAlpha(true)
 	{
 	}
 
@@ -98,25 +102,27 @@ public:
 	/** Return the red component, scaled by the color's alpha channel
 	  **/
 	float getR() const {
-		return pArray[0] * pArray[3] / 65025.f;
+		return pArray[0] * getA() / 255.f;
 	}
 
 	/** Return the green component, scaled by the color's alpha channel
 	  **/
 	float getG() const {
-		return pArray[1] * pArray[3] / 65025.f;
+		return pArray[1] * getA() / 255.f;
 	}
 
 	/** Return the blue component, scaled by the color's alpha channel
 	  **/
 	float getB() const {
-		return pArray[2] * pArray[3] / 65025.f;
+		return pArray[2] * getA() / 255.f;
 	}
 
 	/** Return the alpha channel
 	  **/
 	float getA() const {
-		return pArray[3] / 255.f;
+		if(bAlpha)
+			return pArray[3] / 255.f;
+		return 1.f;
 	}
 	
 	/** Get a copy of the current pixel color
@@ -146,7 +152,8 @@ public:
 	/** Set the alpha channel
 	  **/
 	void setAlpha(const float& value) {
-		pArray[3] = clampUChar(value * 255);
+		if (bAlpha)
+			pArray[3] = clampUChar(value * 255);
 	}
 
 	/** Set the color
