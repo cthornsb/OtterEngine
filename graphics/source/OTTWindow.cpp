@@ -43,7 +43,8 @@ OTTWindow::OTTWindow(const int &w, const int &h, const int& scale/*=1*/) :
 	joypad(&OTTJoypad::getInstance()),
 	buffer(),
 	previousMouseState(MouseStates::NORMAL),
-	userPathDropCallback(0x0)
+	userPathDropCallback(0x0),
+	userWindowFocusCallback(0x0)
 {
 }
 
@@ -149,12 +150,16 @@ void OTTWindow::setWindowFocusCallback(void (*callback)(const bool&)) {
 	userWindowFocusCallback = callback;
 }
 
-void OTTWindow::setDrawColor(ColorRGB *color, const float &alpha/*=1*/){
-	glColor4f(color->r, color->g, color->b, color->a);
+void OTTWindow::setDrawColor(ColorRGB *color){
+	glColor4f(color->r / 255.f, color->g / 255.f, color->b / 255.f, color->a / 255.f);
 }
 
-void OTTWindow::setDrawColor(const ColorRGB &color, const float &alpha/*=1*/){
-	glColor4f(color.r, color.g, color.b, color.a);
+void OTTWindow::setDrawColor(const ColorRGB &color){
+	glColor4f(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
+}
+
+void OTTWindow::resetDrawColor() {
+	glColor4f(1.f, 1.f, 1.f, 1.f);
 }
 
 void OTTWindow::setCurrent(){
@@ -245,13 +250,12 @@ void OTTWindow::drawTexture(const unsigned int& texture, const int& x1, const in
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
-		glTexCoord2i(0, 1); glVertex2i(x1, y1);
-		glTexCoord2i(1, 1); glVertex2i(x2, y1);
-		glTexCoord2i(1, 0); glVertex2i(x2, y2);
-		glTexCoord2i(0, 0); glVertex2i(x1, y2);
+		glTexCoord2f(0.f, 1.f); glVertex2i(x1, y1);
+		glTexCoord2f(1.f, 1.f); glVertex2i(x2, y1);
+		glTexCoord2f(1.f, 0.f); glVertex2i(x2, y2);
+		glTexCoord2f(0.f, 0.f); glVertex2i(x1, y2);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void OTTWindow::drawTexture(const unsigned int& texture) {
@@ -265,7 +269,9 @@ void OTTWindow::drawBitmap(const unsigned int& W, const unsigned int& H, const i
 
 void OTTWindow::drawBuffer(const unsigned int& W, const unsigned int& H, const int& x0, const int& y0, const OTTImageBuffer* data){
 	// Update texture pixels
-	glTextureSubImage2D(nTexture, 0, x0, y0, W, H, GL_RGB, GL_UNSIGNED_BYTE, data->get()); // Since 4.5
+	//glTextureSubImage2D(nTexture, 0, x0, y0, W, H, GL_RGB, GL_UNSIGNED_BYTE, data->get()); // Since 4.5
+	glBindTexture(GL_TEXTURE_2D, nTexture);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, x0, y0, W, H, GL_RGB, GL_UNSIGNED_BYTE, data->get()); // Since 2.0
 }
 
 void OTTWindow::drawBuffer(){
@@ -370,7 +376,6 @@ bool OTTWindow::initialize(const std::string& name){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // Results in a sharper image when magnified
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Results in a softer image, default
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, nNativeWidth, nNativeHeight); // Since 4.2
-	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Further intitialization for derived classes
 	onUserInitialize();

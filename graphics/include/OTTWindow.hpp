@@ -211,13 +211,19 @@ public:
 	  */
 	void setWindowFocusCallback(void (*callback)(const bool&));
 
-	/** Set the current draw color
+	/** Set the current draw color.
+	  * After drawing is complete, ensure that the draw color is reset using resetDrawColor().
 	  */
-	void setDrawColor(ColorRGB *color, const float &alpha=1);
+	void setDrawColor(ColorRGB *color);
 
-	/** Set the current draw color
+	/** Set the current draw color.
+	  * After drawing is complete, ensure that the draw color is reset using resetDrawColor().
 	  */
-	void setDrawColor(const ColorRGB &color, const float &alpha=1);
+	void setDrawColor(const ColorRGB &color);
+
+	/** Reset the current draw color
+	  */
+	void resetDrawColor();
 
 	/** Set this window as the current glfw window
 	  * May be called from any thread.
