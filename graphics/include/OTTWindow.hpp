@@ -20,6 +20,17 @@ class GPU;
 
 class OTTJoypad;
 
+namespace ott {
+	enum class TextureModifier {
+		NONE,
+		VFLIP, ///< Flip texture about the x-axis
+		HFLIP, ///< Flip texture about the y-axis
+		ROTATE_CW, ///< Rotate texture 90 degrees clockwise
+		ROTATE_CCW, ///< Rotate texture 90 degrees counter-clockwise
+		ROTATE_180 ///< Rotate texture 180 degrees
+	};
+};
+
 struct DestroyGLFWwindow {
 	void operator()(GLFWwindow* ptr) {
 		glfwDestroyWindow(ptr);
@@ -173,7 +184,7 @@ public:
 
 	/** Get the OpenGL frame buffer texture context ID number
 	  */
-	GLuint getFrameBufferTextureContext() const {
+	GLuint getTextureBufferContext() const {
 		return nTexture;
 	}
 
@@ -257,89 +268,103 @@ public:
 	  */
 	void clear(const ColorRGB &color=Colors::BLACK);
 
-	/** Draw a single pixel at position (x, y)
+	/** Draw a single pixel at position (x, y) on the frame buffer.
+	  * Use sparingly, as drawing directly to the frame buffer is costly.
 	  */
 	void drawPixel(const int &x, const int &y);
 
-	/** Draw multiple pixels at positions (x1, y1) (x2, y2) ... (xN, yN)
+	/** Draw multiple pixels at positions (x1, y1) (x2, y2) ... (xN, yN) on the frame buffer.
+	  * Use sparingly, as drawing directly to the frame buffer is costly.
 	  * @param x Array of X pixel coordinates
 	  * @param y Array of Y pixel coordinates
 	  * @param N The number of elements in the arrays and the number of pixels to draw
 	  */
-	void drawPixel(const int *x, const int *y, const size_t &N);
+	void drawPixels(const int *x, const int *y, const size_t &N);
 	
-	/** Draw a single line to the screen between points (x1, y1) and (x2, y2)
+	/** Draw a single line to the screen between pixel (x1, y1) and (x2, y2) on the frame buffer.
+	  * Use sparingly, as drawing directly to the frame buffer is costly.
 	  */
-	void drawLine(const int &x1, const int &y1, const int &x2, const int &y2);
+	void drawLine(const int &x0, const int &y0, const int &x1, const int &y1);
 
-	/** Draw multiple lines to the screen
+	/** Draw multiple lines directly to the frame buffer.
+	  * Use sparingly, as drawing directly to the frame buffer is costly.
 	  * @param x Array of X pixel coordinates
 	  * @param y Array of Y pixel coordinates
-	  * @param N The number of elements in the arrays. Since it is assumed that the number of elements 
-		       in the arrays is equal to @a N, the total number of lines which will be drawn is equal to N-1
+	  * @param N The number of elements in the arrays. The total number of lines which will be drawn is N-1
 	  */
-	void drawLine(const int *x, const int *y, const size_t &N);
+	void drawLines(const int *x, const int *y, const size_t &N);
 
-	/** Draw multiple lines to the screen
-	  * @param x1 X coordinate of the upper left corner
-	  * @param y1 Y coordinate of the upper left corner
-	  * @param x2 X coordinate of the bottom right corner
-	  * @param y2 Y coordinate of the bottom right corner
+	/** Draw an OpenGL texture onto a portion of the frame buffer. The texture's upper left corner will appear 
+	  * at pixel position (x0,y0), upper right at (x1,y1), bottom right at (x2,y2), and bottom left at (x3,y3).
+	  * @param texture GL texture context
 	  */
-	void drawRectangle(const int &x1, const int &y1, const int &x2, const int &y2);
+	void drawTexture(
+		const unsigned int& texture,
+		const int& x0, const int& y0,
+		const int& x1, const int& y1,
+		const int& x2, const int& y2,
+		const int& x3, const int& y3
+	);
 
-	/** Draw OpenGL texture on the screen within the specified bounds
+	/** Draw an OpenGL texture onto a portion of the frame buffer. The texture will be confined to the rectangular
+	  * bounding box whose upper left corner is at pixel position (x0,y0) and whose bottom right corner is at (x2,y2).
 	  * @param texture GL texture context
-	  * @param x1 X coordinate of the upper left corner
-	  * @param y1 Y coordinate of the upper left corner
-	  * @param x2 X coordinate of the bottom right corner
-	  * @param y2 Y coordinate of the bottom right corner
-	  **/
-	void drawTexture(const unsigned int& texture, const int& x1, const int& y1, const int& x2, const int& y2);
+	  */
+	void drawTexture(const unsigned int& texture, const int& x0, const int& y0, const int& x2, const int& y2);
 
-	/** Draw OpenGL texture, covering the viewport
+	/** Draw an OpenGL texture onto the frame buffer, covering the entire viewport
 	  * @param texture GL texture context
-	  **/
+	  */
 	void drawTexture(const GLuint& texture);
 
-	/** Write pixel data from an array to the GPU frame buffer
-	  * @param W Width of bitmap (in pixels)
-	  * @param H Height of bitmap (in pixels)
-	  * @param x0 X coordinate of bottom left corner
-	  * @param y0 Y coordinate of bottom left corner
-	  * @param data Array of bitmap pixel data
+	/** Draw an OpenGL texture onto the frame buffer, covering the entire viewport
+	  * @param texture GL texture context
+	  * @param modifier Texture display modifier enum
 	  */
-	void drawBitmap(const unsigned int& W, const unsigned int& H, const int& x0, const int& y0, const unsigned char* data);
+	void drawTexture(const GLuint& texture, const ott::TextureModifier& modifier);
 
-	/** Write pixel data from an external image buffer to a region on frame buffer texture
+	/** Draw an OpenGL texture onto the frame buffer, covering the entire viewport.
+	  * The four corners of the texture may be placed in one of the four corners of the screen
+	  * by specifying the vertex indicies i0, i1, i2, and i3 whose values must be 0-3 as shown below:
+	  *  0 - Upper left corner of texture
+	  *  1 - Upper right corner of texture
+	  *  2 - Lower right corner of texture
+	  *  3 - Lower left corner of texture
+	  * These indicies allow the texture to be flipped and/or rotated as desired.
+	  * @param texture GL texture context
+	  */
+	void drawTextureVertices(const unsigned int& texture, const int& i0, const int& i1, const int& i2, const int& i3);
+
+	/** Transfer pixel data from an image buffer to a region on the texture buffer
 	  * @param W Width of image buffer (in pixels)
 	  * @param H Height of image buffer (in pixels)
-	  * @param x0 X coordinate of bottom left corner
-	  * @param y0 Y coordinate of bottom left corner
-	  * @param data Pointer to conventional-memory image buffer
+	  * @param x0 X coordinate of top left corner
+	  * @param y0 Y coordinate of top left corner
+	  * @param data Pointer to RAM image buffer
 	  */
 	void drawBuffer(const unsigned int& W, const unsigned int& H, const int& x0, const int& y0, const OTTImageBuffer* data);
 
-	/** Write pixel data from the image buffer to the frame buffer texture, filling the entire viewport
+	/** Transfer pixel data from the RAM image buffer to the texture buffer, filling the entire texture
 	  */
 	void drawBuffer();
 
-	/** Write to CPU image buffer
+	/** Write pixel data to RAM image buffer.
 	  * When drawing on a pixel-by-pixel level, it is much more efficient to modify the image
-	  * buffer in CPU memory and then periodically push the entire buffer to the GPU by calling
-	  * drawBuffer() (e.g. 60 times per second).
+	  * buffer in RAM and then periodically push the entire buffer to the GPU by calling
+	  * drawBuffer() or renderBuffer() (e.g. 60 times per second).
 	  */
 	void buffWrite(const unsigned short& x, const unsigned short& y, const ColorRGB& color);
 
-	/** Draw a horizontal line to CPU frame buffer
+	/** Draw a horizontal line to RAM image buffer
 	  */
 	void buffWriteLine(const unsigned short& y, const ColorRGB& color);
 
-	/** Render the current frame
+	/** Display the current frame by swapping frame buffers
 	  */
 	void render();
 
-	/** Draw the image buffer and render the frame
+	/** Transfer pixel data from the RAM image buffer to the texture buffer, draw the texture,
+	  * and then display the texture by swapping frame buffers
 	  */
 	void renderBuffer();
 
@@ -356,6 +381,20 @@ public:
 	/** Set pixel scaling factor
 	  */
 	void updatePixelZoom();
+
+	/** Enable the RAM image buffer layer.
+	  * The RAM image buffer requires the intermediate OpenGL texture buffer in order to be drawn to the
+	  * frame buffer for display, so it will automatically be generated after the RAM buffer.
+	  * @param bLinearFiltering If set, texture minimization and magnification are set to OpenGL linear filtering mode
+	  * @return A pointer to the image buffer
+	  */
+	OTTImageBuffer* enableImageBuffer(bool bLinearFiltering = true);
+
+	/** Enable the OpenGL texture buffer layer
+	  * @param bLinearFiltering If set, texture minimization and magnification are set to OpenGL linear filtering mode
+	  * @return The OpenGL texture context ID number
+	  */
+	GLuint enableTextureBuffer(bool bLinearFiltering = true);
 
 	/** Enable keyboard keypress event handling
 	  */
@@ -397,6 +436,14 @@ public:
 	/** Disable vertical sync (VSync)
 	  */
 	void disableVSync();
+
+	/** Enable OpenGL alpha blending for translucent textures
+	  */
+	void enableAlphaBlending();
+
+	/** Disable alpha blending for opaque textures
+	  */
+	void disableAlphaBlending();
 
 	/** Enable debug output mode.
 	  * Will have no effect on GLFW, GLEW, and OpenGL if they have already been initialized.
@@ -493,7 +540,7 @@ protected:
 	
 	OTTJoypad* joypad; ///< GLFW joypad callback wrapper
 	
-	OTTImageBuffer buffer; ///< CPU-side frame buffer
+	OTTImageBuffer buffer; ///< RAM frame buffer
 	
 	MouseStates previousMouseState; ///< State of the mouse cursor before full-screen mode switch
 	

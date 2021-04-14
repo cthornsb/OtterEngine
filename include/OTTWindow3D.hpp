@@ -105,10 +105,6 @@ public:
 	  */
 	void drawAxes();
 
-	/** Enable OpenGL alpha blending for translucent textures
-	  **/
-	void enableAlphaBlending();
-
 	/** Enable OpenGL Z-depth test and setup viewport for perspective 3d mode
 	  * This method must be called for rendering 3d objects as the default rendering mode is 2d
 	  **/

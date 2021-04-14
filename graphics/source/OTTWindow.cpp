@@ -220,40 +220,51 @@ void OTTWindow::drawPixel(const int &x, const int &y){
 	glEnd();
 }
 
-void OTTWindow::drawPixel(const int *x, const int *y, const size_t &N){
+void OTTWindow::drawPixels(const int *x, const int *y, const size_t &N){
 	for(size_t i = 0; i < N; i++) // Draw N pixels
 		drawPixel(x[i], y[i]);
 }
 
-void OTTWindow::drawLine(const int &x1, const int &y1, const int &x2, const int &y2){
+void OTTWindow::drawLine(const int &x0, const int &y0, const int &x1, const int &y1){
 	glBegin(GL_LINES);
+		glVertex2i(x0, y0);
 		glVertex2i(x1, y1);
-		glVertex2i(x2, y2);
 	glEnd();
 }
 
-void OTTWindow::drawLine(const int *x, const int *y, const size_t &N){
+void OTTWindow::drawLines(const int *x, const int *y, const size_t &N){
 	if(N < 2) // Nothing to draw
 		return;
 	for(size_t i = 0; i < N-1; i++)
 		drawLine(x[i], y[i], x[i+1], y[i+1]);
 }
 
-void OTTWindow::drawRectangle(const int &x1, const int &y1, const int &x2, const int &y2){
-	drawLine(x1, y1, x2, y1); // Top
-	drawLine(x2, y1, x2, y2); // Right
-	drawLine(x2, y2, x1, y2); // Bottom
-	drawLine(x1, y2, x1, y1); // Left
-}
-
-void OTTWindow::drawTexture(const unsigned int& texture, const int& x1, const int& y1, const int& x2, const int& y2) {
+void OTTWindow::drawTexture(
+	const unsigned int& texture,
+	const int& x0, const int& y0,
+	const int& x1, const int& y1,
+	const int& x2, const int& y2,
+	const int& x3, const int& y3
+) {
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
-		glTexCoord2f(0.f, 1.f); glVertex2i(x1, y1);
-		glTexCoord2f(1.f, 1.f); glVertex2i(x2, y1);
-		glTexCoord2f(1.f, 0.f); glVertex2i(x2, y2);
-		glTexCoord2f(0.f, 0.f); glVertex2i(x1, y2);
+		glTexCoord2f(0.f, 0.f); glVertex2i(x0, y0);
+		glTexCoord2f(1.f, 0.f); glVertex2i(x1, y1);
+		glTexCoord2f(1.f, 1.f); glVertex2i(x2, y2);
+		glTexCoord2f(0.f, 1.f); glVertex2i(x3, y3);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+}
+
+void OTTWindow::drawTexture(const unsigned int& texture, const int& x0, const int& y0, const int& x1, const int& y1) {
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glEnable(GL_TEXTURE_2D);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.f, 0.f); glVertex2i(x0, y0);
+		glTexCoord2f(1.f, 0.f); glVertex2i(x1, y0);
+		glTexCoord2f(1.f, 1.f); glVertex2i(x1, y1);
+		glTexCoord2f(0.f, 1.f); glVertex2i(x0, y1);
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 }
@@ -262,9 +273,49 @@ void OTTWindow::drawTexture(const unsigned int& texture) {
 	drawTexture(texture, 0, 0, nNativeWidth, nNativeHeight);
 }
 
-void OTTWindow::drawBitmap(const unsigned int& W, const unsigned int& H, const int& x0, const int& y0, const unsigned char* data){
-	glRasterPos2i(x0, y0);
-	glBitmap(W, H, 0, 0, 0, 0, data);
+void OTTWindow::drawTexture(const unsigned int& texture, const ott::TextureModifier& modifier) {
+	switch (modifier) {
+	case ott::TextureModifier::NONE:
+		drawTexture(texture, 0, 0, nNativeWidth, nNativeHeight);
+		break;
+	case ott::TextureModifier::VFLIP: // Mirror vertically (3, 2, 1, 0)
+		drawTextureVertices(texture, 3, 2, 1, 0);
+		break;
+	case ott::TextureModifier::HFLIP: // Mirror horizontally (1, 0, 3, 2)
+		drawTextureVertices(texture, 1, 0, 3, 2);
+		break;
+	case ott::TextureModifier::ROTATE_CW: // Rotate clockwise 90 degrees (3, 0, 1, 2)
+		drawTextureVertices(texture, 3, 0, 1, 2);
+		break;
+	case ott::TextureModifier::ROTATE_CCW: // Rotate counter-clockwise 90 degrees (1, 2, 3, 0)
+		drawTextureVertices(texture, 1, 2, 3, 0);
+		break;
+	case ott::TextureModifier::ROTATE_180: // Rotate 180 degrees (2, 3, 0, 1)
+		drawTextureVertices(texture, 2, 3, 0, 1);
+		break;
+	default:
+		break;
+	}
+}
+
+void OTTWindow::drawTextureVertices(const unsigned int& texture, const int& i0, const int& i1, const int& i2, const int& i3) {
+	//  0    1    2    3
+	// 0,0  W,0  W,H  0,H
+	const int vertices[4][2] = {
+		{0,            0},
+		{nNativeWidth, 0},
+		{nNativeWidth, nNativeHeight},
+		{0,            nNativeHeight}
+	};
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glEnable(GL_TEXTURE_2D);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.f, 0.f); glVertex2i(vertices[i0][0], vertices[i0][1]);
+		glTexCoord2f(1.f, 0.f); glVertex2i(vertices[i1][0], vertices[i1][1]);
+		glTexCoord2f(1.f, 1.f); glVertex2i(vertices[i2][0], vertices[i2][1]);
+		glTexCoord2f(0.f, 1.f); glVertex2i(vertices[i3][0], vertices[i3][1]);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
 }
 
 void OTTWindow::drawBuffer(const unsigned int& W, const unsigned int& H, const int& x0, const int& y0, const OTTImageBuffer* data){
@@ -272,11 +323,11 @@ void OTTWindow::drawBuffer(const unsigned int& W, const unsigned int& H, const i
 	//glTextureSubImage2D(nTexture, 0, x0, y0, W, H, GL_RGB, GL_UNSIGNED_BYTE, data->get()); // Since 4.5
 	glBindTexture(GL_TEXTURE_2D, nTexture);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, x0, y0, W, H, GL_RGB, GL_UNSIGNED_BYTE, data->get()); // Since 2.0
+	drawTexture(nTexture, 0, 0, nNativeWidth, nNativeHeight);
 }
 
 void OTTWindow::drawBuffer(){
-	drawBuffer(nNativeWidth, nNativeHeight, 0, 0, &buffer);
-	drawTexture(nTexture, 0, 0, nNativeWidth, nNativeHeight);
+	drawBuffer(nNativeWidth, nNativeHeight, 0, 0, &buffer);	
 }
 
 void OTTWindow::buffWrite(const unsigned short& x, const unsigned short& y, const ColorRGB& color){
@@ -293,7 +344,7 @@ void OTTWindow::render(){
 }
 
 void OTTWindow::renderBuffer(){
-	drawBuffer();
+	drawBuffer(nNativeWidth, nNativeHeight, 0, 0, &buffer);
 	render();
 }
 
@@ -367,16 +418,6 @@ bool OTTWindow::initialize(const std::string& name){
 		glDebugMessageCallback(MessageCallback, 0);
 	}
 
-	// Setup frame buffer
-	buffer.resize(nNativeWidth, nNativeHeight);
-
-	// Generate new buffer texture
-	glGenTextures(1, &nTexture);
-	glBindTexture(GL_TEXTURE_2D, nTexture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // Results in a sharper image when magnified
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Results in a softer image, default
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, nNativeWidth, nNativeHeight); // Since 4.2
-
 	// Further intitialization for derived classes
 	onUserInitialize();
 	
@@ -388,6 +429,35 @@ bool OTTWindow::initialize(const std::string& name){
 
 void OTTWindow::updatePixelZoom(){
 	glPixelZoom((float)width / nNativeWidth, (float)height / nNativeHeight);
+}
+
+OTTImageBuffer* OTTWindow::enableImageBuffer(bool bLinearFiltering/* = true*/) {
+	if (buffer.isGood()) // Image buffer already enabled
+		return &buffer;
+
+	// Setup RAM image buffer
+	buffer.resize(nNativeWidth, nNativeHeight, 3); // RGB
+
+	// The image buffer requires the intermediate OpenGL texture buffer
+	enableTextureBuffer(bLinearFiltering);
+
+	return &buffer;
+}
+
+GLuint OTTWindow::enableTextureBuffer(bool bLinearFiltering/* = true*/) {
+	if (nTexture) // Texture buffer already enabled
+		return nTexture;
+
+	// Generate new buffer texture
+	glGenTextures(1, &nTexture);
+	glBindTexture(GL_TEXTURE_2D, nTexture);	
+	if(bLinearFiltering) // Results in a softer image, default
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+	else // Results in a sharper image when magnified
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, nNativeWidth, nNativeHeight); // Since 4.2
+
+	return nTexture;
 }
 
 void OTTWindow::enableKeyboard() {
@@ -436,6 +506,15 @@ void OTTWindow::disableVSync() {
 	setCurrent();
 	glfwSwapInterval(0);
 	bVSync = false;
+}
+
+void OTTWindow::enableAlphaBlending() {
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void OTTWindow::disableAlphaBlending() {
+	glDisable(GL_BLEND);
 }
 
 bool OTTWindow::saveImageBufferToBitmap(const std::string& fname){
@@ -540,3 +619,10 @@ OTTWindow* OTTActiveWindows::find(GLFWwindow* glfw){
 	return retval;
 }
 	
+namespace ott {
+	const int MirrorVertical = 0x1; ///< Mirror image or texture about the x-axis
+	const int MirrorHorizontal = 0x2; ///< Mirror image or texture about the y-axis
+	const int Rotate90DegreesCW = 0x4; ///< Rotate image or texture 90 degrees clockwise
+	const int Rotate90DegreesCCW = 0x8; ///< Rotate image or texture 90 degrees counter-clockwise
+	const int Rotate180Degrees = 0x10; ///< Rotate image or texture 180 degrees
+};

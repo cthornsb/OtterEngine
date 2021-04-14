@@ -122,11 +122,6 @@ void OTTWindow3D::drawAxes() {
 	drawLine(0.f, 0.f, 0.f, 0.f, 0.f, 1.f);
 }
 
-void OTTWindow3D::enableAlphaBlending() {
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-}
-
 void OTTWindow3D::enableZDepth() {
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glEnable(GL_DEPTH_TEST);
