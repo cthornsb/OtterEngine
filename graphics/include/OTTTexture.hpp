@@ -19,17 +19,6 @@ public:
 	{
 	}
 
-	/** Copy constructor
-	  * @note The pointer to image data is set, but no data is copied
-	  **/
-	OTTTexture(const OTTTexture& tex) :
-		OTTImageBuffer(tex),
-		nContext(tex.nContext),
-		sName(tex.sName),
-		data()
-	{
-	}
-
 	/** Filename constructor
 	  * @param fname Path to input image file (png, bmp, etc)
 	  * @param name The name of the texture
@@ -57,6 +46,14 @@ public:
 	{
 		fillColor(color);
 	}
+
+	/** Copy constructor
+	  */
+	OTTTexture(const OTTTexture&) = delete;
+
+	/** Assignment operator
+	  */
+	OTTTexture& operator = (const OTTTexture&) = delete;
 
 	/** Destructor
 	  **/
@@ -89,8 +86,9 @@ public:
 	/** Send loaded image to OpenGL to create a texture. Once OpenGL creates the texture,
 	  * it may no longer be modified directly. If texture modification is required, a new
 	  * OpenGL texture must be created. 
+	  * @param bLinearFiltering If set, texture minimization and magnification are set to OpenGL linear filtering mode
 	  **/
-	unsigned int getTexture();
+	unsigned int getTexture(bool bLinearFiltering = true);
 
 	/** Set an OpenGL texture parameter (not implemented)
 	  */

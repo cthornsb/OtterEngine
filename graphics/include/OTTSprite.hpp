@@ -20,21 +20,6 @@ public:
 	{ 
 	}
 
-	/** Texture constructor
-	  **/
-	OTTSprite(const OTTTexture& tex) :
-		OTTTexture(tex),
-		horizScale(1.f),
-		vertScale(1.f),
-		theta(0.f),
-		uX(1, 0),
-		uY(0, 1),
-		rotation(identityMatrix2)
-	{
-		if(nContext == 0) // Convert the image to an OpenGL texture, if not converted already
-			getTexture(); 
-	}
-
 	/** Filename constructor
 	  * @param fname Path to input image file (png, bmp, etc)
 	  * @param name The name of the sprite
@@ -51,7 +36,8 @@ public:
 		getTexture(); // Convert the image to an OpenGL texture
 	}
 
-	~OTTSprite() { }
+	~OTTSprite() { 
+	}
 
 	/** Set the scaling factor of the horizontal and vertical axes of the sprite relative to its current scale
 	  * @note The original aspect ratio of the sprite is preserved

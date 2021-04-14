@@ -12,11 +12,10 @@
 #include "OTTTexture.hpp"
 
 OTTTexture::~OTTTexture() {
-	unsigned int arr[1] = { nContext }; // Simple workaround (temporary)
-	glDeleteTextures(1, arr);
+	free(); // Free image memory and delete OpenGL texture
 }
 
-unsigned int OTTTexture::getTexture() {
+unsigned int OTTTexture::getTexture(bool bLinearFiltering/* = true*/) {
 	if (nContext || !nBytes)
 		return nContext;
 
@@ -25,8 +24,14 @@ unsigned int OTTTexture::getTexture() {
 	glBindTexture(GL_TEXTURE_2D, nContext);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	if (bLinearFiltering) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);		
+	}
+	else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	}
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, nWidth, nHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, dptr);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -129,4 +134,8 @@ void OTTTexture::free() {
 	data.reset(0x0);
 	dptr = 0x0;
 	bGood = false;
+	if (nContext) { // Delete the OpenGL texture
+		glDeleteTextures(1, &nContext);
+		nContext = 0;
+	}
 }

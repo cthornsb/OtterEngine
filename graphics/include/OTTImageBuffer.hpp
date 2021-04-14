@@ -65,29 +65,16 @@ public:
 	}
 	
 	/** Copy constructor
-	  * Copy image size parameters but do not copy data.
 	  */
-	OTTImageBuffer(const OTTImageBuffer& other) : 
-		bGood(other.bGood),
-		nWidth(other.nWidth),
-		nHeight(other.nHeight),
-		nChannels(other.nChannels),
-		nSize(other.nSize),
-		nBytes(other.nBytes), // ch Color channels
-		bitmap(),
-		dptr(other.dptr),
-		colorBlendMode(BlendMode::NORMAL),
-		currentDrawColor(Colors::WHITE)
-	{
-	}
-	
+	OTTImageBuffer(const OTTImageBuffer&) = delete;
+
 	/** Assignment operator
 	  */
 	OTTImageBuffer& operator = (const OTTImageBuffer&) = delete;
 	
 	/** Destructor
 	  */ 
-	~OTTImageBuffer(){ }
+	~OTTImageBuffer();
 
 	/** Return true if image data is loaded in conventional memory and return false otherwise
 	  **/
@@ -110,13 +97,13 @@ public:
 	/** Get a const pointer to color data for a specified pixel
 	  */
 	const unsigned char* get(const unsigned short& x, const unsigned short& y) const {
-		return const_cast<unsigned char*>(&dptr[(nWidth * (nHeight - y - 1) + x) * nChannels]);
+		return const_cast<unsigned char*>(&dptr[(nWidth * y + x) * nChannels]);
 	}
 
 	/** Get a pointer to color data for a specified pixel
 	  */
 	unsigned char* get(const unsigned short& x, const unsigned short& y) {
-		return &dptr[(nWidth * (nHeight - y - 1) + x) * nChannels];
+		return &dptr[(nWidth * y + x) * nChannels];
 	}
 
 	/** Get a const pointer to start of image data
@@ -132,10 +119,12 @@ public:
 	}
 
 	/** Get a logical pixel from a pixel in the loaded image
+	  * @return True if the specified pixel is a valid location
 	  **/
 	bool getPixel(const int& x, const int& y, OTTLogicalColor& color);
 
 	/** Get a pointer to the start of a pixel color data
+	  * @return A pointer to the start of the pixel's color data, or return NULL if the location is invalid
 	  **/
 	const unsigned char* getPixel(const int& x, const int& y) const ;
 
@@ -177,12 +166,12 @@ public:
 	/** Return true if buffer data is empty
 	  */
 	bool empty() const {
-		return (nSize > 0);
+		return (nSize == 0);
 	}
 
 	/** Resize image buffer
 	  */
-	void resize(const unsigned short& W, const unsigned short& H);
+	void resize(const unsigned short& W, const unsigned short& H, const unsigned short& ch);
 
 	/** Set the current pixel color blending mode. The default blending mode is 
 	  * BlendMode::NORMAL, which simply replaces the existing color with a new one.

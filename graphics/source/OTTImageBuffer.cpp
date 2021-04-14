@@ -6,6 +6,9 @@
 
 constexpr float PI = 3.14159f;
 
+OTTImageBuffer::~OTTImageBuffer() {
+}
+
 bool OTTImageBuffer::getPixel(const int& x, const int& y, OTTLogicalColor& color) {
 	if (x >= nWidth || y >= nHeight)
 		return false;
@@ -23,12 +26,15 @@ void OTTImageBuffer::copyImageData(std::vector<unsigned char>& output) const {
 	output = std::vector<unsigned char>(bitmap.cbegin(), bitmap.cend());
 }
 
-void OTTImageBuffer::resize(const unsigned short& W, const unsigned short& H){
+void OTTImageBuffer::resize(const unsigned short& W, const unsigned short& H, const unsigned short& ch){
 	nWidth = W;
 	nHeight = H;
-	nSize = W * H;
-	nBytes = nSize * nChannels;
-	bitmap.resize(nBytes); // Contract size or expand, filling new pixels with zero
+	nChannels = ch;
+	nSize = W * H;	
+	if (nSize * nChannels != nBytes) {
+		nBytes = nSize * nChannels;
+		bitmap.resize(nBytes); // Contract size or expand, filling new pixels with zero
+	}
 	dptr = &bitmap[0]; // Image data may have been moved
 }
 
@@ -338,7 +344,7 @@ void OTTImageBuffer::free(){
 
 void OTTImageBuffer::blendPixel(const unsigned short& px, const unsigned short& py) {
 	OTTLogicalColor pixel(nChannels >= 4);
-	if (!getPixel(px, nHeight - py, pixel)) // Invalid pixel position
+	if (!getPixel(px, py, pixel)) // Invalid pixel position
 		return;
 	switch (colorBlendMode) {
 	case BlendMode::NONE:
