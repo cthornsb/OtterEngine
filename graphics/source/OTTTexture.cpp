@@ -39,52 +39,60 @@ unsigned int OTTTexture::getTexture(bool bLinearFiltering/* = true*/) {
 	return nContext;
 }
 
+bool OTTTexture::increaseColorDepth(const unsigned short& ch) {
+	if (!bGood || ch <= nChannels || ch > 4) // Disallow downgrades and color channels above 4
+		return false;
+	nBytes = nWidth * nHeight * ch;
+	bitmap.resize(nBytes); // Resize data vector for storing up-converted image data
+	switch (nChannels) {
+	case 1: // R (grayscale)
+		for (unsigned int i = 0; i < nSize; i++) { // Over all pixels
+			for (unsigned short j = 0; j < ch; j++) { // Over all color channels
+				bitmap[4 * i + j] = (j != 3 ? dptr[i] : 255);
+			}
+		}
+		break;
+	case 2: // RG, RB, etc (rare)
+		for (unsigned int i = 0; i < nSize; i++) { // Over all pixels
+			bitmap[4 * i + 0] = dptr[2 * i];
+			bitmap[4 * i + 1] = dptr[2 * i + 1];
+			if(ch >= 3)
+				bitmap[4 * i + 2] = 0;
+			if(ch == 4)
+				bitmap[4 * i + 3] = 255;
+		}
+		break;
+	case 3: // RGB, BGR, etc
+		for (unsigned int i = 0; i < nSize; i++) { // Over all pixels
+			for (unsigned short j = 0; j < ch; j++) { // Over all color channels
+				bitmap[4 * i + j] = (j != 3 ? dptr[i] : 255);
+			}
+		}
+		break;
+	default:
+		return false;
+	}
+	// Image data now stored in data vector, free memory pointed to by unique_ptr
+	data.reset(0x0);
+	dptr = &bitmap[0];
+	nChannels = ch; // Image now in new format
+	return true;
+}
+
 bool OTTTexture::read(const std::string& fname) {
 	int W, H, ch;
 	data.reset(SOIL_load_image(fname.c_str(), &W, &H, &ch, SOIL_LOAD_AUTO));
 	nWidth = W;
 	nHeight = H;
 	nChannels = ch;
-	nBytes = nWidth * nHeight * 4;
+	nBytes = nWidth * nHeight * nChannels;
 	dptr = data.get();
-	if (nChannels != 4) { // Up-convert to RGBA
-		bitmap.resize(nBytes); // Resize data vector for storing up-converted image data
-		switch (nChannels) {
-		case 1: // R (grayscale)
-			for (int i = 0; i < nWidth * nHeight; i++) { // Over all pixels
-				bitmap[4 * i + 0] = dptr[i];
-				bitmap[4 * i + 1] = dptr[i];
-				bitmap[4 * i + 2] = dptr[i];
-				bitmap[4 * i + 3] = 255;
-			}
-			break;
-		case 2: // RG (rare)
-			for (int i = 0; i < nWidth * nHeight; i++) { // Over all pixels
-				bitmap[4 * i + 0] = dptr[2 * i];
-				bitmap[4 * i + 1] = dptr[2 * i + 1];
-				bitmap[4 * i + 2] = 0;
-				bitmap[4 * i + 3] = 255;
-			}
-			break;
-		case 3: // RGB
-			for (int i = 0; i < nWidth * nHeight; i++) { // Over all pixels
-				bitmap[4 * i + 0] = dptr[3 * i];
-				bitmap[4 * i + 1] = dptr[3 * i + 1];
-				bitmap[4 * i + 2] = dptr[3 * i + 2];
-				bitmap[4 * i + 3] = 255;
-			}
-			break;
-		default:
-			std::cout << " [error] Input image has invalid number of channels (" << nChannels << ")" << std::endl;
-			return false;
-		}
-		// Image data now stored in data vector, free memory pointed to by unique_ptr
-		data.reset(0x0);
-		dptr = &bitmap[0];
-		nChannels = 4; // Image now in RGBA format
-	}
-	std::cout << " [debug] Loaded image, W=" << nWidth << ", H=" << nHeight << ", with " << nChannels << " channels (" << nBytes/1E3 << " kB)" << std::endl;
-	return (bGood = (nBytes > 0));
+	bGood = (nBytes > 0);
+	if(bGood)
+		std::cout << " [debug] Loaded image, W=" << nWidth << ", H=" << nHeight << ", with " << nChannels << " channels (" << nBytes/1E3 << " kB)" << std::endl;
+	else
+		std::cout << " [error] Failed to load image." << std::endl;
+	return bGood;
 }
 
 bool OTTTexture::write(const std::string& fname){

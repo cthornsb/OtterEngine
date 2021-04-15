@@ -98,6 +98,10 @@ public:
 	  */
 	void generateMipmaps() { }
 
+	/**
+	  */
+	bool increaseColorDepth(const unsigned short& ch);
+
 	/** Load an image into memory
 	  * @note Image is loaded into conventional memory, getTexture() must be used to convert to OpenGL texture
 	  * @param fname Path to image file
