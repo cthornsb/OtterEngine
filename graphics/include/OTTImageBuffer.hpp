@@ -283,7 +283,7 @@ public:
 
 	/** Draw an ellipse with a specified center (x0,y0), semi-major radius (A), and semi-minor radius (B)
 	  */
-	void drawEllipse(const unsigned short& x0, const unsigned short& y0, const float& A, const float& B);
+	void drawEllipse(const unsigned short& x0, const unsigned short& y0, const float& A, const float& B, bool bFilled = false);
 
 	/** Draw a regular N-sided polygon centered at (x0,y0) and whose vertices are circumscribed by a circle with the specified radius
 	  */

@@ -285,7 +285,7 @@ void OTTImageBuffer::drawCircle(const float& x0, const float& y0, const float& r
 	// W(3): x0 - r, y0
 	float xStart[4] = { x0, x0 + radius, x0, x0 - radius };
 	float yStart[4] = { y0 + radius, y0, y0 - radius, y0 };
-	float xStop = radius * 0.70710678f; // sqrt(2) / 2
+	unsigned short xStop = (unsigned short)(radius * 0.70710678f); // sqrt(2) / 2
 	float fd1, fd2;
 	for (unsigned short x = 0; x <= xStop; x++) {
 		if (!bFilled) {
@@ -304,24 +304,78 @@ void OTTImageBuffer::drawCircle(const float& x0, const float& y0, const float& r
 		float fdyy2 = yStart[0] - 1 - y0; 
 		float fdxx = xStart[0] + 1 - x0; 
 		fdxx *= fdxx;
-		fd1 = std::fabs(std::sqrt(fdxx + fdyy1 * fdyy1) - radius);
-		fd2 = std::fabs(std::sqrt(fdxx + fdyy2 * fdyy2) - radius);
+		fd1 = std::fabs(fdxx + fdyy1 * fdyy1 - radius * radius);
+		fd2 = std::fabs(fdxx + fdyy2 * fdyy2 - radius * radius);
 		if (fd2 < fd1) { // Update all octants (step "down")
-			xStart[0] += 1; yStart[0] -= 1; // 0: x+1, y-1
-			xStart[1] -= 1; yStart[1] -= 1; // 2: x-1, y-1
-			xStart[2] -= 1; yStart[2] += 1; // 4: x-1, y+1
-			xStart[3] += 1; yStart[3] += 1; // 6: x+1, y+1
+			xStart[0] += 1; yStart[0] -= 1; // 0: x+1, y-1 (SE)
+			xStart[1] -= 1; yStart[1] -= 1; // 2: x-1, y-1 (SW)
+			xStart[2] -= 1; yStart[2] += 1; // 4: x-1, y+1 (NW)
+			xStart[3] += 1; yStart[3] += 1; // 6: x+1, y+1 (NE)
 		}
 		else { // Update all octants (step "right")
-			xStart[0] += 1; // 0: x+1, y
-			yStart[1] -= 1; // 2: x, y+1
-			xStart[2] -= 1; // 4: x-1, y
-			yStart[3] += 1; // 6: x, y+1	
+			xStart[0] += 1; // 0: x+1, y (E)
+			yStart[1] -= 1; // 2: x, y+1 (S)
+			xStart[2] -= 1; // 4: x-1, y (W)
+			yStart[3] += 1; // 6: x, y+1 (N)
 		}
 	}
 }
 
-void OTTImageBuffer::drawEllipse(const unsigned short& x0, const unsigned short& y0, const float& A, const float& B) {
+void OTTImageBuffer::drawEllipse(const unsigned short& x0, const unsigned short& y0, const float& A, const float& B, bool bFilled/* = false*/) {
+	if (A <= 0.f || B <= 0.f)
+		return;
+	float xStart[2] = { x0, x0 };
+	float yStart[2] = { y0 + B, y0 - B };
+	float fd1, fd2, fd3;
+	unsigned short xStop = (unsigned short)(x0 + A);
+	unsigned short maxSteps = (unsigned short)(A + B); // Absolute maximum number of steps (square)
+	for(unsigned short step = 0; step <= maxSteps; step++){ // Prevent infinite loops
+		if (!bFilled) {
+			for (int i = 0; i < 2; i++) {
+				blendPixel(xStart[i], yStart[i]); // Primary pixels
+				blendPixel(2.f * x0 - xStart[i], yStart[i]); // Mirror pixels
+			}
+		}
+		else {
+			for (int i = 0; i < 2; i++) {
+				drawLine(xStart[i], yStart[i], 2 * x0 - xStart[i], yStart[i]);
+			}
+		}
+		if (xStart[0] >= xStop && yStart[0] <= y0) // Goal reached
+			break;
+		// There are three possible directions which we could step
+		float fdyy1 = yStart[0] - y0; // East
+		float fdyy2 = yStart[0] - 1 - y0; // South / Southeast
+		float fdxx1 = xStart[0] + 1 - x0; // East / Southeast
+		float fdxx2 = xStart[0] - x0; // South
+		fdxx1 *= fdxx1 / (A * A);
+		fdxx2 *= fdxx2 / (A * A);
+		fdyy1 *= fdyy1 / (B * B);
+		fdyy2 *= fdyy2 / (B * B);
+		fd1 = std::fabs(fdxx1 + fdyy1 - 1.f); // East
+		fd2 = std::fabs(fdxx1 + fdyy2 - 1.f); // Southeast
+		fd3 = std::fabs(fdxx2 + fdyy2 - 1.f); // South
+		if (fd1 < fd2) { // East or South
+			if (fd1 < fd3) { // East
+				xStart[0] += 1; // 0: x+1, y (E)
+				xStart[1] -= 1; // 4: x-1, y (W)
+			}
+			else { // South
+				yStart[0] -= 1; // 0: x+1, y (E)
+				yStart[1] += 1; // 4: x-1, y (W)
+			}
+		}
+		else { // Southeast or South
+			if (fd2 < fd3) { // Southeast
+				xStart[0] += 1; yStart[0] -= 1; // 0: x+1, y-1 (SE)
+				xStart[1] -= 1; yStart[1] += 1; // 4: x-1, y+1 (NW)
+			}
+			else { // South
+				yStart[0] -= 1; // 0: x+1, y (E)
+				yStart[1] += 1; // 4: x-1, y (W)
+			}
+		}
+	}
 }
 
 void OTTImageBuffer::drawRegularPolygon(const unsigned short& x0, const unsigned short& y0,	const unsigned short& N, const float& radius) {
