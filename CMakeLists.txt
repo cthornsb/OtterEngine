@@ -50,6 +50,8 @@ if(NOT WIN32)
 	option(INSTALL_STATIC_LIBRARIES "Build static libraries instead of shared." OFF)
 endif()
 option(STRICT_OPENGL_VERSION "Enable the use of the OpenGL library version number header." OFF)
+option(BUILD_TEST_PROGRAMS "Compile library test programs." OFF)
+option(BUILD_TOOL_PROGRAMS "Compile various tools." OFF)
 
 #------------------------------------------------------------------------------
 
@@ -90,21 +92,25 @@ include_directories(
 	graphics/include
 	audio/include
 	math/include
+	gui/include
 	include
 )
 
-if(STRICT_OPENGL_VERSION)
+if(BUILD_TOOL_PROGRAMS)
 	#Check OpenGL, GLFW, and GLEW versions
 	add_subdirectory(tools/source)
 
 	#Add the newly generated library versions header
-	include_directories(${VERSION_HEADER_DIR})
+	if(STRICT_OPENGL_VERSION)
+		include_directories(${VERSION_HEADER_DIR})
+	endif()
 endif()
 
 #Add the graphics directory.
 add_subdirectory(graphics/source)
 add_subdirectory(audio/source)
 add_subdirectory(math/source)
+add_subdirectory(gui/source)
 add_subdirectory(source)
 
 #Build/install the miscellaneous stuff
