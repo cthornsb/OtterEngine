@@ -348,7 +348,16 @@ public:
 	  */
 	void drawBuffer();
 
-	/** Write pixel data to RAM image buffer.
+	/** Copy pixel data from an external RAM image buffer to this one.
+	  * @param W Width of image buffer(in pixels)
+	  * @param H Height of image buffer(in pixels)
+	  * @param x0 X coordinate of top left corner on internal buffer where image data will be copied
+	  * @param y0 Y coordinate of top left corner on internal buffer where image data will be copied
+	  * @param data Pointer to external image buffer
+	  */
+	void buffWrite(const unsigned int& W, const unsigned int& H, const int& x0, const int& y0, OTTImageBuffer * data);
+
+	/** Set a pixel on the RAM image buffer.
 	  * When drawing on a pixel-by-pixel level, it is much more efficient to modify the image
 	  * buffer in RAM and then periodically push the entire buffer to the GPU by calling
 	  * drawBuffer() or renderBuffer() (e.g. 60 times per second).

@@ -190,6 +190,10 @@ public:
 	  */
 	void setPixel(const unsigned short& x, const unsigned short& y, const ColorRGB& color);
 
+	/** Set the color of a pixel in the buffer, ignoring the current color blending mode
+	  */
+	void setPixel(const unsigned short& x, const unsigned short& y, const OTTLogicalColor& color);
+
 	/** Set the color of a horizontal row of pixels, ignoring the current color blending mode
 	  */
 	void setPixelRow(const unsigned short& y, const ColorRGB& color);
@@ -222,6 +226,10 @@ public:
 	  * @param color Color to fill the image with
 	  **/
 	void fillColor(const ColorRGB& color);
+
+	/** Draw an external image buffer into a region of this buffer with upper left corner at (x,y)
+	  */
+	void drawSubImage(const unsigned short& x, const unsigned short& y, OTTImageBuffer* buffer);
 
 	/** Draw a pixel at the position (x,y)
 	  */
@@ -265,12 +273,13 @@ public:
 	  */
 	void drawRectangle(
 		const unsigned short& x0, const unsigned short& y0,
-		const unsigned short& x1, const unsigned short& y1
+		const unsigned short& x1, const unsigned short& y1,
+		bool bFilled = false
 	);
 
-	/** Draw a circle with a specified center (x0,y0) and radius
+	/** Draw a circle with center (x0,y0) and specified pixel radius
 	  */
-	void drawCircle(const unsigned short& x0, const unsigned short& y0, const float& radius);
+	void drawCircle(const float& x0, const float& y0, const float& radius, bool bFilled = false);
 
 	/** Draw an ellipse with a specified center (x0,y0), semi-major radius (A), and semi-minor radius (B)
 	  */
@@ -315,6 +324,34 @@ public:
 	/** Free conventional memory being used to store image
 	  */
 	virtual void free();
+
+	/** Get a vector of pointers of pairs representing the destination and source of pixel data for all rows inside
+	  * a bounding box with upper left corner at pixel location (x,y) in the destination image, at (0,0) in the
+	  * source image, and with width and height taken from the source image.
+	  * This allows for fast image data copying, assuming the color depth is the same for both images.
+	  * @return The number of rows which may be safely copied, given a width of W pixels
+	  */
+	static size_t getImageTargets(
+		const int& x, const int& y,
+		OTTImageBuffer* dest,
+		OTTImageBuffer* src,
+		std::vector<std::pair<unsigned char*, unsigned char*> >& targets
+	);
+
+	/** Get a vector of pointers of pairs representing the destination and source of pixel data for all rows inside
+	  * a bounding box with upper left corner at pixel location (x0,y0) in the destination image, at (x1,y1) in the 
+	  * source image, and with width W and height H (both in pixels).
+	  * This allows for fast image data copying, assuming the color depth is the same for both images.
+	  * @return The number of rows which may be safely copied, given a width of W pixels
+	  */
+	static size_t getImageTargets(
+		const int& x0, const int& y0,
+		const int& x1, const int& y1,
+		const int& W, const int& H,
+		OTTImageBuffer* dest,
+		OTTImageBuffer* src,
+		std::vector<std::pair<unsigned char*, unsigned char*> >& targets
+	);
 
 protected:
 	bool bGood; ///< Set if image buffer memory allocated successfully

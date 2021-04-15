@@ -330,6 +330,19 @@ void OTTWindow::drawBuffer(){
 	drawBuffer(nNativeWidth, nNativeHeight, 0, 0, &buffer);	
 }
 
+void OTTWindow::buffWrite(const unsigned int& W, const unsigned int& H, const int& x0, const int& y0, OTTImageBuffer* data) {
+	//if (data->getNumChannels() != buffer.getNumChannels()) // Check for matching color depth
+	//	return;
+	OTTLogicalColor color;
+	for (unsigned short i = 0; i < H; i++) { // Over rows
+		for (unsigned short j = 0; j < W; j++) { // Over columns
+			if (!data->getPixel(j, i, color))
+				continue;
+			buffer.setPixel(x0 + j, y0 + i, color);
+		}
+	}
+}
+
 void OTTWindow::buffWrite(const unsigned short& x, const unsigned short& y, const ColorRGB& color){
 	buffer.setPixel(x, y, color);
 }

@@ -1,3 +1,4 @@
+#include <iostream> // TEMP
 #include <algorithm>
 #include <cmath>
 
@@ -41,6 +42,12 @@ void OTTImageBuffer::resize(const unsigned short& W, const unsigned short& H, co
 void OTTImageBuffer::setPixel(const unsigned short& x, const unsigned short& y, const ColorRGB& color){
 	unsigned char* base = get(x, y);
 	for(unsigned short i = 0; i < nChannels; i++)
+		base[i] = color[i];
+}
+
+void OTTImageBuffer::setPixel(const unsigned short& x, const unsigned short& y, const OTTLogicalColor& color) {
+	unsigned char* base = get(x, y);
+	for (unsigned short i = 0; i < nChannels; i++)
 		base[i] = color[i];
 }
 
@@ -110,6 +117,19 @@ void OTTImageBuffer::fillColor(const ColorRGB& color) {
 	}
 }
 
+void OTTImageBuffer::drawSubImage(const unsigned short& x, const unsigned short& y, OTTImageBuffer* buffer) {
+	OTTLogicalColor color;
+	for (unsigned short i = 0; i < buffer->getHeight(); i++) { // Over rows
+		if (y + i >= nHeight) // Invalid image coordinates
+			break;
+		for (unsigned short j = 0; j < buffer->getWidth(); j++) { // Over columns
+			if (!buffer->getPixel(j, i, color))
+				break; // Invalid sub-image coordinates
+			setPixel(x + j, y + i, color);
+		}
+	}
+}
+
 void OTTImageBuffer::drawPixel(const unsigned short& x, const unsigned short& y) {
 	blendPixel(x, y);
 }
@@ -142,7 +162,7 @@ void OTTImageBuffer::drawLine(
 		return;
 	}
 
-	if (x1 == 0) { // Vertical line
+	if (x1 == x0) { // Vertical line
 		if (y0 < y1) { // Sort Y coordinates
 			for (unsigned short dy = y0; dy <= y1; dy++)
 				blendPixel(x0, dy);
@@ -173,7 +193,7 @@ void OTTImageBuffer::drawLine(
 		}
 	}
 	else { // dX > dY
-		if (x0 < x1) { 
+		if (x0 < x1) {
 			float fY = (float)y0;
 			for (unsigned short i = x0; i <= x1; i++) { // Stepping right from (x0,y0) to (x1,y1)
 				blendPixel(i, (unsigned short)fY);
@@ -236,42 +256,68 @@ void OTTImageBuffer::drawPolygon(const unsigned short* vertices, const size_t& N
 
 void OTTImageBuffer::drawRectangle(
 	const unsigned short& x0, const unsigned short& y0,
-	const unsigned short& x1, const unsigned short& y1
+	const unsigned short& x1, const unsigned short& y1,
+	bool bFilled/* = false*/
 ) {
-	unsigned short vertices[8] = {
-		x0, y0, // Top left
-		x1, y0, // Top right
-		x1, y1, // Bottom right
-		x0, y1  // Bottom left
-	};
-	drawPolygon(vertices, 4);
+	if (!bFilled) {
+		unsigned short vertices[8] = {
+			x0, y0, // Top left
+			x1, y0, // Top right
+			x1, y1, // Bottom right
+			x0, y1  // Bottom left
+		};
+		drawPolygon(vertices, 4);
+	}
+	else {
+		for (unsigned short y = y0; y <= y1; y++) {
+			drawLine(x0, y, x1, y);
+		}
+	}
 }
 
-void OTTImageBuffer::drawCircle(const unsigned short& x0, const unsigned short& y0, const float& radius) {
-	if (radius < 0.f)
+void OTTImageBuffer::drawCircle(const float& x0, const float& y0, const float& radius, bool bFilled/* = false*/) {
+	if (radius <= 0.f)
 		return;
-	float fX[2] = { (float)x0 - radius, (float)x0 + radius };
-	float fY[2] = { (float)y0 - radius, (float)y0 + radius };
-	unsigned short xBounds[2] = { 
-		(fX[0] >= 0.f ? (unsigned short)fX[0] : (unsigned short)0),
-		(fX[1] < (float)nWidth ? (unsigned short)fX[1] : nWidth - 1)
-	};
-	unsigned short yBounds[2] = {
-		(fY[0] >= 0.f ? (unsigned short)fY[0] : (unsigned short)0),
-		(fY[1] < (float)nHeight ? (unsigned short)fY[1] : nHeight - 1)
-	};
-	float fCenterX = (float)x0;
-	float fCenterY = (float)y0;
-	float fPX = (float)fX[0];
-	float fPY = (float)fY[0];
-	for (unsigned short y = yBounds[0]; y <= yBounds[1]; y++) { // Over all rows
-		fPX = fX[0];
-		for (unsigned short x = xBounds[0]; x <= xBounds[1]; x++) { // Over all columns
-			if (std::sqrt((fPX - fCenterX) * (fPX - fCenterX) + (fPY - fCenterY) * (fPY - fCenterY)) <= radius) // Fill in the circle
-				blendPixel((unsigned short)fPX, (unsigned short)fPY);
-			fPX += 1.f;
+	// Cardinal directions
+	// N(0): x0, y0 + r
+	// E(1): x0 + r, y0
+	// S(2): x0, y0 - r
+	// W(3): x0 - r, y0
+	float xStart[4] = { x0, x0 + radius, x0, x0 - radius };
+	float yStart[4] = { y0 + radius, y0, y0 - radius, y0 };
+	float xStop = radius * 0.70710678f; // sqrt(2) / 2
+	float fd1, fd2;
+	for (unsigned short x = 0; x <= xStop; x++) {
+		if (!bFilled) {
+			for (int i = 0; i < 4; i++) {
+				blendPixel(xStart[i], yStart[i]); // Primary pixels
+				blendPixel(2.f * x0 - xStart[i], yStart[i]); // Mirror pixels
+			}
 		}
-		fPY += 1.f;
+		else {
+			for (int i = 0; i < 4; i++) {
+				drawLine( xStart[i], yStart[i], 2 * x0 - xStart[i], yStart[i]);
+			}
+		}
+		// Step "right" or step "down"?
+		float fdyy1 = yStart[0] - y0; 
+		float fdyy2 = yStart[0] - 1 - y0; 
+		float fdxx = xStart[0] + 1 - x0; 
+		fdxx *= fdxx;
+		fd1 = std::fabs(std::sqrt(fdxx + fdyy1 * fdyy1) - radius);
+		fd2 = std::fabs(std::sqrt(fdxx + fdyy2 * fdyy2) - radius);
+		if (fd2 < fd1) { // Update all octants (step "down")
+			xStart[0] += 1; yStart[0] -= 1; // 0: x+1, y-1
+			xStart[1] -= 1; yStart[1] -= 1; // 2: x-1, y-1
+			xStart[2] -= 1; yStart[2] += 1; // 4: x-1, y+1
+			xStart[3] += 1; yStart[3] += 1; // 6: x+1, y+1
+		}
+		else { // Update all octants (step "right")
+			xStart[0] += 1; // 0: x+1, y
+			yStart[1] -= 1; // 2: x, y+1
+			xStart[2] -= 1; // 4: x-1, y
+			yStart[3] += 1; // 6: x, y+1	
+		}
 	}
 }
 
@@ -287,8 +333,8 @@ void OTTImageBuffer::drawRegularPolygon(const unsigned short& x0, const unsigned
 	float py = 0.f;
 	float theta = 0.f;
 	for (unsigned short i = 0; i < N; i++) {
-		vertices.push_back((unsigned short)(radius * std::sin(theta)));
-		vertices.push_back((unsigned short)(radius * std::cos(theta)));
+		vertices.push_back((unsigned short)(radius * std::sin(theta) + x0));
+		vertices.push_back((unsigned short)(radius * std::cos(theta) + y0));
 		theta += dTheta;
 	}
 	drawPolygon(vertices.data(), N);
@@ -340,6 +386,41 @@ void OTTImageBuffer::fill(const unsigned char& value/*=0*/){
 void OTTImageBuffer::free(){
 	bitmap.resize(0);
 	dptr = 0x0;
+}
+
+size_t OTTImageBuffer::getImageTargets(
+	const int& x, const int& y,
+	OTTImageBuffer* dest,
+	OTTImageBuffer* src,
+	std::vector<std::pair<unsigned char*, unsigned char*> >& targets)
+{
+	return getImageTargets(x, y, 0, 0, src->getWidth(), src->getHeight(), dest, src, targets);
+}
+
+size_t OTTImageBuffer::getImageTargets(
+	const int& x0, const int& y0,
+	const int& x1, const int& y1,
+	const int& W, const int& H,
+	OTTImageBuffer* dest,
+	OTTImageBuffer* src,
+	std::vector<std::pair<unsigned char*, unsigned char*> >& targets)
+{
+	if (
+		(dest->getNumChannels() != src->getNumChannels())
+		|| ((x0 + W) > dest->getWidth() || (x1 + W) > src->getWidth())
+		|| ((y0 + H) > dest->getHeight() || (y1 + H) > src->getHeight())
+	)
+		return 0;
+	targets.clear();
+	targets.reserve(H);
+	for (int i = 0; i < H; i++) {
+		unsigned char* destPixel = dest->get(x0, y0 + i);
+		unsigned char* srcPixel = src->get(x1, y1 + i);
+		if (!destPixel || !srcPixel) // Invalid location
+			return targets.size();
+		targets.push_back(std::make_pair(destPixel, srcPixel));
+	}
+	return targets.size();
 }
 
 void OTTImageBuffer::blendPixel(const unsigned short& px, const unsigned short& py) {
