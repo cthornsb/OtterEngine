@@ -84,7 +84,7 @@ public:
 
 	/** Destructor
 	  */
-	~OTTWindow();
+	virtual ~OTTWindow();
 	
 	/** Set window to be closed
 	  */

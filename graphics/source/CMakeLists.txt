@@ -1,9 +1,9 @@
 # Complile core graphics sources
 # External Depends: GLFW GLEW OpenGL GLU SOIL
-add_library(
-	OtterCoreObj 
+add_library( OtterCoreObj 
 	OBJECT 
 	ColorRGB.cpp
+	OTTApplication.cpp
 	OTTFrameTimer.cpp
 	OTTImageBuffer.cpp
 	OTTJoypad.cpp

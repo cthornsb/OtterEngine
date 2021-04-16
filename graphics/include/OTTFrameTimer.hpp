@@ -140,6 +140,12 @@ public:
 		return dConstantOffset;
 	}
 
+	/** Get the total number of frames processed so far
+	  */
+	unsigned long long getFrameCount() const {
+		return nFrameCount;
+	}
+
 	/** Set the constant frame period time offset to fine tune frame timing.
 	  * Setting the frame period offset will disable time offset averaging. Set the period to <= 0 to re-enable default time averaging behavior.
 	  */
@@ -216,6 +222,8 @@ protected:
 #endif // ifndef USE_GFLW_TIMER
 
 	double dCycleTimer; ///< The time taken to execute nCycleTimerPeriod update() cycles
+
+	double dTotalFrameTime; ///< The total time taken for the most recent frame (i.e. between successive sync() calls, in seconds)
 
 	MovingAverage averageCycleTime; ///< Moving average cycle time
 
