@@ -33,25 +33,3 @@ if(INSTALL_LIBRARIES)
 		INCLUDES DESTINATION ${INSTALL_INCLUDE_DIR}
 	)
 endif()
-
-if(BUILD_TEST_PROGRAMS)
-	# Build gui test executable.
-	add_executable( guitest 
-		guitest.cpp
-	)
-	target_link_libraries( guitest 
-		OtterCore
-		OtterGui
-		OtterMath	
-		OpenGL::GL
-		OpenGL::GLU
-		${GLFW3_LIBRARY}
-		GLEW::GLEW
-		${SOIL_LIBRARY}
-	)
-	if(WIN32)
-		target_link_libraries( guitest 
-			Winmm
-		)
-	endif()
-endif()

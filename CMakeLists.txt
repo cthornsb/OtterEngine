@@ -97,13 +97,17 @@ include_directories(
 )
 
 if(BUILD_TOOL_PROGRAMS)
-	#Check OpenGL, GLFW, and GLEW versions
+	#Build tool programs
 	add_subdirectory(tools/source)
 
 	#Add the newly generated library versions header
 	if(STRICT_OPENGL_VERSION)
 		include_directories(${VERSION_HEADER_DIR})
 	endif()
+endif()
+
+if(BUILD_TEST_PROGRAMS)
+	add_subdirectory(tests/source)
 endif()
 
 #Add the graphics directory.

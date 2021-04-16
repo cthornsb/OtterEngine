@@ -79,4 +79,3 @@ install(
 	TARGETS render3d 
 	DESTINATION bin
 )
-
