@@ -13,13 +13,15 @@ public:
 	SoundBuffer() :
 		std::queue<std::pair<float, float> >(),
 		fEmptyLeft(0.f),
-		fEmptyRight(0.f)
+		fEmptyRight(0.f),
+		nSamplesPerBuffer(2048)
 	{
 	}
 
 	/** Destructor
 	  */
-	~SoundBuffer() { }
+	~SoundBuffer() { 
+	}
 	
 	/** Copy constructor (deleted)
 	  */
@@ -28,6 +30,12 @@ public:
 	/** Copy operator (deleted)
 	  */
 	SoundBuffer& operator = (const SoundBuffer&) = delete;
+
+	/** Set the expected number of audio samples per out-going audio buffer
+	  */
+	void setNumberSamplesPerBuffer(const size_t& samples) {
+		nSamplesPerBuffer = samples;
+	}
 
 	/** Psuedo-overload for push() taking explicit left and right arguments
 	  */ 
@@ -52,6 +60,8 @@ protected:
 	float fEmptyLeft; ///< In the event that the sound buffer is now empty, the last audio sample for the left output channel
 	
 	float fEmptyRight; ///< In the event that the sound buffer is now empty, the last audio sample for the right output channel
+
+	size_t nSamplesPerBuffer; ///< Expected number of audio samples per out-going audio buffer
 
 	std::mutex lock; ///< Mutex lock for buffer read/write access
 

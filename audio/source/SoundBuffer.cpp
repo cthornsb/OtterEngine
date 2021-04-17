@@ -3,7 +3,7 @@
 void SoundBuffer::pushSample(const float& l, const float& r){
 	lock.lock(); // Writing to buffer
 	push(std::make_pair(l, r));
-	if(size() >= 1024) // Too simple, needs to be fixed CRT
+	if(size() >= (nSamplesPerBuffer * 2)) // Too simple, needs to be fixed CRT
 		pop();
 	lock.unlock();
 }

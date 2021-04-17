@@ -10,7 +10,7 @@ SoundManager::SoundManager() :
 	bRunning(false),
 	nChannels(2),
 	dSampleRate(44100),
-	nFramesPerBuffer(512),
+	nFramesPerBuffer(2048),
 	mixer(),
 	stream(0x0),
 	callback(defaultCallback)
@@ -143,7 +143,7 @@ SoundManager::SoundManager() :
 	bRunning(false),
 	nChannels(2),
 	dSampleRate(44100),
-	nFramesPerBuffer(512),
+	nFramesPerBuffer(2048),
 	mixer()
 { 
 }

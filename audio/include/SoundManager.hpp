@@ -78,7 +78,7 @@ public:
 		dSampleRate = rate;
 	}
 
-	/** Set the number of frames per audio buffer (default = 256)
+	/** Set the number of samples per audio buffer (default = 2048)
 	  * Has no effect if called after audio stream is initialized
 	  */	
 	void setFramesPerBuffer(const unsigned long& frames){ 
