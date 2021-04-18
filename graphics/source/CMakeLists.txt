@@ -4,6 +4,9 @@ add_library( OtterCoreObj
 	OBJECT 
 	ColorRGB.cpp
 	OTTApplication.cpp
+	OTTBitmap.cpp
+	OTTCharacterMap.cpp
+	OTTConsole.cpp
 	OTTFrameTimer.cpp
 	OTTImageBuffer.cpp
 	OTTJoypad.cpp
@@ -13,6 +16,7 @@ add_library( OtterCoreObj
 	OTTSprite.cpp
 	OTTSystem.cpp
 	OTTTexture.cpp
+	OTTTextParser.cpp
 	OTTWindow.cpp
 )
 
