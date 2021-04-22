@@ -32,6 +32,7 @@ public:
 	OTTShader() :
 		bHidden(false),
 		nVertShader(0),
+		nGeomShader(0),
 		nFragShader(0),
 		nProgram(0),
 		enableFunc(&defaultShaderEnable),
@@ -43,6 +44,7 @@ public:
 	OTTShader(const std::string& vert, const std::string& frag) :
 		bHidden(false),
 		nVertShader(0),
+		nGeomShader(0),
 		nFragShader(0),
 		nProgram(0),
 		enableFunc(&defaultShaderEnable),
@@ -82,7 +84,15 @@ public:
 		return shaderData;
 	}
 
+	/** Generate a shader program containing a vertex and fragment shader
+	  * @return True if the shader program is compiled successfully
+	  */
 	bool generate(const std::string& vert, const std::string& frag);
+
+	/** Generate a shader program containing a vertex, geometry, and fragment shader
+	  * @return True if the shader program is compiled successfully
+	  */
+	bool generate(const std::string& vert, const std::string& geom, const std::string& frag);
 
 	void setShaderEnableFunction(shaderStateFunction func) {
 		enableFunc = func;
@@ -151,11 +161,13 @@ public:
 protected:
 	bool bHidden; ///< Set if any object with this shader should be hidden
 
-	unsigned int nVertShader; ///< OpenGl shader context ID
+	unsigned int nVertShader; ///< OpenGL vertex shader context
 
-	unsigned int nFragShader; ///< OpenGl shader context ID
+	unsigned int nGeomShader; ///< OpenGL geometry shader context
 
-	unsigned int nProgram; ///< OpenGl program ID
+	unsigned int nFragShader; ///< OpenGL fragment shader context
+
+	unsigned int nProgram; ///< OpenGL program ID
 
 	shaderStateFunction enableFunc;
 
@@ -166,6 +178,21 @@ protected:
 	bool readShader(const std::string& fname, std::string& retval);
 
 	bool compileShader(const unsigned int& nShader, const std::string& sBody);
+
+	/** Read and compile input vertex shader body
+	  * @return True if shader is compiled successfully
+	  */
+	bool buildVertexShader(const std::string& fname);
+
+	/** Read and compile input geometry shader body
+	  * @return True if shader is compiled successfully
+	  */
+	bool buildGeometryShader(const std::string& fname);
+
+	/** Read and compile input fragment shader body
+	  * @return True if shader is compiled successfully
+	  */
+	bool buildFragmentShader(const std::string& fname);
 
 	bool generateProgram();
 

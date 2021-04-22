@@ -8,8 +8,12 @@
 #include "object.hpp"
 
 OTTShader::~OTTShader() {
-	glDeleteShader(nVertShader);
-	glDeleteShader(nFragShader);
+	if (nVertShader)
+		glDeleteShader(nVertShader);
+	if (nGeomShader)
+		glDeleteShader(nGeomShader);
+	if (nFragShader)
+		glDeleteShader(nFragShader);
 	glDeleteProgram(nProgram);
 }
 
@@ -32,24 +36,57 @@ void OTTShader::disableObjectShader(const object* obj) const {
 }
 
 bool OTTShader::generate(const std::string& vert, const std::string& frag) {
-	std::string sBody;
-
 	// Create the vertex shader
-	if (!readShader(vert, sBody))
-		return false;
-	nVertShader = glCreateShader(GL_VERTEX_SHADER);
-	if (!compileShader(nVertShader, sBody))
+	if (!buildVertexShader(vert))
 		return false;
 
 	// Create the fragment shader
-	if (!readShader(frag, sBody))
-		return false;
-	nFragShader = glCreateShader(GL_FRAGMENT_SHADER);
-	if (!compileShader(nFragShader, sBody))
+	if (!buildFragmentShader(frag))
 		return false;
 
 	// Generate the OpenGL shader program
 	return generateProgram();
+}
+
+bool OTTShader::generate(const std::string& vert, const std::string& geom, const std::string& frag) {
+	// Create the vertex shader
+	if (!buildVertexShader(vert))
+		return false;
+
+	// Create the geometry shader
+	if (!buildGeometryShader(geom))
+		return false;
+
+	// Create the fragment shader
+	if (!buildFragmentShader(frag))
+		return false;
+
+	// Generate the OpenGL shader program
+	return generateProgram();
+}
+
+bool OTTShader::buildVertexShader(const std::string& fname) {
+	std::string sBody;
+	if (!readShader(fname, sBody))
+		return false;
+	nVertShader = glCreateShader(GL_VERTEX_SHADER);
+	return compileShader(nVertShader, sBody);
+}
+
+bool OTTShader::buildGeometryShader(const std::string& fname) {
+	std::string sBody;
+	if (!readShader(fname, sBody))
+		return false;
+	nGeomShader = glCreateShader(GL_GEOMETRY_SHADER);
+	return compileShader(nGeomShader, sBody);
+}
+
+bool OTTShader::buildFragmentShader(const std::string& fname) {
+	std::string sBody;
+	if (!readShader(fname, sBody))
+		return false;
+	nFragShader = glCreateShader(GL_FRAGMENT_SHADER);
+	return compileShader(nFragShader, sBody);
 }
 
 bool OTTShader::generateProgram() {
@@ -60,12 +97,15 @@ bool OTTShader::generateProgram() {
 	// Bind default attribtue locations (equivalent to "layout (location = N)")
 	glBindAttribLocation(nProgram, 0, "vPosition");
 	glBindAttribLocation(nProgram, 1, "vNormal");
-	glBindAttribLocation(nProgram, 2, "vColor");
-	glBindAttribLocation(nProgram, 3, "vTexture");
+	glBindAttribLocation(nProgram, 2, "vTexture");
 
 	// Link shader program
-	glAttachShader(nProgram, nVertShader);
-	glAttachShader(nProgram, nFragShader);
+	if(nVertShader)
+		glAttachShader(nProgram, nVertShader);
+	if(nGeomShader)
+		glAttachShader(nProgram, nGeomShader);
+	if(nFragShader)
+		glAttachShader(nProgram, nFragShader);
 	glLinkProgram(nProgram);
 	glGetProgramiv(nProgram, GL_LINK_STATUS, &retval);
 	if (retval != GL_TRUE) {
@@ -76,8 +116,12 @@ bool OTTShader::generateProgram() {
 		std::cout << log << std::endl;
 		return false;
 	}
-	std::cout << " [Shader] debug: nVertShader=" << nVertShader << std::endl;
-	std::cout << " [Shader] debug: nFragShader=" << nFragShader << std::endl;
+	if (nVertShader)
+		std::cout << " [Shader] debug: nVertShader=" << nVertShader << std::endl;
+	if(nGeomShader)
+		std::cout << " [Shader] debug: nGeomShader=" << nGeomShader << std::endl;
+	if(nFragShader)
+		std::cout << " [Shader] debug: nFragShader=" << nFragShader << std::endl;
 	std::cout << " [Shader] debug: nProgram=" << nProgram << std::endl;
 
 	return true;
