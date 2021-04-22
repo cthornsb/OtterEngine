@@ -112,9 +112,15 @@ public:
 	  */
 	void draw(OTTImageBuffer* imgbuff, const unsigned short& x0 = 0, const unsigned short& y0 = 0);
 
-	/** Redraw all lines of the console onto an image buffer
+	/** Set all lines on the console to be redrawn during the next draw() call
 	  */
-	void redraw(OTTImageBuffer* imgbuff, const unsigned short& x0 = 0, const unsigned short& y0 = 0);
+	void refresh();
+
+	/** Print a string on the screen at a specified character row and column.
+	  * Locations are indexed from column 0 and row 0 at top left of screen.
+	  * If prameter wrap is set to true, text extending off the screen will wrap to a new line.
+	  */
+	void printString(OTTImageBuffer* imgbuff, const std::string& str, const unsigned short& x, const unsigned short& y, bool wrap = true);
 
 protected:
 	bool bEcho; ///< Set if command input will be echoed back

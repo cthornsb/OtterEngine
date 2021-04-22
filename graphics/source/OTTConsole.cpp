@@ -63,8 +63,7 @@ void OTTConsole::initialize() {
 
 void OTTConsole::newline() {
 	buffer.pop_front();
-	for (auto line = buffer.begin(); line != buffer.end(); line++)
-		line->second = true;
+	refresh(); // Redraw all lines
 	buffer.push_back(std::make_pair(std::string(nCols, ' '), true));
 	nX = 0;
 }
@@ -114,12 +113,46 @@ void OTTConsole::draw(OTTImageBuffer* imgbuff, const unsigned short& x0/* = 0*/,
 	}
 }
 
-void OTTConsole::redraw(OTTImageBuffer* imgbuff, const unsigned short& x0/* = 0*/, const unsigned short& y0/* = 0*/) {
-	if (!cmap)
+void OTTConsole::refresh() {
+	for (auto line = buffer.begin(); line != buffer.end(); line++)
+		line->second = true;
+}
+
+void OTTConsole::printString(OTTImageBuffer* imgbuff, const std::string& str, const unsigned short& x, const unsigned short& y, bool wrap/* = true*/) {
+	if (x >= nCols || y >= nRows)
 		return;
-	for (unsigned short y = 0; y < nRows; y++) {
-		cmap->drawString(buffer[y].first, x0, y0 + y * cmap->getCharacterHeight(), imgbuff);
-		buffer[y].second = false;
+	if (x + str.length() < nCols) { // Entire string fits on a single line
+		cmap->drawString(
+			str, 
+			x * cmap->getCharacterWidth(), 
+			y * cmap->getCharacterHeight(), 
+			imgbuff
+		);
+	}
+	else if (wrap){ // Print a portion of the string and then wrap to the next line
+		unsigned short sx = x;
+		unsigned short sy = y;
+		size_t index = 0;
+		while (index < str.length()) {
+			cmap->drawString(
+				str.substr(index, nCols - sx), 
+				sx * cmap->getCharacterWidth(), 
+				sy * cmap->getCharacterHeight(), 
+				imgbuff
+			);
+			index += (nCols - sx);
+			sx = 0;
+			if (++sy >= nRows) // Off bottom of screen
+				return;
+		}
+	}
+	else { // Print a portion of the input string
+		cmap->drawString(
+			str.substr(0, nCols - x), 
+			x * cmap->getCharacterWidth(), 
+			y * cmap->getCharacterHeight(), 
+			imgbuff
+		);
 	}
 }
 

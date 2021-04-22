@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include "ColorRGB.hpp"
 #include "OTTBitmap.hpp"
@@ -25,7 +26,7 @@ public:
 	  */
 	OTTCharacterMap(const std::string& fname, const unsigned short& W, const unsigned short& H);
 
-	/** Font bitmap filename constructor with character bitmap width, height, and decoder function pointer
+	/** Font bitmap filename constructor with character bitmap width, height, pixel color depth, and decoder function pointer
 	  */
 	OTTCharacterMap(
 		const std::string& fname, 
@@ -34,6 +35,10 @@ public:
 		const unsigned short& bitsPerPixel, 
 		OTTBitmap::bitmapDecodeFunction func
 	);
+
+	/** Font bitmap filename constructor with character bitmap width, height, and pixel color depth
+	  */
+	OTTCharacterMap(const unsigned short& W, const unsigned short& H, const unsigned short& bitsPerPixel);
 
 	/** Get the width of all characters, in pixels
 	  */
@@ -56,13 +61,20 @@ public:
 	/** Set the font foreground color
 	  */
 	void setForegroundColor(const ColorRGB& color) {
-		foreground = color;
+		palette[nColorsPerPixel - 1] = color;
 	}
 
 	/** Set the font foreground color
 	  */
 	void setBackgroundColor(const ColorRGB& color) {
-		background = color;
+		palette[0] = color;
+	}
+
+	/** Set the font foreground color
+	  */
+	void setPaletteColor(const unsigned short& index, const ColorRGB& color) {
+		if(index < nColorsPerPixel)
+			palette[index] = color;
 	}
 
 	/** Enable or disable text background color
@@ -71,26 +83,10 @@ public:
 		bTransparency = state;
 	}
 
-	/** Load ascii character bitmaps from a file
+	/** Load ascii character bitmaps from an input file.
+	  * 
 	  */
-	bool loadCharacterBitmaps(const std::string& fname, const unsigned short& nBitsPerPixel = 1, OTTBitmap::bitmapDecodeFunction func = 0x0);
-
-	/** Print a character on the screen at a specified location
-	  * Locations are indexed from (0,0) at top left of screen
-	  * @param val The character to print
-	  * @param x Column where character will be printed
-	  * @param y Row where character will be printed
-	  */
-	void putCharacter(const char& val, const unsigned short& x, const unsigned short& y);
-
-	/** Print a string on the screen at a specified location
-	  * Locations are indexed from (0,0) at top left of screen
-	  * @param str The string to print
-	  * @param x Column where first character will be printed
-	  * @param y Row where first character will be printed
-	  * @param wrap If set to true, text extending off the screen will wrap to a new line
-	  */
-	void putString(const std::string& str, const unsigned short& x, const unsigned short& y, bool wrap = true);
+	bool loadCharacterBitmaps(std::ifstream& ifile, OTTBitmap::bitmapDecodeFunction func = 0x0);
 
 	/** Draw character string to external RAM image buffer with upper left corner at pixel offset of (x0, y0)
 	  */
@@ -99,7 +95,7 @@ public:
 		const unsigned short& x0,
 		const unsigned short& y0,
 		OTTImageBuffer* buffer,
-		const unsigned char& alphaColor = 4,
+		const unsigned char& alphaColor = 0xff,
 		bool invert = false
 	);
 
@@ -116,9 +112,11 @@ protected:
 
 	unsigned short nLength; ///< Number of pixels per bitmap
 
-	ColorRGB foreground; ///< Text color foreground
+	unsigned short nBitsPerPixel; ///< Number of color bits per pixel (color depth)
 
-	ColorRGB background; ///< Text color foreground
+	unsigned short nColorsPerPixel; ///< Number of possible colors per pixel (color depth)
+
+	std::vector<ColorRGB> palette; ///< Font color palette
 
 	std::vector<OTTBitmap> cmap; ///< Ascii character map bitmaps
 };

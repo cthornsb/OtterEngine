@@ -36,7 +36,7 @@ void OTTBitmap::set(const unsigned short& x, const unsigned short& y, const unsi
 void OTTBitmap::set(const unsigned char* data) {
 	for (unsigned short i = 0; i < nHeight; i++) { // Over rows
 		for (unsigned short j = 0; j < nWidth; j++) { // Over cols
-			set(j, i, (data[i] & (0x1 << nWidth - 1 - j)) == (0x1 << nWidth - 1 - j));
+			set(j, i, (data[i] & (0x1 << (nWidth - 1 - j))) == (0x1 << (nWidth - 1 - j)));
 		}
 	}
 }
