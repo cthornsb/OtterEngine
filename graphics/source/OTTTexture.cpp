@@ -19,6 +19,10 @@ unsigned int OTTTexture::getTexture(bool bLinearFiltering/* = true*/) {
 	if (nContext || !nBytes)
 		return nContext;
 
+	if (nChannels < 4) { // Add alpha channel, if not available
+		increaseColorDepth(4);
+	}
+
 	// Generate an OpenGL texture
 	glGenTextures(1, &nContext);
 	glBindTexture(GL_TEXTURE_2D, nContext);
@@ -65,7 +69,7 @@ bool OTTTexture::increaseColorDepth(const unsigned short& ch) {
 	case 3: // RGB, BGR, etc
 		for (unsigned int i = 0; i < nSize; i++) { // Over all pixels
 			for (unsigned short j = 0; j < ch; j++) { // Over all color channels
-				bitmap[4 * i + j] = (j != 3 ? dptr[i] : 255);
+				bitmap[4 * i + j] = (j != 3 ? dptr[3 * i + j] : 255);
 			}
 		}
 		break;
@@ -85,7 +89,8 @@ bool OTTTexture::read(const std::string& fname) {
 	nWidth = W;
 	nHeight = H;
 	nChannels = ch;
-	nBytes = nWidth * nHeight * nChannels;
+	nSize = nWidth * nHeight;
+	nBytes = nSize * nChannels;
 	dptr = data.get();
 	bGood = (nBytes > 0);
 	if(bGood)
