@@ -146,6 +146,19 @@ void OTTImageBuffer::drawPixels(const unsigned short* vertices, const size_t& N)
 	}
 }
 
+void OTTImageBuffer::drawPixels(const unsigned short& x, const unsigned short& y, OTTImageBuffer* buffer){
+	OTTLogicalColor color;
+	for (unsigned short i = 0; i < nHeight; i++) { // Over rows
+		if (y + i >= nHeight) // Invalid image coordinates
+			break;
+		for (unsigned short j = 0; j < nWidth; j++) { // Over columns
+			if (!buffer->getPixel(x + j, y + i, color))
+				break; // Invalid sub-image coordinates
+			setPixel(x, y, color);
+		}
+	}
+}
+
 void OTTImageBuffer::drawLine(
 	const unsigned short& x0, const unsigned short& y0,
 	const unsigned short& x1, const unsigned short& y1

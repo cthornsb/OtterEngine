@@ -227,7 +227,10 @@ public:
 	  **/
 	void fillColor(const ColorRGB& color);
 
-	/** Draw an external image buffer into a region of this buffer with upper left corner at (x,y)
+	/** Copy an external image buffer into a region of this buffer with upper left corner at (x,y)
+	  * This method expects the external image buffer to be smaller than this buffer. All pixels from
+	  * the external buffer will be copied into this one starting at (x,y).
+	  * See also drawPixels.
 	  */
 	void drawSubImage(const unsigned short& x, const unsigned short& y, OTTImageBuffer* buffer);
 
@@ -243,6 +246,13 @@ public:
 	  * Input vertex array should be an ordered list of X and Y pairs and must be at least 2 * N elements long.
 	  */
 	void drawPixels(const unsigned short* vertices, const size_t& N);
+
+	/** Copy a region of an external image buffer with upper left corner at (x,y) into this one.
+	  * This method expects the external image buffer to be larger than this buffer. A region of pixels
+	  * with the width and height of this buffer will be extracted from the larger external buffer. 
+	  * See also drawSubImage.
+	  */
+	void drawPixels(const unsigned short& x, const unsigned short& y, OTTImageBuffer* buffer);
 
 	/** Draw a line between the two points (x0,y0) and (x1,y1)
 	  */
