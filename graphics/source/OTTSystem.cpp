@@ -8,10 +8,12 @@
 #include "OTTSystem.hpp"
 
 namespace ott {
-	/** Get the current working directory (CWD)
-	  */
 	std::string getCurrentWorkingDirectory() {
+#ifndef WIN32
+		char* str = getcwd(0x0, 0);
+#else
 		char* str = _getcwd(0x0, 0);
+#endif // ifndef WIN32
 		if (!str)
 			return std::string();
 		std::string retval(str);
@@ -19,15 +21,14 @@ namespace ott {
 		return retval;
 	}
 
-	/** Set the current working directory (CWD)
-	  * @return True if the CWD is changed successfully
-	  */
 	bool setCurrentWorkingDirectory(const std::string& path) {
+#ifndef WIN32
+		return (chdir(path.c_str()) == 0);
+#else
 		return (_chdir(path.c_str()) == 0);
+#endif // ifndef WIN32
 	}
 
-	/** Get the full path of the currently executing program
-	  */
 	std::string getExecutingPath() {
 		char str[1024];
 		std::string path;
@@ -43,8 +44,6 @@ namespace ott {
 		return path;
 	}
 
-	/** Get the directory of the currently executing program
-	  */
 	std::string getExecutingDirectory() {
 		std::string path = getExecutingPath();
 #ifndef WIN32
@@ -58,4 +57,4 @@ namespace ott {
 		}
 		return dir;
 	}
-};
+}
