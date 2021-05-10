@@ -14,7 +14,7 @@ OTTGuiContainer::OTTGuiContainer(const int& x, const int& y, const int& w, const
 
 bool OTTGuiContainer::handleMouseEvents(OTTMouse* mouse) {
 	bool retval = false;
-	bool prevMouseState = bMouseInside;
+	//bool prevMouseState = bMouseInside;
 	bMouseInside = isInside((int)mouse->getX(), (int)mouse->getY());
 	if (bMouseInside) { // Check for clicks on top of components
 		for (auto ch = children.begin(); ch != children.end(); ch++)

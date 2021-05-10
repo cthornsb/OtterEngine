@@ -29,7 +29,7 @@ namespace ott {
 		ROTATE_CCW, ///< Rotate texture 90 degrees counter-clockwise
 		ROTATE_180 ///< Rotate texture 180 degrees
 	};
-};
+}
 
 struct DestroyGLFWwindow {
 	void operator()(GLFWwindow* ptr) {

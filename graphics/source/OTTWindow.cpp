@@ -638,4 +638,4 @@ namespace ott {
 	const int Rotate90DegreesCW = 0x4; ///< Rotate image or texture 90 degrees clockwise
 	const int Rotate90DegreesCCW = 0x8; ///< Rotate image or texture 90 degrees counter-clockwise
 	const int Rotate180Degrees = 0x10; ///< Rotate image or texture 180 degrees
-};
+}
