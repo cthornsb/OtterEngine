@@ -201,12 +201,13 @@ void Matrix::__transpose(const Vector* in, Vector* out) const {
 /////////////////////////////////////////////////////////////////////
 
 void Matrix2::setRotation(const float& theta) {
-	elements[0] = std::cos(theta); elements[1] = -std::sin(theta);
-	elements[2] = elements[1];     elements[3] = elements[0];
+	elements[0] = std::cos(theta); elements[1] = std::sin(theta);
+	elements[2] = -elements[1];    elements[3] = elements[0];
 }
 
 Matrix2 Matrix2::getRotationMatrix(const float& theta) {
-	return Matrix2(std::cos(theta), std::sin(theta),
+	return Matrix2(
+		std::cos(theta),  std::sin(theta),
 		-std::sin(theta), std::cos(theta)
 	);
 }
