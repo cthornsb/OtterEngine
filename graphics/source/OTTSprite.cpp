@@ -39,50 +39,71 @@ void OTTSprite::setRotation(const float& angle) {
 }
 
 void OTTSprite::flipHorizontal() { 
-	horizScale *= -1; 
+	horizScale *= -1.f; 
 	update();
 }
 
 void OTTSprite::flipVertical() {
-	vertScale *= -1; 
+	vertScale *= -1.f; 
 	update();
 }
 
-void OTTSprite::drawCorner(const int& x, const int& y) {
-	Vector2 offset((float)x, (float)y);
-	glBindTexture(GL_TEXTURE_2D, nContext);
-	glEnable(GL_TEXTURE_2D);
-	glBegin(GL_QUADS);
-	glTexCoord2i(0, 0); getVertex(offset);
-	glTexCoord2i(1, 0); getVertex(offset + uX * 2);
-	glTexCoord2i(1, 1); getVertex(offset + uX * 2 + uY * 2);
-	glTexCoord2i(0, 1); getVertex(offset + uY * 2);
-	glEnd();
-	glDisable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
+void OTTSprite::drawCorner() {
+	drawCorner(center - uX - uY);
 }
 
-void OTTSprite::draw(const int& x, const int& y) {
-	Vector2 offset((float)x, (float)y);
-	glBindTexture(GL_TEXTURE_2D, nContext);
-	glEnable(GL_TEXTURE_2D);
-	glBegin(GL_QUADS);
-	glTexCoord2i(0, 0); getVertex(offset - uX - uY);
-	glTexCoord2i(1, 0); getVertex(offset + uX - uY);
-	glTexCoord2i(1, 1); getVertex(offset + uX + uY);
-	glTexCoord2i(0, 1); getVertex(offset - uX + uY);
-	glEnd();
-	glDisable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
+void OTTSprite::drawCorner(const float& x, const float& y) {
+	drawCorner(Vector2(x, y));
 }
 
-void OTTSprite::getVertex(const Vector2& vec) {
-	glVertex2i((GLint)vec[0], (GLint)vec[1]);
+void OTTSprite::drawCorner(const Vector2& offset) {
+	this->onUserBindTexture(); // Bind the texture
+	glBegin(GL_QUADS);
+	auto setVertex = [](const float& tx, const float& ty, const Vector2& vec) {
+		glTexCoord2f(tx, ty);
+		glVertex2f(vec[0], vec[1]);
+	};
+	setVertex(0.f, 0.f, offset);
+	setVertex(1.f, 0.f, offset + uX * 2.f);
+	setVertex(1.f, 1.f, offset + uX * 2.f + uY * 2.f);
+	setVertex(0.f, 1.f, offset + uY * 2.f);
+	glEnd();
+	this->onUserUnbindTexture(); 
+}
+
+void OTTSprite::draw() {
+	draw(center);
+}
+
+void OTTSprite::draw(const float& x, const float& y) {
+	draw(Vector2(x, y));
+}
+
+void OTTSprite::draw(const Vector2& offset) {
+	this->onUserBindTexture(); // Bind the texture
+	glBegin(GL_QUADS);
+	auto setVertex = [](const float& tx, const float& ty, const Vector2& vec) {
+		glTexCoord2f(tx, ty);
+		glVertex2f(vec[0], vec[1]);
+	};
+	setVertex(0.f, 0.f, offset - uX - uY);
+	setVertex(1.f, 0.f, offset + uX - uY);
+	setVertex(1.f, 1.f, offset + uX + uY);
+	setVertex(0.f, 1.f, offset - uX + uY);
+	glEnd();
+	this->onUserUnbindTexture(); 
 }
 
 void OTTSprite::update() {
-	uX = Vector2(nWidth * horizScale / 2, 0);
-	uY = Vector2(0, nHeight * vertScale / 2);
-	rotation.transformInPlace(uX);
-	rotation.transformInPlace(uY);
+	uX = rotation.transform(Vector2(nWidth * horizScale / 2, 0));
+	uY = rotation.transform(Vector2(0, nHeight * vertScale / 2));
+}
+
+void OTTSprite::onUserBindTexture() {
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, nContext);
+}
+
+void OTTSprite::onUserUnbindTexture() {
+	glDisable(GL_TEXTURE_2D);
 }

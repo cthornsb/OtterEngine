@@ -152,3 +152,36 @@ void OTTTexture::free() {
 		nContext = 0;
 	}
 }
+
+unsigned int OTTTexture::generateTextureRGB(const int& W, const int& H, const unsigned char* data, bool bLinearFilter/* = true*/) {
+	unsigned int retval = 0;
+	glGenTextures(1, &retval);
+	glBindTexture(GL_TEXTURE_2D, retval);
+	if (bLinearFilter) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);		
+	}
+	else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, W, H, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	return retval;
+}
+
+unsigned int OTTTexture::generateTextureRGBA(const int& W, const int& H, const unsigned char* data, bool bLinearFilter/* = true*/) {
+	unsigned int retval = 0;
+	glGenTextures(1, &retval);
+	glBindTexture(GL_TEXTURE_2D, retval);
+	if (bLinearFilter) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);		
+	}
+	else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, W, H, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	return retval;
+}
+

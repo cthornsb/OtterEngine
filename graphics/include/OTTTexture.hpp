@@ -83,6 +83,12 @@ public:
 		return nContext; 
 	}
 
+	/** Set the associated name of the texture
+	  */
+	void setName(const std::string& name) {
+		sName = name;
+	}
+
 	/** Send loaded image to OpenGL to create a texture. Once OpenGL creates the texture,
 	  * it may no longer be modified directly. If texture modification is required, a new
 	  * OpenGL texture must be created. 
@@ -136,6 +142,14 @@ public:
 	  * @note Does not delete associated OpenGL texture
 	  **/
 	void free() override;
+	
+	/** Generate a new OpenGL texture with RGB color components and return its ID
+	  */
+	static unsigned int generateTextureRGB(const int& W, const int& H, const unsigned char* data, bool bLinearFilter = true);
+	
+	/** Generate a new OpenGL texture with RGBA color components and return its ID
+	  */
+	static unsigned int generateTextureRGBA(const int& W, const int& H, const unsigned char* data, bool bLinearFilter = true);
 
 protected:
 	unsigned int nContext; ///< OpenGL texture context ID number
