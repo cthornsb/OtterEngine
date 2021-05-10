@@ -82,12 +82,12 @@ bool OTTSpriteSet::addSprites(const std::string& fname, const std::string& name,
 
 bool OTTSpriteSet::addSprites(OTTImageBuffer* buffer, const int& x0, const int& y0, const int& px, const int& py, const int& cols, const int& rows){
 	int subImageWidth = x0 + px * cols;
-	if(subImageWidth >= buffer->getWidth()){
+	if(subImageWidth > buffer->getWidth()){
 		std::cout << " [OTTSpriteSet] Warning! Requested sub-image width (" << subImageWidth << ") exceeds input image width of " << buffer->getWidth() << " pixels." << std::endl;
 	}
 
 	int subImageHeight = y0 + py * rows;
-	if(subImageHeight >= buffer->getHeight()){
+	if(subImageHeight > buffer->getHeight()){
 		std::cout << " [OTTSpriteSet] Warning! Requested sub-image height (" << subImageHeight << ") exceeds input image height of " << buffer->getHeight() << " pixels." << std::endl;
 	}
 

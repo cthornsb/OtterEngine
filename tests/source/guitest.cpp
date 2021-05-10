@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm> // copy
 
 #include "OTTWindow.hpp"
 #include "OTTFrameTimer.hpp"
@@ -89,7 +90,7 @@ int main() {
 		
 		// Draw a test image
 		for (size_t i = 0; i < nTargets; i++) {
-			memcpy(targets[i].first, targets[i].second, 150);
+			std::copy(targets[i].second, targets[i].second + 150, targets[i].first);
 		}
 
 		// Update window events

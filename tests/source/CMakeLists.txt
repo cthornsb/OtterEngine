@@ -37,3 +37,23 @@ if(WIN32)
 		Winmm
 	)
 endif()
+
+# Build OTTSpriteSet test executable.
+add_executable( animtest 
+	animtest.cpp
+)
+target_link_libraries( animtest 
+	OtterCore
+	OtterGui
+	OtterMath	
+	OpenGL::GL
+	OpenGL::GLU
+	${GLFW3_LIBRARY}
+	GLEW::GLEW
+	${SOIL_LIBRARY}
+)
+if(WIN32)
+	target_link_libraries( animtest 
+		Winmm
+	)
+endif()
