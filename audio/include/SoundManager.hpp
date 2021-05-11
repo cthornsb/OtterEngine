@@ -3,8 +3,6 @@
 
 #include <memory>
 
-#include "SoundMixer.hpp"
-
 #ifdef ENABLE_PORT_AUDIO
 
 #include "portaudio.h"
@@ -13,19 +11,21 @@ typedef int (*portCallback)( const void*, void*, unsigned long, const PaStreamCa
 
 #endif // ifdef ENABLE_PORT_AUDIO
 
+class SoundMixer;
+
 class SoundManager{
 public:
-	/** Copy constructor (deleted)
-	  */
-	SoundManager(const SoundMixer&) = delete;
-
 	/** Terminate audio stream
 	  */
 	~SoundManager();
+
+	/** Copy constructor (deleted)
+	  */
+	SoundManager(const SoundManager&) = delete;
 	
 	/** Copy operator (deleted)
 	  */
-	SoundManager& operator = (const SoundMixer&) = delete;
+	SoundManager& operator = (const SoundManager&) = delete;
 
 	/** Get instance of singleton
 	  */
@@ -50,12 +50,6 @@ public:
 	  */
 	unsigned long getFramesPerBuffer() const { 
 		return nFramesPerBuffer; 
-	}
-
-	/** Get pointer to the output audio buffer
-	  */
-	SoundMixer* getAudioMixer() { 
-		return &mixer; 
 	}
 
 	/** Return true if the audio interface is running, and return false otherwise
@@ -95,8 +89,9 @@ public:
 #endif // ifdef ENABLE_PORT_AUDIO
 
 	/** Initialize audio stream
+	  * @param mixer Pointer to output audio mixer
 	  */
-	bool init();
+	bool init(SoundMixer* mixer);
 	
 	/** Terminate audio stream
 	  */
@@ -150,8 +145,6 @@ private:
 	double dSampleRate; ///< Audio sample rate
 	
 	unsigned long nFramesPerBuffer;
-
-	SoundMixer mixer; ///< Audio output mixer
 
 #ifdef ENABLE_PORT_AUDIO
 	PaStream* stream; ///< Port audio stream pointer

@@ -2,17 +2,14 @@
 
 #include "SoundMixer.hpp"
 
-void SoundMixer::getCurrentSample(float& l, float& r) {
-	l = fOutputSamples[0];
-	r = fOutputSamples[1];
-}
-
-void SoundMixer::setOutputLevels(const float& l, const float& r){
-	fOutputVolume[0] = clamp(l, 0.f, 1.f); // left
-	fOutputVolume[1] = clamp(r, 0.f, 1.f); // right
+void SoundMixer::get(const unsigned int& ch, float& sample) {
+	if(ch < nOutputChannels)
+		sample = fOutputSamples[ch];
 }
 
 void SoundMixer::setBalance(const float& bal){
+	if(nOutputChannels != 2)
+		return;
 	if(bal <= 0.f){ // Left balance
 		fOutputVolume[0] = 1.f;
 		fOutputVolume[1] = (bal + 1.f);
@@ -30,27 +27,31 @@ void SoundMixer::reset(){
 
 bool SoundMixer::update(){
 	if(bMuted){
-		fOutputSamples[0] = 0.f;
-		fOutputSamples[1] = 0.f;
+		for(unsigned int i = 0; i < nOutputChannels; i++)
+			fOutputSamples[i] = 0.f;
 		return false;
 	}
-	for(int i = 0; i < 2; i++){ // Over left and right output channels
+	for(unsigned int i = 0; i < nOutputChannels; i++){ // Over left and right output channels
 		fOutputSamples[i] = 0.f;
-		for(int j = 0; j < 4; j++){ // Over input channels
+		for(unsigned int j = 0; j < nInputChannels; j++){ // Over input channels
 			fOutputSamples[i] += fInputVolume[j] * (bSendInputToOutput[i][j] ? fInputSamples[j] : 0.f);
 		}
 		// Normalize audio output and apply master and channel volumes
-		fOutputSamples[i] = ((1.f + fOffsetDC) * fMasterVolume * fOutputVolume[i] * (fOutputSamples[i] / 4.f)) - fOffsetDC; // Translate to range [-DC, 1]
+		fOutputSamples[i] = ((1.f + fOffsetDC) * fMasterVolume * fOutputVolume[i] * (fOutputSamples[i] / nInputChannels)) - fOffsetDC; // Translate to range [-DC, 1]
 	}
-	if(!bStereoOutput){ // Re-mix for mono output
-		fOutputSamples[0] = (fOutputSamples[0] + fOutputSamples[1]) / 2.f;
-		fOutputSamples[1] = fOutputSamples[0];
+	if(bMonoOutput){ // Re-mix for mono output
+		float fAverage = 0.f;
+		for(unsigned int i = 0; i < nOutputChannels; i++)
+			fAverage += fOutputSamples[i];
+		fAverage /= nOutputChannels; // 0 to 1
+		for(unsigned int i = 0; i < nOutputChannels; i++)
+			fOutputSamples[i] = fAverage;
 	}
 	bModified = false;
 	return true;
 }
 
-float SoundMixer::clamp(const float& input, const float& low, const float& high) const {
+float SoundMixer::clamp(const float& input, const float& low/* = 0.f*/, const float& high/* = 1.f*/) const {
 	return std::max(low, std::min(high, input));
 }
 

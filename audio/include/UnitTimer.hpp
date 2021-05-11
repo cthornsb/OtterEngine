@@ -105,9 +105,9 @@ protected:
 	
 	unsigned short nPeriodMultiplier; ///< Period multiplier factor
 	
-	unsigned int nCyclesSinceLastClock; ///< Number of input clock ticks (4 MHz) since last unit clock rollover
+	unsigned int nCyclesSinceLastClock; ///< Number of input clock ticks since last unit clock rollover
 	
-	unsigned int nWavelengthPeriod; ///< Audio output waveform wavelength expressed in input clock ticks (4 MHz)
+	unsigned int nWavelengthPeriod; ///< Audio output waveform wavelength expressed in input clock ticks
 	
 	/** Additional operations performed whenever enable() is called
 	  */

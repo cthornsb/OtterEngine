@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "SoundManager.hpp"
+#include "SoundMixer.hpp"
 
 #ifdef ENABLE_PORT_AUDIO
 
@@ -11,7 +12,6 @@ SoundManager::SoundManager() :
 	nChannels(2),
 	dSampleRate(44100),
 	nFramesPerBuffer(2048),
-	mixer(),
 	stream(0x0),
 	callback(defaultCallback)
 { 
@@ -22,7 +22,7 @@ SoundManager::~SoundManager(){
 		terminate(); // Terminate stream
 }
 
-bool SoundManager::init(){
+bool SoundManager::init(SoundMixer* mixer){
 	if(bInitialized) // Already initialized
 		return true;
 
@@ -43,7 +43,7 @@ bool SoundManager::init(){
 		dSampleRate,
 		nFramesPerBuffer,
 		callback,
-		static_cast<void*>(&mixer)
+		static_cast<void*>(mixer)
 	);
 	
     if( err != paNoError ){
@@ -143,8 +143,7 @@ SoundManager::SoundManager() :
 	bRunning(false),
 	nChannels(2),
 	dSampleRate(44100),
-	nFramesPerBuffer(2048),
-	mixer()
+	nFramesPerBuffer(2048)
 { 
 }
 

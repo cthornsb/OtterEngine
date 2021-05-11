@@ -13,14 +13,62 @@ public:
 		SoundBuffer(),
 		bMuted(false),
 		bModified(false),
-		bStereoOutput(true),
+		bMonoOutput(false),
+		nOutputChannels(2),
+		nInputChannels(2),
 		fMasterVolume(1.f),
 		fOffsetDC(0.f),
-		fOutputVolume{1.f, 1.f},
-		fOutputSamples{0.f, 0.f},
-		fInputVolume{1.f, 1.f, 1.f, 1.f},
-		fInputSamples{0.f, 0.f, 0.f, 0.f},
-		bSendInputToOutput{{0, 0, 0, 0}, {0, 0, 0, 0}}
+		fOutputVolume(2, 1.f),
+		fOutputSamples(2, 0.f),
+		fInputVolume(2, 1.f),
+		fInputSamples(2, 0.f),
+		bSendInputToOutput(2, std::vector<bool>(2, false))
+	{ 
+		bEnabled = true; // Enable timer
+		reload(); // Refill counter so timer starts immediately
+	}
+
+	/** Stereo output constructor
+	  * @param ch Number of input audio channels
+	  */
+	SoundMixer(const unsigned int& input) :
+		UnitTimer(1),
+		SoundBuffer(),
+		bMuted(false),
+		bModified(false),
+		bMonoOutput(false),
+		nOutputChannels(2),
+		nInputChannels(input),
+		fMasterVolume(1.f),
+		fOffsetDC(0.f),
+		fOutputVolume(2, 1.f),
+		fOutputSamples(2, 0.f),
+		fInputVolume(input, 1.f),
+		fInputSamples(input, 0.f),
+		bSendInputToOutput(2, std::vector<bool>(input, false))
+	{ 
+		bEnabled = true; // Enable timer
+		reload(); // Refill counter so timer starts immediately
+	}
+
+	/** Generic input / output constructor
+	  * @param ch Number of input audio channels
+	  */
+	SoundMixer(const unsigned int& input, const unsigned int& output) :
+		UnitTimer(1),
+		SoundBuffer(),
+		bMuted(false),
+		bModified(false),
+		bMonoOutput(false),
+		nOutputChannels(output),
+		nInputChannels(input),
+		fMasterVolume(1.f),
+		fOffsetDC(0.f),
+		fOutputVolume(output, 1.f),
+		fOutputSamples(output, 0.f),
+		fInputVolume(input, 1.f),
+		fInputSamples(input, 0.f),
+		bSendInputToOutput(output, std::vector<bool>(input, false))
 	{ 
 		bEnabled = true; // Enable timer
 		reload(); // Refill counter so timer starts immediately
@@ -30,20 +78,32 @@ public:
 	  */
 	~SoundMixer() { }
 
-	/** Get the current left/right output sample (mutex protected)
+	/** Get the current sample for one of the output channels
 	  */
-	void getCurrentSample(float& l, float& r);
+	void get(const unsigned int& ch, float& sample);
 
 	/** Get a pointer to the input sample buffer
 	  */
 	float* getSampleBuffer(){
-		return fInputSamples;
+		return fInputSamples.data();
 	}
 
 	/** Get the current master output volume
 	  */
 	float getVolume() const {
 		return fMasterVolume;
+	}
+	
+	/** Get the number of input audio channels
+	  */
+	int getNumInputChannels() const {
+		return nInputChannels;
+	}
+	
+	/** Get the number of output audio channels
+	  */
+	int getNumOutputChannels() const {
+		return nOutputChannels;
 	}
 	
 	/** Return true if audio output is muted and return false otherwise
@@ -70,23 +130,44 @@ public:
 			bMuted = true;
 	}
 
-	/** Increase volume by a specified amount (clamped to between 0 and 1)
+	/** Increase master output volume by a specified amount (clamped to between 0 and 1)
 	  */
-	void increaseVolume(const float& change=0.1f){
+	void increaseVolume(const float& change = 0.1f){
 		setVolume(fMasterVolume + change);
 	}
 	
-	/** Decrease volume by a specified amount (clamped to between 0 and 1)
+	/** Decrease master output volume by a specified amount (clamped to between 0 and 1)
 	  */
-	void decreaseVolume(const float& change=0.1f){
+	void decreaseVolume(const float& change = 0.1f){
 		setVolume(fMasterVolume - change);
 	}
 	
 	/** Set the volume for one of the input channels
 	  */
-	void setChannelVolume(const unsigned char& ch, const float& volume){
-		if(ch < 4)
+	void setInputLevel(const unsigned int& ch, const float& volume){
+		if(ch < nInputChannels)
 			fInputVolume[ch] = clamp(volume);
+	}
+	
+	/** Set the volume of all input channels
+	  */
+	void setInputLevels(const float& volume){
+		for(unsigned int i = 0; i < nInputChannels; i++)
+			fInputVolume[i] = clamp(volume);
+	}
+	
+	/** Set the volume for one of the output channels
+	  */
+	void setOutputLevel(const unsigned int& ch, const float& volume){
+		if(ch < nOutputChannels)
+			fOutputVolume[ch] = clamp(volume);
+	}
+	
+	/** Set the volume of all output channels
+	  */
+	void setOutputLevels(const float& volume){
+		for(unsigned int i = 0; i < nOutputChannels; i++)
+			fOutputVolume[i] = clamp(volume);
 	}
 
 	/** Set the negative DC offset of the output audio effectively making the output up to 100% louder (default is 0)
@@ -96,44 +177,37 @@ public:
 		fOffsetDC = clamp(offset);
 	}
 
-	/** Set output level for left and right output channels
-	  * Volumes clamped to range [0, 1]
-	  */
-	void setOutputLevels(const float& l, const float& r);
-	
-	/** Set left/right audio output balance
-	  * A value of -1 is 100% left and 0% right, 0 is 100% left and 100% right, +1 is 0% left and 100% right
+	/** For mixers with two output channels (left and right), set the left / right audio output balance.
+	  * A value of -1 is 100% left and 0% right, 0 is 100% left and 100% right, +1 is 0% left and 100% right.
+	  * Does nothing if mixer does not have two output channels.
 	  */
 	void setBalance(const float& bal);
 	
-	/** Average independent left and right output and send the result to both output channels
+	/** Enable or disable mono audio output. 
+	  * If enabled, all output channels will be averaged together into a single output signal.
 	  */
-	void setMonoOutput(){
-		bStereoOutput = false;
-	}
-	
-	/** Send left and right output directly to output channels (default)
-	  */
-	void setStereoOutput(){
-		bStereoOutput = true;
+	void setMonoOutput(bool state){
+		bMonoOutput = state;
 	}
 	
 	/** Send an audio input channel to an audio output channel
-	  * @param input Desired input channel (0 to 3)
-	  * @param output Desired output channel (0 to 1)
+	  * @param input Desired input channel
+	  * @param output Desired output channel
 	  */
-	void setInputToOutput(const int& input, const int& output, bool state=true){
+	void setInputToOutput(const unsigned int& input, const unsigned int& output, bool state=true){
 		bSendInputToOutput[output][input] = state;
 	}
 	
-	/** Set the 4-bit audio sample for a specified channel (clamped to 0 to 15)
+	/** Set the audio sample for a specified channel (clamped to 0 to 1)
 	  * Also sets the mixer's modified flag
 	  */
-	void setInputSample(const unsigned char& ch, const unsigned char& vol){
+	void setInputSample(const unsigned int& ch, const float& vol){
 		bModified = true;
-		fInputSamples[ch] = clamp(vol / 15.f, 0.f, 1.f);
+		fInputSamples[ch] = clamp(vol, 0.f, 1.f);
 	}
 	
+	/** Reset mixer timer to zero
+	  */
 	void reset() override;
 	
 private:
@@ -141,21 +215,25 @@ private:
 
 	bool bModified; ///< Flag indiciating that one or more input samples were modified
 
-	bool bStereoOutput; ///< Stereo output flag
+	bool bMonoOutput; ///< Stereo output flag
+
+	unsigned int nOutputChannels; ///< Number of input audio channels
+	
+	unsigned int nInputChannels; ///< Number of output audio channels
 
 	float fMasterVolume; ///< Master output volume
 	
 	float fOffsetDC; ///< "DC" offset of output audio waveform (in range 0 to 1)
 	
-	float fOutputVolume[2]; ///< Left and right output channel volume
+	std::vector<float> fOutputVolume; ///< Output channel volume
 
-	float fOutputSamples[2]; ///< Output audio sample buffer for left/right output
+	std::vector<float> fOutputSamples; ///< Output audio sample buffer for output channels
 	
-	float fInputVolume[4]; ///< Volumes for all four CGB input audio channels
+	std::vector<float> fInputVolume; ///< Volumes for all input audio channels
 
-	float fInputSamples[4]; ///< Audio sample buffer for CGB inputs
+	std::vector<float> fInputSamples; ///< Audio sample buffer for audio inputs
 
-	bool bSendInputToOutput[2][4]; ///< Flags for which input signals will be sent to which output signals
+	std::vector<std::vector<bool> > bSendInputToOutput; ///< Flags for which input signals will be sent to which output signals
 	
 	/** Update output audio samples
 	  * This update should occur any time an audio unit clocks over.
@@ -165,7 +243,7 @@ private:
 	
 	/** Clamp an input value to the range [low, high]
 	  */
-	float clamp(const float& input, const float& low=0.f, const float& high=1.f) const ;
+	float clamp(const float& input, const float& low = 0.f, const float& high = 1.f) const ;
 	
 	/** Push the current output sample onto the fifo buffer
 	  */
