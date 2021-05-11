@@ -1,18 +1,150 @@
 #include <iostream>
-#include <algorithm> // copy
+#include <cmath>
 
-#include "OTTWindow.hpp"
-#include "OTTFrameTimer.hpp"
+// Core
+#include "OTTApplication.hpp"
+
+// Gui
 #include "OTTGuiContainer.hpp"
 #include "OTTGuiButton.hpp"
 #include "OTTGuiRadioButton.hpp"
 #include "OTTGuiCheckbox.hpp"
 #include "OTTGuiSlider.hpp"
-#include "OTTMouse.hpp"
-#include "OTTTexture.hpp"
 
-void buttonClicked(bool) {
-	std::cout << " CLICK\n";
+// Math
+#include "WrappedValue.hpp"
+#include "DecayEnvelope.hpp"
+
+void buttonClicked(bool);
+
+void stateChanged(bool);
+
+void editingFinished(bool);
+
+class SpriteApp : public OTTApplication {
+public:
+	SpriteApp() :
+		OTTApplication(640, 480),
+		gui(100, 100, 320, 240),
+		button(),
+		checkbox(),
+		radio(),
+		sliders{
+			OTTGuiSlider(0.f, -1.f, 1.f),
+			OTTGuiSlider(0.f, -1.f, 1.f),
+			OTTGuiSlider(0.f,  0.f, 1.f),
+			OTTGuiSlider(0.f,  0.f, 1.f)
+		},
+		theta(0.f, 0.f, 6.28318f),
+		envelope1(),
+		envelope2()
+	{
+	}
+
+	~SpriteApp() override {
+		// Nothing to clean up, window will be closed by OTTWindow class
+	}
+
+	void clicked() {
+		envelope1.setDriverSignal(1.f);
+		envelope2.setDriverSignal(1.f);
+	}
+
+protected:
+	bool onUserCreateWindow() override {
+		// Enable mouse and keyboard support
+		enableKeyboard();
+		enableMouse();
+		enableImageBuffer(false);
+
+		button.setPosition(100, 100);
+		button.setSize(50, 25);
+		button.setLeftMouseButtonPressed(buttonClicked);
+
+		checkbox.setPosition(175, 100);
+		checkbox.setSize(50, 25);
+		checkbox.setOnStateChanged(stateChanged);
+
+		radio.setPosition(175, 200);
+		radio.setSize(50, 50);
+		radio.setOnStateChanged(stateChanged);
+
+		gui.add(&button);
+		gui.add(&checkbox);
+		gui.add(&radio);
+
+		for(int i = 0; i < 4; i++){
+			sliders[i].setPosition(250, 100 + 25 * i);
+			sliders[i].setSize(50, 25);
+			sliders[i].setOnEditingFinished(editingFinished);
+			gui.add(&sliders[i]);
+		}
+
+		// Select this window
+		setCurrent();
+		
+		// Set decay acceleration for envelopes
+		envelope1.setAcceleration(0.05f);
+		envelope2.setAcceleration(0.025f);
+		
+		std::cout << " Press escape to quit" << std::endl;
+
+		// Success
+		return true;
+	}
+
+	bool onUserLoop() override {
+		// Clear the image buffer
+		buffer.fill(0);
+
+		// Draw the gui
+		gui.draw(&buffer);
+		
+		// Update window events
+		processEvents();
+
+		// Check for button events
+		gui.handleMouseEvents(&mouse);
+		
+		theta += 1.f * dTotalFrameTime;
+		sliders[0].setValue(std::sin(theta.get()));
+		sliders[1].setValue(std::cos(theta.get()));
+		sliders[2].setValue(envelope1.get());
+		sliders[3].setValue(envelope2.get());
+		
+		envelope1.update(dTotalFrameTime);
+		envelope2.update(dTotalFrameTime);
+		
+		// Draw the screen
+		renderBuffer();
+
+		return true;
+	}
+
+private:
+	OTTGuiContainer gui;
+
+	OTTGuiButton button;
+
+	OTTGuiCheckbox checkbox;
+
+	OTTGuiRadioButton radio;
+
+	OTTGuiSlider sliders[4];
+	
+	WrappedValue theta;
+	
+	ott::DecayEnvelope envelope1;
+	
+	ott::DecayEnvelope envelope2;
+};
+
+// Declare a new 2d application
+SpriteApp app;
+
+void buttonClicked(bool state) {
+	if(state)
+		app.clicked();	
 }
 
 void stateChanged(bool) {
@@ -23,92 +155,10 @@ void editingFinished(bool) {
 	std::cout << " DONE\n";
 }
 
-int main() {
-	// Open a new graphical window and enable mouse and keyboard support
-	OTTWindow window(640, 480);
-	window.initialize();
-	window.enableKeyboard();
-	window.enableMouse();
-	window.enableImageBuffer(false);
+int main(int argc, char* argv[]) {
+	// Initialize application and open output window
+	app.start(argc, argv);
 
-	OTTTexture normal("Untitled.png");
-	OTTTexture clicked("Clicked.png");
-	std::cout << normal.getNumChannels() << " " << clicked.getNumChannels() << std::endl;
-
-	OTTGuiContainer gui(100, 100, 320, 240);
-
-	OTTGuiButton* button = new OTTGuiButton();
-	button->setPosition(100, 100);
-	button->setSize(50, 25);
-	button->setLeftMouseButtonPressed(buttonClicked);
-
-	OTTGuiCheckbox* checkbox = new OTTGuiCheckbox();
-	checkbox->setPosition(175, 100);
-	checkbox->setSize(50, 25);
-	checkbox->setOnStateChanged(stateChanged);
-
-	OTTGuiRadioButton* radio = new OTTGuiRadioButton();
-	radio->setPosition(175, 200);
-	radio->setSize(50, 50);
-	radio->setOnStateChanged(stateChanged);
-
-	OTTGuiSlider* slider = new OTTGuiSlider();
-	slider->setPosition(250, 100);
-	slider->setSize(50, 25);
-	slider->setOnEditingFinished(editingFinished);
-
-	checkbox->setNormalStateImage(&normal);
-	checkbox->setActiveStateImage(&clicked);
-
-	gui.add(button);
-	gui.add(checkbox);
-	gui.add(radio);
-	gui.add(slider);
-
-	// Get a pointer to the output RAM image buffer
-	OTTImageBuffer* buffer = window.getBuffer();
-
-	OTTGuiFrame frame(320, 240, 50, 25);
-	std::vector<std::pair<unsigned char*, unsigned char*> > targets;
-	size_t nTargets = OTTImageBuffer::getImageTargets(320, 240, buffer, &clicked, targets);
-
-	// Get a pointer to the mouse controller
-	OTTMouse* mouse = window.getMouse();
-
-	OTTFrameTimer timer(60.0); // Set framerate cap to 60 fps
-	double dTotalTime = 0;
-	while (window.status()) {
-		// Start the frame timer
-		timer.update();
-
-		// Clear the screen
-		//window.clear();
-		buffer->fill(0);
-
-		// Draw the gui
-		gui.draw(buffer);
-		
-		// Draw a test image
-		for (size_t i = 0; i < nTargets; i++) {
-			std::copy(targets[i].second, targets[i].second + 150, targets[i].first);
-		}
-
-		// Update window events
-		window.processEvents();
-
-		// Check for button events
-		gui.handleMouseEvents(mouse);
-
-		// Draw the screen
-		window.renderBuffer();
-
-		/*static int count = 0;
-		if (count++ % 120 == 0) // Frame count (every 2 seconds by default)
-			std::cout << timer.getFramerate() << " fps\r" << std::flush;*/
-
-		// Maintain consistent framerate
-		dTotalTime += timer.sync();
-	}
-
-	return 0;
+	// Run the main loop
+	return app.execute();
 }

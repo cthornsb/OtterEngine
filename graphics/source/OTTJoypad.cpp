@@ -1,6 +1,5 @@
 #include <iostream>
 #include <algorithm> // find
-#include <cstring> // memcpy
 
 #include <GLFW/glfw3.h>
 

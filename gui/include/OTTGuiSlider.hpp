@@ -5,7 +5,27 @@
 
 class OTTGuiSlider : public OTTGuiElement {
 public:
-	OTTGuiSlider();
+	/** Default constructor (range 0 to 1)
+	  */
+	OTTGuiSlider() :
+		OTTGuiElement(),
+		bHorizontal(true),
+		fValue(0.f),
+		fMin(0.f),
+		fMax(1.f)
+	{
+	}
+	
+	/** Slider range and initial value constructor
+	  */
+	OTTGuiSlider(const float& value, const float& minValue, const float& maxValue, bool horizontal = true) : 
+		OTTGuiElement(),
+		bHorizontal(horizontal),
+		fValue(value),
+		fMin(minValue),
+		fMax(maxValue)
+	{
+	}
 
 	/** Get the current slider value
 	  */
@@ -17,6 +37,18 @@ public:
 	  */
 	float getFraction() const {
 		return fValue;
+	}
+	
+	/** Set the current slider value
+	  */
+	void setValue(const float& val) {
+		fValue = (val - fMin) / (fMax - fMin);
+	}
+
+	/** Set the current slider position as a fraction of its full range
+	  */
+	void setFraction(const float& val) {
+		fValue = val;
 	}
 
 	void draw(OTTImageBuffer*) override;

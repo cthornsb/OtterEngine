@@ -1,15 +1,6 @@
 #include "OTTGuiSlider.hpp"
 #include "OTTImageBuffer.hpp"
 
-OTTGuiSlider::OTTGuiSlider() :
-	OTTGuiElement(),
-	bHorizontal(true),
-	fValue(0.f),
-	fMin(0.f),
-	fMax(1.f)
-{
-}
-
 void OTTGuiSlider::draw(OTTImageBuffer* buffer) {
 	// Draw a simple wireframe bounding box, for debugging
 	if (!bState)
