@@ -2,6 +2,7 @@
 add_library(
 	OtterMathObj 
 	OBJECT
+	DecayEnvelope.cpp
 	Matrix.cpp
 	Vector.cpp
 	WrappedValue.cpp
