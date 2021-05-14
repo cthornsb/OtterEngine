@@ -1,4 +1,5 @@
 #include "OTTGuiContainer.hpp"
+#include "OTTGuiElement.hpp"
 #include "OTTImageBuffer.hpp"
 #include "OTTMouse.hpp"
 
@@ -25,7 +26,7 @@ bool OTTGuiContainer::handleMouseEvents(OTTMouse* mouse) {
 
 OTTGuiElement* OTTGuiContainer::add(OTTGuiElement* child) {
 	child->setPositionOffset(x0, y0);
-	children.push_back(std::unique_ptr<OTTGuiElement>(child));
+	children.push_back(child);
 	return child;
 }
 
