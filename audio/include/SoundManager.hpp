@@ -3,6 +3,8 @@
 
 #include <memory>
 
+#define ENABLE_PORT_AUDIO
+
 #ifdef ENABLE_PORT_AUDIO
 
 #include "portaudio.h"
@@ -91,7 +93,7 @@ public:
 	/** Initialize audio stream
 	  * @param mixer Pointer to output audio mixer
 	  */
-	bool init(SoundMixer* mixer);
+	bool init(void* data);
 	
 	/** Terminate audio stream
 	  */

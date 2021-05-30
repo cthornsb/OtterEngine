@@ -22,7 +22,7 @@ SoundManager::~SoundManager(){
 		terminate(); // Terminate stream
 }
 
-bool SoundManager::init(SoundMixer* mixer){
+bool SoundManager::init(void* data){
 	if(bInitialized) // Already initialized
 		return true;
 
@@ -43,7 +43,7 @@ bool SoundManager::init(SoundMixer* mixer){
 		dSampleRate,
 		nFramesPerBuffer,
 		callback,
-		static_cast<void*>(mixer)
+		data
 	);
 	
     if( err != paNoError ){

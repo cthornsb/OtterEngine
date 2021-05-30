@@ -25,7 +25,9 @@ namespace Synthesizers{
 		
 		~SimpleSynth() { }
 		
-		void setAmplitude(const float& A){ fAmplitude = (A <= 1.f ? A : 1.f); }
+		void setAmplitude(const float& A){ 
+			fAmplitude = (A <= 1.f ? A : 1.f); 
+		}
 		
 		void setFrequency(const PianoKeys::Key& key, const int& octave=4){
 			setFrequency(PianoKeys::getFrequency(key, PianoKeys::Modifier::NONE, octave));
@@ -40,23 +42,37 @@ namespace Synthesizers{
 			fPeriod = 1.f / freq;
 		}
 		
-		float getAmplitude() const { return fAmplitude; }
+		float getAmplitude() const { 
+			return fAmplitude; 
+		}
 		
 		/** Return the current frequency (in Hz)
 		  */
-		float getFrequency() const { return fFrequency; }
+		float getFrequency() const { 
+			return fFrequency; 
+		}
 		
 		/** Return the current period (in s)
 		  */
-		float getPeriod() const { return (1.f / fFrequency); }
+		float getPeriod() const { 
+			return (1.f / fFrequency); 
+		}
 		
-		float sample(const float& dt){
+		float sample(const float& dt) override {
 			return (fAmplitude * clamp(userSample(fPhase += dt)));
+		}
+		
+		void sample(const float& dt, float* arr, const unsigned int& N) override {
+			for(unsigned int i = 0; i < N; i++){
+				arr[i] = fAmplitude * clamp(userSample(fPhase += dt));
+			}
 		}
 
 	protected:
 		float fAmplitude;
+		
 		float fFrequency;
+		
 		float fPeriod;
 		
 		virtual float userSample(const float& dt) = 0;

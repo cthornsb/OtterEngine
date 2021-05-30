@@ -21,13 +21,21 @@ public:
 	
 	~AudioSampler() { }
 
-	float getPhase() const { return fPhase; }
+	float getPhase() const { 
+		return fPhase; 
+	}
 
-	float getVolume() const { return fVolume; }
+	float getVolume() const { 
+		return fVolume; 
+	}
 
-	void setVolume(const float& volume) { fVolume = volume; }
+	void setVolume(const float& volume) { 
+		fVolume = volume; 
+	}
 
-	virtual float sample(const float&) { return 0.f; }
+	virtual float sample(const float&) { 
+		return 0.f; 
+	}
 	
 	virtual void sample(const float& timeStep, float* arr, const unsigned int& N);
 	
