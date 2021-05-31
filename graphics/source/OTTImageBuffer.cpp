@@ -117,15 +117,45 @@ void OTTImageBuffer::fillColor(const ColorRGB& color) {
 	}
 }
 
-void OTTImageBuffer::drawSubImage(const unsigned short& x, const unsigned short& y, OTTImageBuffer* buffer) {
-	OTTLogicalColor color;
+void OTTImageBuffer::blendSubImage(const unsigned short& x, const unsigned short& y, OTTImageBuffer* buffer, const float& alpha) {
+	OTTLogicalColor dest(nChannels >= 4);
+	OTTLogicalColor src(buffer->getNumChannels() >= 4);
 	for (unsigned short i = 0; i < buffer->getHeight(); i++) { // Over rows
 		if (y + i >= nHeight) // Invalid image coordinates
 			break;
 		for (unsigned short j = 0; j < buffer->getWidth(); j++) { // Over columns
-			if (!buffer->getPixel(j, i, color))
-				break; // Invalid sub-image coordinates
-			setPixel(x + j, y + i, color);
+			if (!getPixel(x + j, y + i, dest) || !buffer->getPixel(j, i, src)) // Invalid pixel position
+				return;
+			src.setAlpha(alpha);
+			blendPixel(dest, src);
+		}
+	}
+}
+
+void OTTImageBuffer::blendSubImage(const unsigned short& x, const unsigned short& y, OTTImageBuffer* buffer) {
+	OTTLogicalColor dest(nChannels >= 4);
+	OTTLogicalColor src(buffer->getNumChannels() >= 4);
+	for (unsigned short i = 0; i < buffer->getHeight(); i++) { // Over rows
+		if (y + i >= nHeight) // Invalid image coordinates
+			break;
+		for (unsigned short j = 0; j < buffer->getWidth(); j++) { // Over columns
+			if (!getPixel(x + j, y + i, dest) || !buffer->getPixel(j, i, src)) // Invalid pixel position
+				return;
+			blendPixel(dest, src);
+		}
+	}
+}
+
+void OTTImageBuffer::drawSubImage(const unsigned short& x, const unsigned short& y, OTTImageBuffer* buffer) {
+	OTTLogicalColor dest(nChannels >= 4);
+	OTTLogicalColor src(buffer->getNumChannels() >= 4);
+	for (unsigned short i = 0; i < buffer->getHeight(); i++) { // Over rows
+		if (y + i >= nHeight) // Invalid image coordinates
+			break;
+		for (unsigned short j = 0; j < buffer->getWidth(); j++) { // Over columns
+			if (!getPixel(x + j, y + i, dest) || !buffer->getPixel(j, i, src)) // Invalid pixel position
+				return;
+			dest.setColor(src);
 		}
 	}
 }
@@ -491,43 +521,91 @@ size_t OTTImageBuffer::getImageTargets(
 }
 
 void OTTImageBuffer::blendPixel(const unsigned short& px, const unsigned short& py) {
+	blendPixel(px, py, currentDrawColor);
+}
+
+void OTTImageBuffer::blendPixel(const unsigned short& px, const unsigned short& py, const ColorRGB& color) {
 	OTTLogicalColor pixel(nChannels >= 4);
 	if (!getPixel(px, py, pixel)) // Invalid pixel position
 		return;
+	blendPixel(pixel, color);
+}
+
+void OTTImageBuffer::blendPixel(OTTLogicalColor& dest, const ColorRGB& src) const {
 	switch (colorBlendMode) {
 	case BlendMode::NONE:
 		break;
 	case BlendMode::NORMAL:
-		pixel.setColor(currentDrawColor);
+		dest.setColor(src);
 		break;
 	case BlendMode::ADD:
-		pixel += currentDrawColor;
+		dest += src;
 		break;
 	case BlendMode::SUB:
-		pixel -= currentDrawColor;
+		dest -= src;
 		break;
 	case BlendMode::MULT:
-		pixel *= currentDrawColor;
+		dest *= src;
 		break;
 	case BlendMode::DIVIDE:
-		pixel /= currentDrawColor;
+		dest /= src;
 		break;
 	case BlendMode::DIFF:
-		pixel.difference(currentDrawColor);
+		dest.difference(src);
 		break;
 	case BlendMode::DARKEN:
-		pixel.darken(currentDrawColor);
+		dest.darken(src);
 		break;
 	case BlendMode::LIGHTEN:
-		pixel.lighten(currentDrawColor);
+		dest.lighten(src);
 		break;
 	case BlendMode::AVERAGE:
-		pixel.average(currentDrawColor);
+		dest.average(src);
 		break;
 	case BlendMode::REPLACE:
-		pixel.setColor(currentDrawColor);
+		dest.setColor(src);
 		break;
 	default: // Unknown blending mode. Do nothing
 		break;
 	}
 }
+
+void OTTImageBuffer::blendPixel(OTTLogicalColor& dest, const OTTLogicalColor& src) const {
+	switch (colorBlendMode) {
+	case BlendMode::NONE:
+		break;
+	case BlendMode::NORMAL:
+		dest.setColor(src);
+		break;
+	case BlendMode::ADD:
+		dest += src;
+		break;
+	case BlendMode::SUB:
+		dest -= src;
+		break;
+	case BlendMode::MULT:
+		dest *= src;
+		break;
+	case BlendMode::DIVIDE:
+		dest /= src;
+		break;
+	case BlendMode::DIFF:
+		dest.difference(src);
+		break;
+	case BlendMode::DARKEN:
+		dest.darken(src);
+		break;
+	case BlendMode::LIGHTEN:
+		dest.lighten(src);
+		break;
+	case BlendMode::AVERAGE:
+		dest.average(src);
+		break;
+	case BlendMode::REPLACE:
+		dest.setColor(src);
+		break;
+	default: // Unknown blending mode. Do nothing
+		break;
+	}
+}
+

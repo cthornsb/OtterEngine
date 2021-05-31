@@ -29,7 +29,7 @@ public:
 
 	/** Pixel color element access
 	  */
-	unsigned char& operator [] (const unsigned char& index){
+	unsigned char& operator [] (const unsigned char& index) {
 		return pArray[index];
 	}
 
@@ -75,16 +75,36 @@ public:
 	  */
 	void operator /= (const ColorRGB& rhs);
 
+	/** Add a color to this color
+	  * @note Alpha is set to 1
+	  */
+	void operator += (const OTTLogicalColor& rhs);
+
+	/** Subtract a color from this color
+	  * @note Alpha is set to 1
+	  */
+	void operator -= (const OTTLogicalColor& rhs);
+
+	/** Multiply this color by a constant scaling factor
+	  * @note Alpha is set to 1
+	  */
+	void operator *= (const OTTLogicalColor& rhs);
+
+	/** Divide this color by a constant scaling factor
+	  * @note Alpha is set to 1
+	  */
+	void operator /= (const OTTLogicalColor& rhs);
+
 	/** Set pixel data array pointer
 	  */
-	void operator = (unsigned char* rhs){
+	void operator = (unsigned char* rhs) {
 		pArray = rhs;
 	}
 
 	/** Color assignment operator
 	  */
 	void operator = (const ColorRGB& rhs);
-	
+
 	/** Color assigment operator
 	  */
 	void operator = (const OTTLogicalColor& rhs);
@@ -120,15 +140,13 @@ public:
 	/** Return the alpha channel
 	  **/
 	float getA() const {
-		if(bAlpha)
-			return pArray[3] / 255.f;
-		return 1.f;
+		return (bAlpha ? pArray[3] / 255.f : 1.f);
 	}
-	
+
 	/** Get a copy of the current pixel color
 	  */
 	ColorRGB getColor() const {
-		return ColorRGB(pArray[0] / 255.f, pArray[1] / 255.f, pArray[2] / 255.f);
+		return ColorRGB(getR(), getG(), getB(), getA());
 	}
 
 	/** Set the red component
@@ -153,7 +171,7 @@ public:
 	  **/
 	void setAlpha(const float& value) {
 		if (bAlpha)
-			pArray[3] = clampUChar(value * 255);
+			pArray[3] = clampUChar(value);
 	}
 
 	/** Set the color
@@ -192,6 +210,25 @@ public:
 	  */
 	void average(const ColorRGB& color);
 
+	/** Lighten the current color by taking the maximum color components between the current color and an input color
+	  * @note Alpha is set to 1
+	  **/
+	void lighten(const OTTLogicalColor& color);
+
+	/** Darken the current color by taking the minimum color components between the current color and an input color
+	  * @note Alpha is set to 1
+	  **/
+	void darken(const OTTLogicalColor& color);
+
+	/** Compute the difference between each color component of the current color and an input color. The result is guaranteed to be positive
+	  * @note Alpha is set to 1
+	  **/
+	void difference(const OTTLogicalColor& color);
+
+	/** Compute the average between each color component of the current color and an input color, scaled by its alpha value
+	  */
+	void average(const OTTLogicalColor& color);
+
 	/** Compare this color to an input color within a given margin of error
 	  **/
 	bool compareColor(const ColorRGB& color, const float& margin = 0.0f);
@@ -203,7 +240,7 @@ public:
 	/** Reset color to fully transparent black
 	  */
 	void reset();
-	
+
 	/** Clamp input float value to the range 0 to 255 and return as unsigned integer
 	  */
 	static unsigned char clampUChar(const float& value);
@@ -211,6 +248,8 @@ public:
 	/** Clamp input float value to the range 0 to 1 and return as float
 	  */
 	static float clampFloat(const float& value);
+
+	static float getComponentWithOpacity(const unsigned char& comp, const unsigned char& opacity);
 };
 
 #endif

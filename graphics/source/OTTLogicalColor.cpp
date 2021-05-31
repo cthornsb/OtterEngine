@@ -2,17 +2,13 @@
 
 #include "OTTLogicalColor.hpp"
 
-float getComponentWithOpacity(const unsigned char& comp, const unsigned char& opacity) {
-	return (1.f - opacity * (255 - comp) / 65025.f);
-}
-
 void OTTLogicalColor::invert() const {
 	pArray[0] = 255 - pArray[0];
 	pArray[1] = 255 - pArray[1];
 	pArray[2] = 255 - pArray[2];
 }
 
-void OTTLogicalColor::toGrayscale(){
+void OTTLogicalColor::toGrayscale() {
 	// Based on the sRGB convention
 	pArray[0] = clampUChar(pArray[0] / 255.0f * 0.2126f + pArray[1] / 255.0f * 0.7152f + pArray[2] / 255.0f * 0.0722f);
 	pArray[1] = pArray[0];
@@ -55,43 +51,71 @@ ColorRGB OTTLogicalColor::operator / (const float& rhs) const {
 	);
 }
 
-void OTTLogicalColor::operator += (const ColorRGB& rhs){
+void OTTLogicalColor::operator += (const ColorRGB& rhs) {
 	pArray[0] = clampUChar(getR() + getComponentWithOpacity(rhs.r, rhs.a));
 	pArray[1] = clampUChar(getG() + getComponentWithOpacity(rhs.g, rhs.a));
 	pArray[2] = clampUChar(getB() + getComponentWithOpacity(rhs.b, rhs.a));
 	setAlpha(1.f);
 }
 
-void OTTLogicalColor::operator -= (const ColorRGB& rhs){
+void OTTLogicalColor::operator -= (const ColorRGB& rhs) {
 	pArray[0] = clampUChar(getR() - getComponentWithOpacity(rhs.r, rhs.a));
 	pArray[1] = clampUChar(getG() - getComponentWithOpacity(rhs.g, rhs.a));
 	pArray[2] = clampUChar(getB() - getComponentWithOpacity(rhs.b, rhs.a));
 	setAlpha(1.f);
 }
 
-void OTTLogicalColor::operator *= (const ColorRGB& rhs){
+void OTTLogicalColor::operator *= (const ColorRGB& rhs) {
 	pArray[0] = clampUChar(getR() * getComponentWithOpacity(rhs.r, rhs.a));
 	pArray[1] = clampUChar(getG() * getComponentWithOpacity(rhs.g, rhs.a));
 	pArray[2] = clampUChar(getB() * getComponentWithOpacity(rhs.b, rhs.a));
 	setAlpha(1.f);
 }
 
-void OTTLogicalColor::operator /= (const ColorRGB& rhs){
+void OTTLogicalColor::operator /= (const ColorRGB& rhs) {
 	pArray[0] = clampUChar(getR() / getComponentWithOpacity(rhs.r, rhs.a));
 	pArray[1] = clampUChar(getG() / getComponentWithOpacity(rhs.g, rhs.a));
 	pArray[2] = clampUChar(getB() / getComponentWithOpacity(rhs.b, rhs.a));
 	setAlpha(1.f);
 }
 
-void OTTLogicalColor::operator = (const ColorRGB& rhs){
+void OTTLogicalColor::operator += (const OTTLogicalColor& rhs) {
+	pArray[0] = clampUChar(getR() + rhs.getR());
+	pArray[1] = clampUChar(getG() + rhs.getG());
+	pArray[2] = clampUChar(getB() + rhs.getB());
+	setAlpha(1.f);
+}
+
+void OTTLogicalColor::operator -= (const OTTLogicalColor& rhs) {
+	pArray[0] = clampUChar(getR() - rhs.getR());
+	pArray[1] = clampUChar(getG() - rhs.getG());
+	pArray[2] = clampUChar(getB() - rhs.getB());
+	setAlpha(1.f);
+}
+
+void OTTLogicalColor::operator *= (const OTTLogicalColor& rhs) {
+	pArray[0] = clampUChar(getR() * rhs.getR());
+	pArray[1] = clampUChar(getG() * rhs.getG());
+	pArray[2] = clampUChar(getB() * rhs.getB());
+	setAlpha(1.f);
+}
+
+void OTTLogicalColor::operator /= (const OTTLogicalColor& rhs) {
+	pArray[0] = clampUChar(getR() / rhs.getR());
+	pArray[1] = clampUChar(getG() / rhs.getG());
+	pArray[2] = clampUChar(getB() / rhs.getB());
+	setAlpha(1.f);
+}
+
+void OTTLogicalColor::operator = (const ColorRGB& rhs) {
 	pArray[0] = rhs.r;
 	pArray[1] = rhs.g;
 	pArray[2] = rhs.b;
 	setAlpha(rhs.a);
 }
 
-void OTTLogicalColor::operator = (const OTTLogicalColor& rhs){
-	for(int i = 0; i < 3; i++)
+void OTTLogicalColor::operator = (const OTTLogicalColor& rhs) {
+	for (int i = 0; i < 3; i++)
 		pArray[i] = rhs[i];
 	setAlpha(rhs.getA()); // Safely set and get the alpha values (in case they don't exist)
 }
@@ -103,14 +127,14 @@ void OTTLogicalColor::setColor(const ColorRGB& color) {
 	setAlpha(color.a);
 }
 
-void OTTLogicalColor::setColor(const OTTLogicalColor& color){
-	for(int i = 0; i < 3; i++)
+void OTTLogicalColor::setColor(const OTTLogicalColor& color) {
+	for (int i = 0; i < 3; i++)
 		pArray[i] = color[i];
 	setAlpha(color.getA()); // Safely set and get the alpha values (in case they don't exist)
 }
 
-void OTTLogicalColor::setColor(const unsigned char* arr){
-	for(int i = 0; i < (bAlpha ? 4 : 3); i++)
+void OTTLogicalColor::setColor(const unsigned char* arr) {
+	for (int i = 0; i < (bAlpha ? 4 : 3); i++)
 		pArray[i] = arr[i];
 }
 
@@ -147,19 +171,52 @@ void OTTLogicalColor::average(const ColorRGB& color) {
 		if (!nextComp) // Prevent division by zero
 			return 0.f;
 		return (nextComp * (alpha + ((float)prevComp / (float)nextComp) * (1.f - alpha)) / 255.f);
-	};	
+	};
 	pArray[0] = clampUChar((getR() + getComponentAlpha(pArray[0], color.r, color.a / 255.f)) / 2.f);
 	pArray[1] = clampUChar((getG() + getComponentAlpha(pArray[1], color.g, color.a / 255.f)) / 2.f);
 	pArray[2] = clampUChar((getB() + getComponentAlpha(pArray[2], color.b, color.a / 255.f)) / 2.f);
 	setAlpha(1.f);
 }
 
+void OTTLogicalColor::lighten(const OTTLogicalColor& color) {
+	pArray[0] = clampUChar(std::fmaxf(getR(), color.getR()));
+	pArray[1] = clampUChar(std::fmaxf(getG(), color.getG()));
+	pArray[2] = clampUChar(std::fmaxf(getB(), color.getB()));
+	setAlpha(1.f);
+}
+
+void OTTLogicalColor::darken(const OTTLogicalColor& color) {
+	pArray[0] = clampUChar(std::fminf(getR(), color.getR()));
+	pArray[1] = clampUChar(std::fminf(getG(), color.getG()));
+	pArray[2] = clampUChar(std::fminf(getB(), color.getB()));
+	setAlpha(1.f);
+}
+
+void OTTLogicalColor::difference(const OTTLogicalColor& color) {
+	pArray[0] = clampUChar(std::abs(getR() - color.getR()));
+	pArray[1] = clampUChar(std::abs(getG() - color.getG()));
+	pArray[2] = clampUChar(std::abs(getB() - color.getB()));
+	setAlpha(1.f);
+}
+
+void OTTLogicalColor::average(const OTTLogicalColor& color) {
+	auto getComponentAlpha = [](const unsigned char& prevComp, const unsigned char& nextComp, const float& alpha) {
+		if (!nextComp) // Prevent division by zero
+			return 0.f;
+		return (nextComp * (alpha + ((float)prevComp / (float)nextComp) * (1.f - alpha)) / 255.f);
+	};
+	pArray[0] = clampUChar((getR() + color.getR()) / 2.f);
+	pArray[1] = clampUChar((getG() + color.getG()) / 2.f);
+	pArray[2] = clampUChar((getB() + color.getB()) / 2.f);
+	setAlpha(1.f);
+}
+
 bool OTTLogicalColor::compareColor(const ColorRGB& color, const float& margin/*=0.0f*/) {
 	return (
-		(std::abs(getR() - color.r) <= margin) && 
-		(std::abs(getG() - color.g) <= margin) && 
+		(std::abs(getR() - color.r) <= margin) &&
+		(std::abs(getG() - color.g) <= margin) &&
 		(std::abs(getB() - color.b) <= margin)
-	);
+		);
 }
 
 void OTTLogicalColor::dump() const {
@@ -175,7 +232,7 @@ unsigned char OTTLogicalColor::clampUChar(const float& value) {
 		return 255;
 	else if (value < 0.f)
 		return 0;
-	return (unsigned char)(value * 255);
+	return (unsigned char)(value * 255.f);
 }
 
 float OTTLogicalColor::clampFloat(const float& value) {
@@ -186,3 +243,6 @@ float OTTLogicalColor::clampFloat(const float& value) {
 	return (value / 255.f);
 }
 
+float OTTLogicalColor::getComponentWithOpacity(const unsigned char& comp, const unsigned char& opacity) {
+	return (comp * opacity / 65025.f);
+}

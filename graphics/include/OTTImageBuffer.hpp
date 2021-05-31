@@ -227,6 +227,14 @@ public:
 	  **/
 	void fillColor(const ColorRGB& color);
 
+	/** Draw an external image buffer into a region of this buffer with upper left corner at (x,y)
+	  */
+	void blendSubImage(const unsigned short& x, const unsigned short& y, OTTImageBuffer* buffer, const float& alpha);
+
+	/** Draw an external image buffer into a region of this buffer with upper left corner at (x,y)
+	  */
+	void blendSubImage(const unsigned short& x, const unsigned short& y, OTTImageBuffer* buffer);
+
 	/** Copy an external image buffer into a region of this buffer with upper left corner at (x,y)
 	  * This method expects the external image buffer to be smaller than this buffer. All pixels from
 	  * the external buffer will be copied into this one starting at (x,y).
@@ -384,9 +392,21 @@ protected:
 
 	ColorRGB currentDrawColor; ///< Current drawing color for pixel color blending operations
 
-	/** Blend a single pixel color into the image
+	/** Blend the current draw color into the image
 	  */
 	void blendPixel(const unsigned short& px, const unsigned short& py);
+
+	/** Blend a single pixel color into the image
+	  */
+	void blendPixel(const unsigned short& px, const unsigned short& py, const ColorRGB& color);
+
+	/** Blend a single pixel color into the image
+	  */
+	void blendPixel(OTTLogicalColor& dest, const ColorRGB& color) const;
+
+	/** Blend a single logical pixel color into the image
+	  */
+	void blendPixel(OTTLogicalColor& dest, const OTTLogicalColor& src) const;
 };
 
 #endif

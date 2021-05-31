@@ -14,6 +14,7 @@ add_library( OtterCoreObj
 	OTTKeyboard.cpp
 	OTTLogicalColor.cpp
 	OTTMouse.cpp
+	OTTString.cpp
 	OTTSprite.cpp
 	OTTSpriteSet.cpp
 	OTTSystem.cpp
