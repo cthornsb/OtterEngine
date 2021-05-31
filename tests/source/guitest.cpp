@@ -46,8 +46,13 @@ public:
 	}
 
 	void clicked() {
-		envelope1.setDriverSignal(1.f);
-		envelope2.setDriverSignal(1.f);
+		// "Press" the buttons
+		envelope1.trigger(1.f);
+		envelope2.trigger(1.f);
+
+		// Release them
+		envelope1.release();
+		envelope2.release();
 	}
 
 protected:
@@ -84,8 +89,8 @@ protected:
 		setCurrent();
 		
 		// Set decay acceleration for envelopes
-		envelope1.setAcceleration(0.05f);
-		envelope2.setAcceleration(0.025f);
+		envelope1.setReleaseSlope(0.15f);
+		envelope2.setReleaseSlope(0.125f);
 		
 		std::cout << " Press escape to quit" << std::endl;
 
