@@ -8,6 +8,7 @@ add_library( OtterCoreObj
 	OTTCharacterMap.cpp
 	OTTConsole.cpp
 	OTTFrameTimer.cpp
+	OTTHighResTimer.cpp
 	OTTImageBuffer.cpp
 	OTTJoypad.cpp
 	OTTKeyboard.cpp
