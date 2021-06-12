@@ -11,7 +11,7 @@
 #include "PolygonContainer.hpp"
 
 class camera;
-class OTTShader;
+class OTTShader3D;
 class OTTTexture;
 class OTTWindow3D;
 
@@ -139,7 +139,7 @@ public:
 
 	/** Get a const pointer to the shader used to render the object
 	  */
-	const OTTShader* getShader() const {
+	const OTTShader3D* getShader() const {
 		return shader;
 	}
 
@@ -270,7 +270,7 @@ public:
 	  * @param shdr Pointer to the shader to use for rendering this object
 	  * @param bSetChildShaders If set, specified shader will also be set for all child objects (if any)
 	  */
-	void setShader(const OTTShader* shdr, bool bSetChildShaders=false);
+	void setShader(const OTTShader3D* shdr, bool bSetChildShaders=false);
 
 	/** Scale object relative to its current size
 	  */
@@ -433,7 +433,7 @@ protected:
 
 	const object* parent; ///< Pointer to parent object
 
-	const OTTShader* shader; ///< Pointer to an OpenGL shader to use for rendering
+	const OTTShader3D* shader; ///< Pointer to an OpenGL shader to use for rendering
 
 	const OTTTexture* texture; ///< OpenGL texture
 

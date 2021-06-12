@@ -9,7 +9,7 @@
 OTTWindow3D::~OTTWindow3D(){
 }
 
-OTTShader* OTTWindow3D::getShader(const ShaderType& type) {
+OTTShader3D* OTTWindow3D::getShader(const ShaderType& type) {
 	return shaders->get(type);
 }
 

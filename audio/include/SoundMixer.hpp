@@ -52,7 +52,8 @@ public:
 	}
 
 	/** Generic input / output constructor
-	  * @param ch Number of input audio channels
+	  * @param input Number of input audio channels
+	  * @param output Number of output audio channels
 	  */
 	SoundMixer(const unsigned int& input, const unsigned int& output) :
 		UnitTimer(1),

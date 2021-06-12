@@ -5,7 +5,7 @@
 #include <string>
 
 #include "OTTWindow.hpp"
-#include "OTTShader.hpp"
+#include "OTTShader3D.hpp"
 #include "Vector.hpp"
 
 class object;
@@ -39,7 +39,7 @@ public:
 	
 	/** Get a pointer to a loaded shader
 	  */
-	OTTShader* getShader(const ShaderType& type);
+	OTTShader3D* getShader(const ShaderType& type);
 
 	/** Draw a point at position (x, y, z) in the scene
 	  */

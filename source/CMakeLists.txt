@@ -9,7 +9,7 @@ add_library( Otter3dCoreObj
 	ModelStl.cpp
 	object.cpp
 	OTTPlayer.cpp
-	OTTShader.cpp
+	OTTShader3D.cpp
 	OTTTextureManager.cpp
 	OTTWindow3D.cpp
 	plane.cpp

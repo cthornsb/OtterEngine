@@ -97,7 +97,7 @@ void object::setPosition(const Vector3 &pos){
 	position = pos;
 }
 
-void object::setShader(const OTTShader* shdr, bool bSetChildren/*=false*/) {
+void object::setShader(const OTTShader3D* shdr, bool bSetChildren/*=false*/) {
 	bHidden = (shdr == 0x0);
 	shader = shdr; 
 	if (bSetChildren) {
@@ -198,7 +198,7 @@ void object::draw(OTTWindow3D* win, Matrix4* proj, Matrix4* view) {
 
 	// Draw all child objects (if any)
 	for (std::vector<object*>::const_iterator ch = children.cbegin(); ch != children.cend(); ch++) { 
-		const OTTShader* childShader = (*ch)->getShader(); // Child objects may have different shaders than the parent
+		const OTTShader3D* childShader = (*ch)->getShader(); // Child objects may have different shaders than the parent
 		if (!childShader)
 			continue;
 

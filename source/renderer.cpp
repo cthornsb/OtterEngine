@@ -143,9 +143,9 @@ int main(){
 
 	// Build shader program
 	ShaderData data;
-	OTTShader shader(getAssetsPath("Shaders/test.vert"), getAssetsPath("Shaders/test.frag"));
+	OTTShader3D shader(getAssetsPath("Shaders/test.vert"), getAssetsPath("Shaders/test.frag"));
 	shader.setShaderEnableFunction(testShaderEnable);
-	shader.setShaderDisableFunction(OTTShader::unbindObjectTexture);
+	shader.setShaderDisableFunction(OTTShader3D::unbindObjectTexture);
 	shader.setShaderDataPointer(&data);
 
 	// Set object shaders
