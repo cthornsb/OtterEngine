@@ -136,6 +136,7 @@ if(INSTALL_LIBRARIES)
 		Otter3dCore 
 		OtterAudio
 		OtterMath
+		OtterGui
 		NAMESPACE Ott::
 		FILE "${INSTALL_SHARE_DIR}/OtterExport.cmake"
 	)
