@@ -1,5 +1,4 @@
 #include <iostream>
-#include <fstream>
 
 #include "OTTCharacterMap.hpp"
 #include "OTTWindow.hpp"
@@ -33,6 +32,9 @@ OTTCharacterMap::OTTCharacterMap(const std::string& fname) :
 	nLength(nWidth * nHeight),
 	nBitsPerPixel(1),
 	nColorsPerPixel(2),
+	nCursorX(0),
+	nCursorY(0),
+	cursorAlignment(TextAlignment::TOP_LEFT),
 	palette{ Colors::BLACK, Colors::WHITE }, // background, foreground
 	cmap(128, OTTBitmap(nWidth, nHeight, 1, 0x0))
 {
@@ -153,4 +155,50 @@ void OTTCharacterMap::drawString(
 		}
 		sx += nWidth;
 	}
+}
+
+void OTTCharacterMap::drawString(
+	const std::string& str,
+	OTTImageBuffer* buffer,
+	const unsigned char& alphaColor/* = 0xff*/,
+	bool invert/* = false*/
+) {
+	unsigned short px = nCursorX;
+	unsigned short py = nCursorY;
+	switch (cursorAlignment) {
+	case TextAlignment::TOP_LEFT:
+		break;
+	case TextAlignment::TOP_CENTER:
+		px -= (str.length() * nWidth) / 2;
+		break;
+	case TextAlignment::TOP_RIGHT:
+		px -= str.length() * nWidth;
+		break;
+	case TextAlignment::MIDDLE_LEFT:
+		py -= nHeight / 2;
+		break;
+	case TextAlignment::MIDDLE_CENTER:
+		px -= (str.length() * nWidth) / 2;
+		py -= nHeight / 2;
+		break;
+	case TextAlignment::MIDDLE_RIGHT:
+		px -= str.length() * nWidth;
+		py -= nHeight / 2;
+		break;
+	case TextAlignment::BOTTOM_LEFT:
+		py -= nHeight;
+		break;
+	case TextAlignment::BOTTOM_CENTER:
+		px -= (str.length() * nWidth) / 2;
+		py -= nHeight;
+		break;
+	case TextAlignment::BOTTOM_RIGHT:
+		px -= str.length() * nWidth;
+		py -= nHeight;
+		break;
+	default: // Default to top left alignment
+		break;
+	}
+	drawString(str, px, py, buffer, alphaColor, invert);
+	nCursorY += nHeight;
 }

@@ -14,6 +14,18 @@ class OTTImageBuffer;
 
 class OTTCharacterMap {
 public:
+	enum class TextAlignment {
+		TOP_LEFT,
+		TOP_CENTER,
+		TOP_RIGHT,
+		MIDDLE_LEFT,
+		MIDDLE_CENTER,
+		MIDDLE_RIGHT,
+		BOTTOM_LEFT,
+		BOTTOM_CENTER,
+		BOTTOM_RIGHT
+	};
+
 	/** Default constructor
 	  */
 	OTTCharacterMap() = delete;
@@ -83,8 +95,20 @@ public:
 		bTransparency = state;
 	}
 
-	/** Load ascii character bitmaps from an input file.
-	  * 
+	/** Set text string output alignment
+	  */
+	void setTextAlignment(const TextAlignment& alignment) {
+		cursorAlignment = alignment;
+	}
+
+	/** Set text string output cursor position
+	  */
+	void setCursorPosition(const unsigned short& px, const unsigned short& py) {
+		nCursorX = px;
+		nCursorY = py;
+	}
+
+	/** Load ascii character bitmaps from an input file
 	  */
 	bool loadCharacterBitmaps(std::ifstream& ifile, OTTBitmap::bitmapDecodeFunction func = 0x0);
 
@@ -94,6 +118,16 @@ public:
 		const std::string& str,
 		const unsigned short& x0,
 		const unsigned short& y0,
+		OTTImageBuffer* buffer,
+		const unsigned char& alphaColor = 0xff,
+		bool invert = false
+	);
+
+	/** Draw character string to external RAM image buffer at current cursor position.
+	  * Vertical cursor position is automatically advanced by font height after line is printed.
+	  */
+	void drawString(
+		const std::string& str,
 		OTTImageBuffer* buffer,
 		const unsigned char& alphaColor = 0xff,
 		bool invert = false
@@ -115,6 +149,12 @@ protected:
 	unsigned short nBitsPerPixel; ///< Number of color bits per pixel (color depth)
 
 	unsigned short nColorsPerPixel; ///< Number of possible colors per pixel (color depth)
+
+	unsigned short nCursorX; ///< Current horizontal cursor position
+
+	unsigned short nCursorY; ///< Current vertical cursor position
+
+	TextAlignment cursorAlignment; ///< Current horizontal text alignment
 
 	std::vector<ColorRGB> palette; ///< Font color palette
 
