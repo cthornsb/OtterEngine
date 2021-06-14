@@ -41,7 +41,7 @@ bool OTTGuiButton::onUserMouseExit(const int& x, const int& y) {
 bool OTTGuiButton::onUserMousePressed(const int& x, const int& y, const unsigned char& buttons) {
 	bState = true;
 	if (onStateChanged) {
-		(*onStateChanged)(bState);
+		(*onStateChanged)(this, bState);
 	}
 	return true;
 }
@@ -49,7 +49,7 @@ bool OTTGuiButton::onUserMousePressed(const int& x, const int& y, const unsigned
 bool OTTGuiButton::onUserMouseReleased(const int& x, const int& y, const unsigned char& buttons) {
 	bState = false;
 	if (onStateChanged) {
-		(*onStateChanged)(bState);
+		(*onStateChanged)(this, bState);
 	}
 	return false;
 }

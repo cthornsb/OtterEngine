@@ -8,9 +8,9 @@ class OTTMouse;
 
 class OTTGuiElement : public OTTGuiFrame {
 public:
-	typedef void (*buttonAction)(bool);
+	typedef void (*buttonAction)(OTTGuiElement*, bool);
 
-	typedef void (*stateChanged)(bool);
+	typedef void (*stateChanged)(OTTGuiElement*, bool);
 
 	OTTGuiElement();
 

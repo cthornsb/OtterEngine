@@ -44,13 +44,13 @@ bool OTTGuiElement::update(OTTMouse* mouse) {
 			if (!bPressed[i] && ((buttons & (0x1 << i)) == 0x1)) { // Button was just clicked on
 				bPressed[i] = true;
 				if (onButtonPressed[i])
-					(*onButtonPressed[i])(true);
+					(*onButtonPressed[i])(this, true);
 				this->onUserMousePressed(x - x0, y - y0, buttons);
 			}
 			if (bPressed[i] && ((buttons & (0x1 << i)) == 0x0)) { // Button was just released
 				bPressed[i] = false;
 				if (onButtonReleased[i])
-					(*onButtonReleased[i])(false);
+					(*onButtonReleased[i])(this, false);
 				this->onUserMouseReleased(x - x0, y - y0, buttons);
 			}
 			if (bPressed[i]) {

@@ -45,7 +45,7 @@ bool OTTGuiCheckbox::onUserMouseExit(const int& x, const int& y) {
 bool OTTGuiCheckbox::onUserMousePressed(const int& x, const int& y, const unsigned char& buttons) {
 	bState = !bState;
 	if (onStateChanged) {
-		(*onStateChanged)(bState);
+		(*onStateChanged)(this, bState);
 	}
 	return bState;
 }

@@ -47,7 +47,7 @@ bool OTTGuiSlider::onUserMouseEnter(const int& x, const int& y) {
 
 bool OTTGuiSlider::onUserMouseExit(const int& x, const int& y) {
 	if (bState && onEditingFinished) {
-		(*onEditingFinished)(true);
+		(*onEditingFinished)(this, true);
 	}
 	bState = false;
 	return false;
@@ -56,7 +56,7 @@ bool OTTGuiSlider::onUserMouseExit(const int& x, const int& y) {
 bool OTTGuiSlider::onUserMousePressed(const int& x, const int& y, const unsigned char& buttons) {
 	bState = true;
 	if (onStateChanged) {
-		(*onStateChanged)(bState);
+		(*onStateChanged)(this, bState);
 	}
 	return true;
 }
@@ -64,10 +64,10 @@ bool OTTGuiSlider::onUserMousePressed(const int& x, const int& y, const unsigned
 bool OTTGuiSlider::onUserMouseReleased(const int& x, const int& y, const unsigned char& buttons) {
 	bState = false;
 	if (onStateChanged) {
-		(*onStateChanged)(bState);
+		(*onStateChanged)(this, bState);
 	}
 	if (onEditingFinished) {
-		(*onEditingFinished)(true);
+		(*onEditingFinished)(this, true);
 	}
 	return false;
 }

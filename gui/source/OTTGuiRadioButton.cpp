@@ -44,7 +44,7 @@ bool OTTGuiRadioButton::onUserMouseExit(const int& x, const int& y) {
 bool OTTGuiRadioButton::onUserMousePressed(const int& x, const int& y, const unsigned char& buttons) {
 	bState = true;
 	if (onStateChanged) {
-		(*onStateChanged)(bState);
+		(*onStateChanged)(this, bState);
 	}
 	return true;
 }
@@ -52,7 +52,7 @@ bool OTTGuiRadioButton::onUserMousePressed(const int& x, const int& y, const uns
 bool OTTGuiRadioButton::onUserMouseReleased(const int& x, const int& y, const unsigned char& buttons) {
 	bState = false;
 	if (onStateChanged) {
-		(*onStateChanged)(bState);
+		(*onStateChanged)(this, bState);
 	}
 	return false;
 }
