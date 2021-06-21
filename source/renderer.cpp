@@ -3,6 +3,7 @@
 #include <cmath>
 #include <vector>
 
+#include "OTTSystem.hpp" // ott::getAssetsPath
 #include "OTTWindow3D.hpp"
 #include "OTTTexture.hpp"
 #include "OTTTextureManager.hpp"
@@ -10,7 +11,7 @@
 #include "OTTJoypad.hpp"
 #include "OTTPlayer.hpp"
 
-#include "Globals.hpp"
+#include "Constants.hpp"
 #include "Graphics.hpp"
 #include "triangle.hpp"
 #include "camera.hpp"
@@ -20,19 +21,6 @@
 #include "scene.hpp"
 #include "Matrix.hpp"
 #include "Vector.hpp"
-
-#ifdef ASSETS_DIRECTORY
-// Local assets directory path string, to avoid hard-coded filenames.
-const std::string assetsDirectory = ASSETS_DIRECTORY;
-#else
-// Local assets directory path string, to avoid hard-coded filenames.
-const std::string assetsDirectory = ".";
-#endif
-
-// Get the local system path for an assets file
-std::string getAssetsPath(const std::string& filename) {
-	return std::string(assetsDirectory + "/" + filename);
-}
 
 constexpr unsigned char KEYBOARD_W = 0x77;
 constexpr unsigned char KEYBOARD_A = 0x61;
@@ -92,11 +80,11 @@ int main(){
 	//Primitives::Circle myShape(Vector3(), 1, 12);
 	//Primitives::Cylinder myShape(Vector3(), 1, 1, 12);
 	//Primitives::Cone myShape(Vector3(), 1, 1, 12);
-	//ModelStl myShape(getAssetsPath("Models/Spill_Rat.stl"));
+	//ModelStl myShape(ott::getAssetsPath("Models/Spill_Rat.stl"));
 
 	// Build the floor
 	Primitives::Plane floor(Vector3(), 20.f, 20.f);
-	floor.setRotation(-pi / 2, 0, 0);
+	floor.setRotation(-ott::pi / 2, 0, 0);
 
 	// Build the walls
 	Primitives::Plane walls[4] = {
@@ -106,9 +94,9 @@ int main(){
 		Primitives::Plane(Vector3(0.f, 2.5f, -10.f), 20.f, 5.f)  // Not rotated
 	};
 
-	walls[0].setRotation(0.f, 3 * pi / 2, 0.f);
-	walls[1].setRotation(0.f, pi / 2, 0.f);
-	walls[2].setRotation(0.f, pi, 0.f);
+	walls[0].setRotation(0.f, 3 * ott::pi / 2, 0.f);
+	walls[1].setRotation(0.f, ott::pi / 2, 0.f);
+	walls[2].setRotation(0.f, ott::pi, 0.f);
 
 	Primitives::Cube boxes[4] = {
 		Primitives::Cube(Vector3(-5.f, 1.5f, 5.f), 3.f, 3.f, 3.f),
@@ -143,7 +131,7 @@ int main(){
 
 	// Build shader program
 	ShaderData data;
-	OTTShader3D shader(getAssetsPath("Shaders/test.vert"), getAssetsPath("Shaders/test.frag"));
+	OTTShader3D shader(ott::getAssetsPath("Shaders/test.vert"), ott::getAssetsPath("Shaders/test.frag"));
 	shader.setShaderEnableFunction(testShaderEnable);
 	shader.setShaderDisableFunction(OTTShader3D::unbindObjectTexture);
 	shader.setShaderDataPointer(&data);
@@ -168,10 +156,10 @@ int main(){
 
 	// Load textures
 	OTTTextureManager* textures = &OTTTextureManager::getInstance();
-	textures->loadTexture(getAssetsPath("Textures/Floor.jpg"), "floor");
-	textures->loadTexture(getAssetsPath("Textures/Brick.jpg"), "brick");
-	textures->loadTexture(getAssetsPath("Textures/crate.jpg"), "crate");
-	textures->loadTexture(getAssetsPath("Textures/dumbDice.png"), "dice");
+	textures->loadTexture(ott::getAssetsPath("Textures/Floor.jpg"), "floor");
+	textures->loadTexture(ott::getAssetsPath("Textures/Brick.jpg"), "brick");
+	textures->loadTexture(ott::getAssetsPath("Textures/crate.jpg"), "crate");
+	textures->loadTexture(ott::getAssetsPath("Textures/dumbDice.png"), "dice");
 
 	// Set object textures (be sure to add the objects to the scene first)
 	textures->setTexture(&floor, "floor");
@@ -181,9 +169,9 @@ int main(){
 		textures->setTexture(&boxes[i], "crate");
 	}
 
-	WrappedValue pitch(0, -pi, pi);
-	WrappedValue yaw(0, -pi, pi);
-	WrappedValue theta(0, 0, pi * 2);
+	WrappedValue pitch(0, -ott::pi, ott::pi);
+	WrappedValue yaw(0, -ott::pi, ott::pi);
+	WrappedValue theta(0, 0, ott::pi * 2);
 
 	// Set the camera movement speed multiplier
 	const float cameraMoveRate = 3.f;
@@ -212,7 +200,7 @@ int main(){
 	data.lightDir   = Vector3(0.f, 0.f, 1.f);
 	data.lightPos   = Vector3(0.f, 2.5f, 0.f);
 	data.lightIntensity = 100.f;
-	data.lightCosAngle = std::cos(30.f * deg2rad);
+	data.lightCosAngle = std::cos(30.f * ott::deg2rad);
 	data.lightDropoff = 0.5f;
 
 	// "Animate" the object by rotating it and moving the camera
@@ -281,7 +269,7 @@ int main(){
 		//myShape.setPosition(Vector3(1.f * std::sin(theta.get()), 1.f * std::cos(theta.get()), 2.5f));
 		
 		// Rotate the object
-		myShape.setRotation(-pi / 2, 0, theta.get() + pi / 2); // Absolute rotation
+		myShape.setRotation(-ott::pi / 2, 0, theta.get() + ott::pi / 2); // Absolute rotation
 
 		// Lock dynamic light source to the camera
 		data.lightPos = cam.getPosition();

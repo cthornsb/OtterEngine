@@ -3,11 +3,11 @@
 
 #include "camera.hpp"
 #include "object.hpp"
-#include "Globals.hpp"
+#include "Constants.hpp"
 
 camera::camera() :
 	plane(),
-	fov(pi/2), // radians
+	fov(ott::pi/2), // radians
 	L(50E-3f), // m
 	A(640.0f/480), 
 	W(0),
@@ -16,9 +16,9 @@ camera::camera() :
 	uX(1,0,0),
 	uY(0,1,0),
 	uZ(0,0,1),
-	pitchAngle(0, -pi/2, pi/2, true),
-	rollAngle(0, -pi/2, pi/2, true),
-	yawAngle(0, -pi, pi)
+	pitchAngle(0, -ott::pi/2, ott::pi/2, true),
+	rollAngle(0, -ott::pi/2, ott::pi/2, true),
+	yawAngle(0, -ott::pi, ott::pi)
 { 
 	initialize();
 }
@@ -48,12 +48,12 @@ Matrix4* camera::getViewMatrix() {
 }
 
 void camera::setFOV(const float &fov_){ 
-	fov = fov_*deg2rad; 
+	fov = fov_ * ott::deg2rad;
 	computeViewingPlane();
 }
 
 void camera::setFocalLength(const float &length){
-	L = length*1E-3f;
+	L = length * 1E-3f;
 	computeViewingPlane();
 }
 
@@ -229,7 +229,7 @@ float camera::getZDepth(const Vector3& p) const {
 }
 
 void camera::dump() const {
-	std::cout << " FOV:    " << fov*180/pi << " degrees\n";
+	std::cout << " FOV:    " << fov * ott::rad2deg << " degrees\n";
 	std::cout << " f:      " << L << " m\n";
 	std::cout << " A:      " << A << "\n";
 	std::cout << " Width:  " << W << " m\n";

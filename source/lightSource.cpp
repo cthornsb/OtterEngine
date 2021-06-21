@@ -1,6 +1,5 @@
 #include <cmath>
 
-#include "Globals.hpp"
 #include "lightSource.hpp"
 #include "Vertex.hpp"
 

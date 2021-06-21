@@ -1,11 +1,11 @@
 #include <cmath> // sqrtf
 
-#include "Globals.hpp"
+#include "Constants.hpp"
 #include "Primitives.hpp"
 
 void approximateCircle(std::vector<Vector2>& coords, const int& nVertices, const float& dR=0.5f) {
 	// Add all vertices
-	float angularStep = twoPi / nVertices;
+	float angularStep = ott::twoPi / nVertices;
 	float currentAngle = 0;
 	for (int i = 0; i < nVertices; i++) { // Add perimeter vertices
 		// The negative x coordinate ensures proper winding when viewing down the Z axis
@@ -275,8 +275,8 @@ void Primitives::Sphere::userBuild() {
 Vector2 Primitives::Sphere::computeUV(const Vector3& surfPos) const {
 	Vector3 uD = (surfPos * -1).normalize();
 	return Vector2(
-		0.5f + std::atan2(uD[0], uD[2]) / (2 * pi),
-		0.5f - std::asin(uD[1]) / pi
+		0.5f + std::atan2(uD[0], uD[2]) / (ott::twoPi),
+		0.5f - std::asin(uD[1]) / ott::pi
 	);
 }
 

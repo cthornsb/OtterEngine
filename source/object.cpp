@@ -2,7 +2,7 @@
 #include <algorithm> // find
 #include <float.h>
 
-#include "Globals.hpp"
+#include "Constants.hpp"
 #include "object.hpp"
 #include "camera.hpp"
 #include "Vector.hpp"
@@ -25,9 +25,9 @@ object::object() :
 	uZ(0.f, 0.f, 1.f),
 	center(),
 	scaleFactor(1.f, 1.f, 1.f),
-	pitchAngle(0, 0, 2 * pi),
-	rollAngle(0, 0, 2 * pi),
-	yawAngle(0, 0, 2 * pi),
+	pitchAngle(0, 0, 2 * ott::pi),
+	rollAngle(0, 0, 2 * ott::pi),
+	yawAngle(0, 0, 2 * ott::pi),
 	maxSize(),
 	minSize(),
 	vertices(),

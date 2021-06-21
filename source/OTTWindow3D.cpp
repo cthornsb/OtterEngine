@@ -1,7 +1,7 @@
 #include <iostream>
 #include <map>
 
-#include "Globals.hpp"
+#include "Constants.hpp"
 #include "OTTWindow3D.hpp"
 #include "OTTTexture.hpp"
 #include "object.hpp"
@@ -173,9 +173,9 @@ void OTTWindow3D::translateModelviewMatrix(const Vector3& pos) {
 }
 
 void OTTWindow3D::rotateModelviewMatrix(const float& x, const float& y, const float& z) {
-	glRotatef(x * rad2deg, 1.f, 0.f, 0.f); // Rotation about x-axis (pitch)
-	glRotatef(y * rad2deg, 0.f, 1.f, 0.f); // Rotation about y-axis (yaw)
-	glRotatef(z * rad2deg, 0.f, 0.f, 1.f); // Rotation about z-axis (roll)
+	glRotatef(x * ott::rad2deg, 1.f, 0.f, 0.f); // Rotation about x-axis (pitch)
+	glRotatef(y * ott::rad2deg, 0.f, 1.f, 0.f); // Rotation about y-axis (yaw)
+	glRotatef(z * ott::rad2deg, 0.f, 0.f, 1.f); // Rotation about z-axis (roll)
 }
 
 void OTTWindow3D::reshape3D() {
