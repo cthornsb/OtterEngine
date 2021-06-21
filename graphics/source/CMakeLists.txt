@@ -18,7 +18,6 @@ add_library( OtterCoreObj
 	OTTString.cpp
 	OTTSprite.cpp
 	OTTSpriteSet.cpp
-	OTTSystem.cpp
 	OTTTexture.cpp
 	OTTTextParser.cpp
 	OTTWindow.cpp
@@ -44,10 +43,31 @@ else()
 	)
 endif()
 
+# Build system library
+if(WIN32 OR INSTALL_STATIC_LIBRARIES)
+	add_library( OtterSystem
+		STATIC 
+		OTTSystem.cpp
+	)
+else()
+	add_library( OtterSystem
+		SHARED 
+		OTTSystem.cpp
+	)
+endif()
+
+if(ASSETS_DIRECTORY)
+	message(STATUS "Assets directory: ${ASSETS_DIRECTORY}")
+	target_compile_definitions( OtterSystem
+		PUBLIC 
+		ASSETS_DIRECTORY="${ASSETS_DIRECTORY}"
+	)
+endif()
+
 if(INSTALL_LIBRARIES)
 	# Install libraries
 	install(
-		TARGETS OtterCore
+		TARGETS OtterCore OtterSystem
 		EXPORT OtterConfig
 		LIBRARY DESTINATION ${INSTALL_LIB_DIR}
 		ARCHIVE DESTINATION ${INSTALL_LIB_DIR}

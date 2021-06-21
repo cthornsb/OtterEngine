@@ -57,4 +57,13 @@ namespace ott {
 		}
 		return dir;
 	}
+
+	std::string getAssetsPath(const std::string& filename/*=""*/) {
+		// Get assets directory path string, to avoid hard-coded filenames
+#ifdef ASSETS_DIRECTORY
+		return (std::string(ASSETS_DIRECTORY) + "/" + filename);
+#else
+		return ("./" + filename);
+#endif
+	}
 }
