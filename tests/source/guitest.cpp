@@ -15,11 +15,11 @@
 #include "WrappedValue.hpp"
 #include "DecayEnvelope.hpp"
 
-void buttonClicked(bool);
+void buttonClicked(OTTGuiElement*, bool);
 
-void stateChanged(bool);
+void stateChanged(OTTGuiElement*, bool);
 
-void editingFinished(bool);
+void editingFinished(OTTGuiElement*, bool);
 
 class SpriteApp : public OTTApplication {
 public:
@@ -106,7 +106,7 @@ protected:
 		gui.draw(&buffer);
 		
 		// Update window events
-		processEvents();
+		//processEvents(); // Not needed, OTTApplication calls this every loop
 
 		// Check for button events
 		gui.handleMouseEvents(&mouse);
@@ -147,16 +147,16 @@ private:
 // Declare a new 2d application
 SpriteApp app;
 
-void buttonClicked(bool state) {
+void buttonClicked(OTTGuiElement*, bool state) {
 	if(state)
 		app.clicked();	
 }
 
-void stateChanged(bool) {
+void stateChanged(OTTGuiElement*, bool) {
 	std::cout << " TOGGLED\n";
 }
 
-void editingFinished(bool) {
+void editingFinished(OTTGuiElement*, bool) {
 	std::cout << " DONE\n";
 }
 

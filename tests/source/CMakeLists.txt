@@ -4,6 +4,7 @@ add_executable( apptest
 )
 target_link_libraries( apptest 
 	OtterCore
+	OtterSystem
 	OtterGui
 	OtterMath	
 	OpenGL::GL
@@ -24,6 +25,7 @@ add_executable( guitest
 )
 target_link_libraries( guitest 
 	OtterCore
+	OtterSystem
 	OtterGui
 	OtterMath	
 	OpenGL::GL
@@ -44,6 +46,7 @@ add_executable( animtest
 )
 target_link_libraries( animtest 
 	OtterCore
+	OtterSystem
 	OtterGui
 	OtterMath	
 	OpenGL::GL
@@ -54,6 +57,48 @@ target_link_libraries( animtest
 )
 if(WIN32)
 	target_link_libraries( animtest 
+		Winmm
+	)
+endif()
+
+#Build OTTBitmap and OTTCharacterMap test program
+add_executable( consoletest 
+	consoletest.cpp
+)
+target_link_libraries( consoletest 
+	OtterCore
+	OtterSystem
+	OtterGui
+	OtterMath	
+	OpenGL::GL
+	OpenGL::GLU
+	${GLFW3_LIBRARY}
+	GLEW::GLEW
+	${SOIL_LIBRARY}
+)
+if(WIN32)
+	target_link_libraries( consoletest 
+		Winmm
+	)
+endif()
+
+#Build OTTString test program
+add_executable( stringtest 
+	stringtest.cpp
+)
+target_link_libraries( stringtest 
+	OtterCore
+	OtterSystem
+	OtterGui
+	OtterMath	
+	OpenGL::GL
+	OpenGL::GLU
+	${GLFW3_LIBRARY}
+	GLEW::GLEW
+	${SOIL_LIBRARY}
+)
+if(WIN32)
+	target_link_libraries( stringtest 
 		Winmm
 	)
 endif()
