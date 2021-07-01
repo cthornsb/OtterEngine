@@ -14,6 +14,7 @@ bool SoundBuffer::getSample(float* output){
 		output[0] = left();
 		output[1] = right();
 		popSample();
+		lock.unlock();
 		return true;
 	}
 	else{ // Sample buffer is empty D:
