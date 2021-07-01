@@ -3,8 +3,6 @@
 
 #include <memory>
 
-#define ENABLE_PORT_AUDIO
-
 #ifdef ENABLE_PORT_AUDIO
 
 #include "portaudio.h"

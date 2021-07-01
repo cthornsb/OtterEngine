@@ -129,8 +129,8 @@ int SoundManager::defaultCallback(
 	PaStreamCallbackFlags statusFlags,
 	void *data )
 {
-	float* out = static_cast<float*>(output);
-	SoundMixer* audio = static_cast<SoundMixer*>(data);
+	float* out = reinterpret_cast<float*>(output);
+	SoundMixer* audio = reinterpret_cast<SoundMixer*>(data);
 	audio->getSamples(out, framesPerBuffer);
 	return 0;
 }
