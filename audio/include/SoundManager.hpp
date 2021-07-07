@@ -11,8 +11,6 @@ typedef int (*portCallback)( const void*, void*, unsigned long, const PaStreamCa
 
 #endif // ifdef ENABLE_PORT_AUDIO
 
-class SoundMixer;
-
 class SoundManager{
 public:
 	/** Terminate audio stream

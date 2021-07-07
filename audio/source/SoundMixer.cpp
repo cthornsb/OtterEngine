@@ -2,9 +2,15 @@
 
 #include "SoundMixer.hpp"
 
-void SoundMixer::get(const unsigned int& ch, float& sample) {
-	if(ch < nOutputChannels)
-		sample = fOutputSamples[ch];
+float SoundMixer::get(const unsigned int& ch) const {
+	return (ch < nOutputChannels ? ((1.f + fOffsetDC) * fMasterVolume * fOutputVolume[ch] * fOutputSamples[ch]) - fOffsetDC : 0.f);
+}
+
+bool SoundMixer::get(const unsigned int& ch, float& sample) const {
+	if (ch >= nOutputChannels)
+		return false;
+	sample = get(ch);
+	return true;
 }
 
 void SoundMixer::setBalance(const float& bal){
@@ -36,8 +42,8 @@ bool SoundMixer::update(){
 		for(unsigned int j = 0; j < nInputChannels; j++){ // Over input channels
 			fOutputSamples[i] += fInputVolume[j] * (bSendInputToOutput[i][j] ? fInputSamples[j] : 0.f);
 		}
-		// Normalize audio output and apply master and channel volumes
-		fOutputSamples[i] = ((1.f + fOffsetDC) * fMasterVolume * fOutputVolume[i] * (fOutputSamples[i] / nInputChannels)) - fOffsetDC; // Translate to range [-DC, 1]
+		// Normalize audio output
+		fOutputSamples[i] /= nInputChannels;
 	}
 	if(bMonoOutput){ // Re-mix for mono output
 		float fAverage = 0.f;
@@ -59,6 +65,6 @@ void SoundMixer::rollover(){
 	reload(); // Refill timer period
 	if(bModified) // Update output samples if one or more input samples were modified
 		update();
-	pushSample(fOutputSamples[0], fOutputSamples[1]); // Push current sample onto the fifo buffer (mutex protected)
+	pushSample(get(0), get(1)); // Push current sample onto the fifo buffer
 }
 

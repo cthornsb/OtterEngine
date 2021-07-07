@@ -79,9 +79,22 @@ public:
 	  */
 	~SoundMixer() { }
 
-	/** Get the current sample for one of the output channels
+	/** Direct element access operator for current raw output samples (no output volume applied)
 	  */
-	void get(const unsigned int& ch, float& sample);
+	float operator [](const unsigned int& ch) const {
+		return fOutputSamples[ch];
+	}
+
+	/** Get the current sample for one of the output channels.
+	  * Apply master output volume, output channel volumes, and translate to range [-DC, 1].
+	  * If an invalid output channel number is specified, 0 will be returned.
+	  */
+	float get(const unsigned int& ch) const ;
+
+	/** Get the current sample for one of the output channels
+	  * @return True if ch is a valid output channel number
+	  */
+	bool get(const unsigned int& ch, float& sample) const ;
 
 	/** Get a pointer to the input sample buffer
 	  */
@@ -228,8 +241,8 @@ private:
 	
 	std::vector<float> fOutputVolume; ///< Output channel volume
 
-	std::vector<float> fOutputSamples; ///< Output audio sample buffer for output channels
-	
+	std::vector<float> fOutputSamples; ///< Raw output audio sample buffer with no output volume modification
+
 	std::vector<float> fInputVolume; ///< Volumes for all input audio channels
 
 	std::vector<float> fInputSamples; ///< Audio sample buffer for audio inputs
