@@ -519,19 +519,19 @@ namespace MidiFile{
 		unsigned int nDeltaTime; ///< Midi event delta-time read from midi file
 	}; // class TrackEvent
 
-	class MidiFileReader{
+	class MidiFileRecorder{
 	public:
 		/** Default file constructor
 		  */
-		MidiFileReader();
+		MidiFileRecorder();
 
 		/** Midi filename constructor
 		  */
-		MidiFileReader(const std::string& filename, const std::string& title = "");
+		MidiFileRecorder(const std::string& filename, const std::string& title = "");
 
 		/** Destructor
 		  */	
-		~MidiFileReader() { }
+		~MidiFileRecorder() { }
 		
 		/** Set the input clock to output midi clock conversion factor (M) such that Tin = Tmidi * M
 		  */

@@ -437,7 +437,7 @@ bool TrackEvent::read(MidiChunk& chunk){
 	return true;
 }
 
-MidiFileReader::MidiFileReader() :
+MidiFileRecorder::MidiFileRecorder() :
 	bFirstNote(true),
 	bFinalized(false),
 	nTime(0),
@@ -464,14 +464,14 @@ MidiFileReader::MidiFileReader() :
 	midiTempo(120);
 }
 
-MidiFileReader::MidiFileReader(const std::string& filename, const std::string& title/*=""*/) :
-	MidiFileReader()
+MidiFileRecorder::MidiFileRecorder(const std::string& filename, const std::string& title/*=""*/) :
+	MidiFileRecorder()
 {
 	sFilename = filename;
 	sTrackname = title;
 }
 
-void MidiFileReader::press(const unsigned char& ch, const unsigned int& t, const float& freq){
+void MidiFileRecorder::press(const unsigned char& ch, const unsigned int& t, const float& freq){
 	if(ch >= 16)
 		return;
 	unsigned int clkT = (unsigned int)(t * fClockMultiplier);
@@ -491,7 +491,7 @@ void MidiFileReader::press(const unsigned char& ch, const unsigned int& t, const
 	nTime = clkT; // Update midi clock
 }
 
-void MidiFileReader::release(const unsigned char& ch, const unsigned int& t){
+void MidiFileRecorder::release(const unsigned char& ch, const unsigned int& t){
 	if(ch >= 16 || (bNotePressed[ch] == false))
 		return;
 	unsigned int clkT = (unsigned int)(t * fClockMultiplier);
@@ -502,7 +502,7 @@ void MidiFileReader::release(const unsigned char& ch, const unsigned int& t){
 	nTime = clkT; // Update midi clock
 }
 
-void MidiFileReader::setMidiInstrument(const unsigned char& ch, const unsigned char& nPC) {
+void MidiFileRecorder::setMidiInstrument(const unsigned char& ch, const unsigned char& nPC) {
 	// Write midi program change event 
 	if (ch >= 16)
 		return;
@@ -511,7 +511,7 @@ void MidiFileReader::setMidiInstrument(const unsigned char& ch, const unsigned c
 	track.pushUChar(nPC & 0x7f); // Instrument program number [0, 127]
 }
 
-void MidiFileReader::finalize(const unsigned int& t) {
+void MidiFileRecorder::finalize(const unsigned int& t) {
 	//double audioLength = timer.stop(); // Stop the audio timer (s)
 	//std::cout << "  Length: " << audioLength << " s" << std::endl;
 	//std::cout << "  Midi: " << nTime << " clocks (" << nTime / audioLength << " clk/s)" << std::endl;
@@ -523,7 +523,7 @@ void MidiFileReader::finalize(const unsigned int& t) {
 	bFinalized = true;
 }
 
-bool MidiFileReader::read(const std::string& filename/*=""*/){
+bool MidiFileRecorder::read(const std::string& filename/*=""*/){
 	std::ifstream file((!filename.empty() ? filename : sFilename).c_str(), std::ios::binary);
 	if(!file.good())
 		return false;
@@ -539,7 +539,7 @@ bool MidiFileReader::read(const std::string& filename/*=""*/){
 	return true;
 }
 
-bool MidiFileReader::write(const std::string& filename/*=""*/){
+bool MidiFileRecorder::write(const std::string& filename/*=""*/){
 	if (!bFinalized)
 		finalize(nTime);
 	std::ofstream file((!filename.empty() ? filename : sFilename).c_str(), std::ios::binary);
@@ -555,14 +555,14 @@ bool MidiFileReader::write(const std::string& filename/*=""*/){
 	return true;
 }
 
-void MidiFileReader::print(){
+void MidiFileRecorder::print(){
 	std::cout << " Format: " << nFormat << std::endl;
 	std::cout << " Tracks: " << nTracks << std::endl;
 	std::cout << " Division: " << nDivision << std::endl;
 	std::cout << " Ticks: " << nDeltaTicksPerQuarter << std::endl;
 }
 
-bool MidiFileReader::readHeaderChunk(MidiChunk& hdr){
+bool MidiFileRecorder::readHeaderChunk(MidiChunk& hdr){
 	if((hdr != "MThd") || hdr.getLength() < 6)
 		return false;
 	
@@ -581,7 +581,7 @@ bool MidiFileReader::readHeaderChunk(MidiChunk& hdr){
 	return true;
 }
 		
-bool MidiFileReader::readTrackChunk(MidiChunk& chunk){
+bool MidiFileRecorder::readTrackChunk(MidiChunk& chunk){
 	if((chunk != "MTrk") || chunk.empty())
 		return false;
 	TrackEvent event;
@@ -590,13 +590,13 @@ bool MidiFileReader::readTrackChunk(MidiChunk& chunk){
 	return true;
 }
 
-void MidiFileReader::midiHeader(const unsigned short& div/*=24*/) {
+void MidiFileRecorder::midiHeader(const unsigned short& div/*=24*/) {
 	header.pushUShort(0); // Midi format [0: Single track, 1: Simultaneous tracks, 2: Independent tracks]
 	header.pushUShort(1); // Number of tracks (equal to 1 for format 0)
 	header.pushUShort(div); // Number of midi clock ticks per quarter note
 }
 
-void MidiFileReader::midiTrackName(const std::string& str) {
+void MidiFileRecorder::midiTrackName(const std::string& str) {
 	// Write track title
 	track.pushUChar(0x00); // Delta-time
 	track.pushUChar(0xff);
@@ -605,7 +605,7 @@ void MidiFileReader::midiTrackName(const std::string& str) {
 	track.pushString(str);
 }
 
-void MidiFileReader::midiTempo(const unsigned short& bpm/*=120*/) {
+void MidiFileRecorder::midiTempo(const unsigned short& bpm/*=120*/) {
 	// Write tempo ff 51 03 tt tt tt (microseconds / quarter notes)
 	// Default tempo = 120 bpm (500000=0x7a120)
 	unsigned int usPerQuarterNote = (60.f / bpm) * 1E6; // Microseconds per beat (quarter note)
@@ -616,7 +616,7 @@ void MidiFileReader::midiTempo(const unsigned short& bpm/*=120*/) {
 	track.pushMemory(usPerQuarterNote, 3);
 }
 
-void MidiFileReader::midiTimeSignature(const unsigned char& nn/*=4*/, const unsigned char& dd/*=4*/, const unsigned char& cc/*=24*/, const unsigned char& bb/*=8*/) {
+void MidiFileRecorder::midiTimeSignature(const unsigned char& nn/*=4*/, const unsigned char& dd/*=4*/, const unsigned char& cc/*=24*/, const unsigned char& bb/*=8*/) {
 	// Write time signature ff 58 04 nn dd cc bb
 	track.pushUChar(0x00); // Delta-time
 	track.pushUChar(0xff);
@@ -628,7 +628,7 @@ void MidiFileReader::midiTimeSignature(const unsigned char& nn/*=4*/, const unsi
 	track.pushUChar(bb); // 8 32nd notes per 24 midi clock ticks (1 quarter note)
 }
 
-void MidiFileReader::midiKeySignature(const unsigned char& sf/*=0*/, bool minor/*=false*/) {
+void MidiFileRecorder::midiKeySignature(const unsigned char& sf/*=0*/, bool minor/*=false*/) {
 	// Write key signature ff 59 02 sf mi
 	track.pushUChar(0x00); // Delta-time
 	track.pushUChar(0xff);
@@ -638,7 +638,7 @@ void MidiFileReader::midiKeySignature(const unsigned char& sf/*=0*/, bool minor/
 	track.pushUChar(minor ? 1 : 0);
 }
 
-void MidiFileReader::midiEndOfTrack() {
+void MidiFileRecorder::midiEndOfTrack() {
 	// Write end of track flag ff 2f 00 (required)
 	track.pushUChar(0x00); // Delta-time
 	track.pushUChar(0xff);
