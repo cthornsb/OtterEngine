@@ -102,3 +102,24 @@ if(WIN32)
 		Winmm
 	)
 endif()
+
+#Build OTTString test program
+add_executable( randtest 
+	randtest.cpp
+)
+target_link_libraries( randtest 
+	OtterCore
+	OtterSystem
+	OtterGui
+	OtterMath	
+	OpenGL::GL
+	OpenGL::GLU
+	${GLFW3_LIBRARY}
+	GLEW::GLEW
+	${SOIL_LIBRARY}
+)
+if(WIN32)
+	target_link_libraries( randtest 
+		Winmm
+	)
+endif()

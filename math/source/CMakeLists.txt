@@ -4,6 +4,7 @@ add_library(
 	OBJECT
 	DecayEnvelope.cpp
 	Matrix.cpp
+	OTTRandom.cpp
 	Vector.cpp
 	WrappedValue.cpp
 )
