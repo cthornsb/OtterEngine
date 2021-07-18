@@ -2,6 +2,10 @@
 
 #include "SoundMixer.hpp"
 
+float ott::clamp(const float& input, const float& low/* = 0.f*/, const float& high/* = 1.f*/) {
+	return std::max(low, std::min(high, input));
+}
+
 float SoundMixer::get(const unsigned int& ch) const {
 	return (ch < nOutputChannels ? ((1.f + fOffsetDC) * fMasterVolume * fOutputVolume[ch] * fOutputSamples[ch]) - fOffsetDC : 0.f);
 }
@@ -57,14 +61,10 @@ bool SoundMixer::update(){
 	return true;
 }
 
-float SoundMixer::clamp(const float& input, const float& low/* = 0.f*/, const float& high/* = 1.f*/) const {
-	return std::max(low, std::min(high, input));
-}
-
 void SoundMixer::rollover(){
 	reload(); // Refill timer period
 	if(bModified) // Update output samples if one or more input samples were modified
 		update();
-	pushSample(get(0), get(1)); // Push current sample onto the fifo buffer
+	pushSample(fOutputSamples.data()); // Push current sample onto the fifo buffer
 }
 

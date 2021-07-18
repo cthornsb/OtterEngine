@@ -13,6 +13,8 @@ namespace ott{
 			DELTA
 		};
 	
+		/** Default constructor
+		  */
 		DecayEnvelope() :
 			bActive(false),
 			bHeld(false),
@@ -23,16 +25,18 @@ namespace ott{
 			fAttackSlope(0.f),
 			fDecaySlope(0.f),
 			fReleaseSlope(0.f),
-			fTimeAttack(1.f),
-			fTimeDecay(1.f),
-			fTimeSustain(-1.f),
-			fTimeSustainStart(2.f),
+			dTimeAttack(1.f),
+			dTimeDecay(1.f),
+			dTimeSustain(-1.f),
+			dTimeSustainStart(2.f),
 			dTotalTime(0),
 			eType(DecayType::EXPONENTIAL)
 		{
 		}
 
-		DecayEnvelope(const float& value, const float& attackTime, const float& decayTime, const float& minValue = 0.f, const float& maxValue = 1.f) :
+		/** Attack and decay time constructor
+		  */
+		DecayEnvelope(const float& value, const double& attackTime, const double& decayTime, const float& minValue = 0.f, const float& maxValue = 1.f) :
 			bActive(false),
 			bHeld(false),
 			fSustain(value),
@@ -42,18 +46,20 @@ namespace ott{
 			fAttackSlope(0.f),
 			fDecaySlope(0.f),
 			fReleaseSlope(0.f),
-			fTimeAttack(attackTime),
-			fTimeDecay(decayTime),
-			fTimeSustain(-1.f),
-			fTimeSustainStart(attackTime + decayTime),
+			dTimeAttack(attackTime),
+			dTimeDecay(decayTime),
+			dTimeSustain(-1.f),
+			dTimeSustainStart(attackTime + decayTime),
 			dTotalTime(0),
 			eType(DecayType::EXPONENTIAL)
 		{
 		}
 
-		/*float operator () const {
+		/** Get the current envelope value
+		  */
+		float operator () () const {
 			return fValue;
-		}*/
+		}
 
 		/** Get the current envelope value
 		  */
@@ -66,7 +72,50 @@ namespace ott{
 		bool isActive() const {
 			return bActive;
 		}
-		
+
+		/** Return true if the envelope is currently in sustain mode
+		  */
+		bool isHeld() const {
+			return bHeld;
+		}
+	
+		/** Get the "slope" of envelope release phase
+		  */
+		float getReleaseSlope() const {
+			return fReleaseSlope;
+		}
+
+		/** Get type of envelope decay
+		  */
+		DecayType getDecayType() const {
+			return eType;
+		}
+
+		/** Get the amount of time for envelope to rise from minimum output to sustain output value
+		  */
+		double getAttackTime() const {
+			return dTimeAttack;
+		}
+
+		/** Set the amount of time for envelope to decay to sustain level from maximum
+		  */
+		double getDecayTime() const {
+			return dTimeDecay;
+		}
+
+		/** Set the length of time to stay at the sustain level before automatically releasing
+		  */
+		double getSustainTime() const {
+			return dTimeSustain;
+		}
+
+		/** Set the length of time to release from sustain level to zero.
+		  * Warning: Only works for LINEAR release decay type.
+		  */
+		float getReleaseTime() const {
+			return (1.f / fReleaseSlope);
+		}
+
 		/** Set the "slope" of envelope release phase
 		  */
 		void setReleaseSlope(const float& slope){
@@ -82,15 +131,28 @@ namespace ott{
 		/** Set the amount of time taken for envelope to rise from minimum output to sustain output value
 		  */
 		void setAttackTime(const double& dt){
-			fTimeAttack = dt;
-			fTimeSustainStart = fTimeAttack + fTimeDecay;
+			dTimeAttack = dt;
+			dTimeSustainStart = dTimeAttack + dTimeDecay;
 		}
 		
 		/** Set the amount of time taken for envelope to decay to sustain level from maximum
 		  */
 		void setDecayTime(const double& dt){
-			fTimeDecay = dt;
-			fTimeSustainStart = fTimeAttack + fTimeDecay;
+			dTimeDecay = dt;
+			dTimeSustainStart = dTimeAttack + dTimeDecay;
+		}
+
+		/** Set the length of time to stay at the sustain level before automatically releasing
+		  */
+		void setSustainTime(const double& dt) {
+			dTimeSustain = dt;
+		}
+
+		/** Set the length of time to release from sustain level to zero.
+		  * Warning: Only works for LINEAR release decay type.
+		  */
+		void setReleaseTime(const float& dt) {
+			fReleaseSlope = 1.f / dt;
 		}
 
 		/** Set the current driver signal level
@@ -128,23 +190,18 @@ namespace ott{
 		
 		float fReleaseSlope; ///< Envelope release phase slope
 		
-		double fTimeAttack; ///< Length of time taken for envelope to rise to output level from zero
+		double dTimeAttack; ///< Length of time taken for envelope to rise to output level from zero
 		
-		double fTimeDecay; ///< Length of time taken for envelope to decay to sustain level from maximum
+		double dTimeDecay; ///< Length of time taken for envelope to decay to sustain level from maximum
 		
-		double fTimeSustain; ///< Length of time that envelope output is held at sustain level
+		double dTimeSustain; ///< Length of time that envelope output is held at sustain level
 		
-		double fTimeSustainStart; ///< Time at which envelope begins to decay to zero
+		double dTimeSustainStart; ///< Time at which envelope begins to decay to zero
 		
 		double dTotalTime; ///< Time since the last driver signal was applied to the envelope
 		
 		DecayType eType; ///< Envelope decay type
-		
-		/** 
-		  */
-		virtual void onUserUpdate() {
-		}
 	};
-}
+} // namespace ott
 
 #endif // ifndef DECAY_ENVELOPE_HPP

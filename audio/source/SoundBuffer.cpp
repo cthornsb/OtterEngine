@@ -1,103 +1,167 @@
+#include <cmath> // fmod
+
 #include "SoundBuffer.hpp"
 
-void SoundBuffer::pushSample(const float& l, const float& r){
+void SoundBuffer::setNumberOfChannels(const size_t& N) {
+	if (N <= samples.size())
+		return;
+	if (nSamples) { // Clear any existing audio data
+		for (auto buff = samples.begin(); buff != samples.end(); buff++) {
+			clearQueue(*buff);
+		}
+	}
+	for (size_t i = 0; i < (N - samples.size()); i++) {
+		samples.push_back(std::queue<float>());
+		vEmpty.push_back(0.f);
+	}
+	nSamples = 0;
+	nOutputChannels = N;
+}
+
+void SoundBuffer::pushSample(const float* input){
 	lock.lock(); // Writing to buffer
-	push(std::make_pair(l, r));
-	if(size() >= (nSamplesPerBuffer * 2)) // Too simple, needs to be fixed CRT
-		pop();
+	for (auto buff = samples.begin(); buff != samples.end(); buff++) {
+		buff->push(*input);
+		input++;
+	}
+	nSamples++;
+	checkNumberOfSamples();
+	lock.unlock();
+}
+
+void SoundBuffer::pushSamples(const float* input, const size_t& N) {
+	lock.lock(); // Writing to buffer
+	for (auto buff = samples.begin(); buff != samples.end(); buff++) {
+		for (size_t i = 0; i < N; i++) {
+			buff->push(*input);
+			input++;
+		}
+	}
+	nSamples += N;
+	checkNumberOfSamples();
+	lock.unlock();
+}
+
+void SoundBuffer::copySample(const float& input) {
+	lock.lock(); // Writing to buffer
+	for (auto buff = samples.begin(); buff != samples.end(); buff++) {
+		buff->push(input);
+	}
+	nSamples++;
+	checkNumberOfSamples();
+	lock.unlock();
+}
+
+void SoundBuffer::copySamples(const float* input, const size_t& N) {
+	lock.lock(); // Writing to buffer
+	for (auto buff = samples.begin(); buff != samples.end(); buff++) {
+		for (size_t i = 0; i < N; i++) {
+			buff->push(input[i]);
+		}
+	}
+	nSamples += N;
+	checkNumberOfSamples();
 	lock.unlock();
 }
 
 bool SoundBuffer::getSample(float* output){
+	if (!nSamples) { // Buffer is empty, fill with zeroes
+		for (size_t i = 0; i < nOutputChannels; i++) {
+			*output = 0.f;
+			output++;
+		}
+		return false;
+	}
 	lock.lock(); // Reading from buffer
-	if(!empty()){ // Copy audio sample to the output array and to the previous sample 
-		output[0] = left();
-		output[1] = right();
-		popSample();
-		lock.unlock();
-		return true;
+	for (auto buff = samples.begin(); buff != samples.end(); buff++) {
+		*output = buff->front();
+		output++;
+		buff->pop();
 	}
-	else{ // Sample buffer is empty D:
-		output[0] = fEmptyLeft;
-		output[1] = fEmptyRight;
-	}
+	nSamples--;
 	lock.unlock();
-	return false;
+	return true;
 }
 
 bool SoundBuffer::getSamples(float* output, const size_t& N){
+	if (nSamples <= 1) { // Buffer is empty, fill with zeroes
+		for (size_t i = 0; i < nOutputChannels * N; i++) {
+			*output = 0.f;
+			output++;
+		}
+		return false;
+	}
 	lock.lock(); // Reading from buffer
 	bool retval = false;
-	if(size() >= N){ // Buffer contains at least N samples
+	if (nSamples >= N) { // Buffer contains at least N samples
 		for(size_t i = 0; i < N; i++){
-			output[2 * i]     = left();
-			output[2 * i + 1] = right();
-			popSample();
+			for (auto buff = samples.begin(); buff != samples.end(); buff++) {
+				*output = buff->front();
+				output++;
+				buff->pop();
+			}
+			nSamples--;
 		}
 		retval = true;
 	}
-	else if(size() > 1){ // Not enough samples in the buffer, in-between values will be interpolated
-		float period = (float)N / (size() - 1); // Number of "in-between" samples per actual sample
-		float counter = 0.f;
-		float current[2] = {
-			left(), 
-			right()
-		}; // Starting left / right volumes used for interpolation
-		popSample(); // Pop the first sample
-		float slopes[2] = {
-			(left() - current[0]) / period, 
-			(right() - current[1]) / period
-		}; // Slopes for volume interpolation
-		for(size_t i = 0; i < N - 1; i++){
-			output[2 * i + 0] = current[0] + counter * slopes[0];
-			output[2 * i + 1] = current[1] + counter * slopes[1];
-			counter += 1.f;			
-			if(counter >= period){ // Update interpolation values
-				current[0] = left();
-				current[1] = right();
-				popSample();
-				// Re-compute slopes
-				slopes[0] = (left() - current[0]) / period;
-				slopes[1] = (right() - current[1]) / period;
-				counter = 0.f;
+	else { // Not enough samples in the buffer, in-between values will be interpolated
+		float fPeriod = (float)N / (nSamples - 1); // Number of "in-between" samples per actual sample
+		float fCounter = 0.f;
+		std::vector<float> fX0(nOutputChannels, 0.f);
+		std::vector<float> fX1(nOutputChannels, 0.f);
+		std::vector<float> fSlope(nOutputChannels, 0.f);
+		for (size_t j = 0; j < nOutputChannels; j++) {
+			fX0[j] = samples[j].front();
+			samples[j].pop();
+			fX1[j] = samples[j].front();
+			samples[j].pop();
+			fSlope[j] = (fX1[j] - fX0[j]) / fPeriod;
+		}
+		nSamples -= 2;
+		for(size_t i = 0; i < N - 1; i++){ // Over N-1 samples
+			for (size_t j = 0; j < nOutputChannels; j++) { // Over all output channels
+				*output = fX0[j] + fCounter * fSlope[j];
+				output++;
+			}
+			fCounter += 1.f;
+			if (fCounter >= fPeriod) { // Update interpolation values
+				for (size_t j = 0; j < nOutputChannels; j++) { // Over all output channels
+					fX0[j] = fX1[j];
+					fX1[j] = samples[j].front();
+					samples[j].pop();
+					// Re-compute slopes
+					fSlope[j] = (fX1[j] - fX0[j]) / fPeriod;
+					fCounter = std::fmod(fCounter, fPeriod);
+				}
+				nSamples--;
 			}
 		}
 		// Final sample
-		current[0] = left();
-		current[1] = right();
-		popSample();
-	}
-	else{// Sample buffer is empty, just fill it with our backup values
-		if(!empty())
-			popSample(); // Backup final sample and pop it off the queue
-		for(size_t i = 0; i < N; i++){
-			output[2 * i]     = fEmptyLeft;
-			output[2 * i + 1] = fEmptyRight;
+		for (size_t j = 0; j < nOutputChannels; j++) { // Over all output channels
+			*output = fX1[j];
+			output++;
 		}
 	}
 	lock.unlock();
 	return retval;
 }
 
-float SoundBuffer::left() const {
-	if(empty())
-		return fEmptyLeft;
-	return (this->front().first);
-}
-
-float SoundBuffer::right() const {
-	if(empty())
-		return fEmptyRight;
-	return (this->front().second);
-}
-
 void SoundBuffer::popSample(){
-	if(empty()){ // Trying to pop with size=0
+	if(!nSamples){ // Trying to pop with size=0
 		return;
 	}
-	if(size() == 1){ // Sample buffer will be empty after pop, backup the remaining sample
-		fEmptyLeft = left();
-		fEmptyRight = right();
+	else if(nSamples == 1){ // Sample buffer will be empty after pop, backup the remaining sample
+		//fEmpty = front();
 	}
-	pop();
+	for (auto buff = samples.begin(); buff != samples.end(); buff++)
+		buff->pop();
+	nSamples--;
+}
+
+void SoundBuffer::checkNumberOfSamples() {
+	while (nSamples >= nSamplesPerBuffer * 2) {
+		for (auto buff = samples.begin(); buff != samples.end(); buff++)
+			buff->pop();
+		nSamples--;
+	}
 }

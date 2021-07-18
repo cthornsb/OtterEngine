@@ -7,8 +7,8 @@ namespace ott{
 		if(val > fValue){
 			fSustain = val;
 			dTotalTime = 0;
-			fAttackSlope = (fMax - fValue) / fTimeAttack;
-			fDecaySlope = (fSustain - fMax) / fTimeDecay;
+			fAttackSlope = (fMax - fValue) / (float)dTimeAttack;
+			fDecaySlope = (dTimeDecay > 0 ? (fSustain - fMax) / (float)dTimeDecay : 0);
 		}
 		bActive = true;
 		bHeld = true;
@@ -22,23 +22,24 @@ namespace ott{
 	void DecayEnvelope::update(const double& dTime){
 		if(!bActive)
 			return;
-		dTotalTime += dTime;
 		if(bHeld){ // Attack, decay, sustain
-			if(dTotalTime < fTimeAttack){ // Attack
+			if(dTotalTime < dTimeAttack){ // Attack
 				fValue += fAttackSlope * dTime;
 			}
-			else if(dTotalTime < fTimeSustainStart){ // Decay
-				fValue = fMax + fDecaySlope * (dTotalTime - fTimeAttack);
+			else if(dTotalTime < dTimeSustainStart){ // Decay
+				fValue = fMax + fDecaySlope * (dTotalTime - dTimeAttack);
 			}
 			else{ // Sustain
-				fValue = fSustain;			
+				fValue = fSustain;
+				if (dTimeSustain >= 0.f && (dTotalTime >= (dTimeSustainStart + dTimeSustain)))
+					release();
 			}
 		}
 		else{ // Release
 			switch(eType){ // Update envelope output value
 			case DecayType::EXPONENTIAL:
 				fValue = fMin + fSustain * std::exp(-fReleaseSlope * dTotalTime);
-				if(fValue - fMin <= 1E-6)
+				if(fValue - fMin <= 0.000001f)
 					kill(); // Cease output
 				break;
 			case DecayType::PARABOLIC:
@@ -58,6 +59,7 @@ namespace ott{
 				break;
 			}
 		}
+		dTotalTime += dTime;
 	}
 	
 	void DecayEnvelope::kill(){

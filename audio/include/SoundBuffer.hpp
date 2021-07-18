@@ -6,15 +6,27 @@
 
 #include "portaudio.h"
 
-class SoundBuffer : public std::queue<std::pair<float, float> > {
+class SoundBuffer {
 public:
 	/** Default constructor
 	  */
 	SoundBuffer() :
-		std::queue<std::pair<float, float> >(),
-		fEmptyLeft(0.f),
-		fEmptyRight(0.f),
-		nSamplesPerBuffer(2048)
+		nSamplesPerBuffer(2048),
+		nOutputChannels(2),
+		nSamples(0),
+		vEmpty(2),
+		samples(2, std::queue<float>())
+	{
+	}
+
+	/** Output channel constructor
+	  */
+	SoundBuffer(const size_t& N) :
+		nSamplesPerBuffer(2048),
+		nOutputChannels(N),
+		nSamples(0),
+		vEmpty(N),
+		samples(N, std::queue<float>())
 	{
 	}
 
@@ -31,16 +43,47 @@ public:
 	  */
 	SoundBuffer& operator = (const SoundBuffer&) = delete;
 
+	/** Get the number of output audio channels
+	  */
+	size_t getNumberOfChannels() const {
+		return nOutputChannels;
+	}
+
+	/** Get the number of audio samples currently in the output buffer
+	  */
+	size_t getNumberOfSamples() const {
+		return nSamples;
+	}
+
+	/** Resize output buffer to a specified number of channels.
+	  * Any existing audio data will be deleted.
+	  */
+	void setNumberOfChannels(const size_t& N);
+
 	/** Set the expected number of audio samples per out-going audio buffer
 	  */
 	void setNumberSamplesPerBuffer(const size_t& samples) {
 		nSamplesPerBuffer = samples;
 	}
 
-	/** Psuedo-overload for push() taking explicit left and right arguments
+	/** Push a single sample into the output buffer.
+	  * Assumes that the input array contains AT LEAST as many samples as there are output channels.
 	  */ 
-	void pushSample(const float& l, const float& r);
-	
+	void pushSample(const float* input);
+
+	/** Push N samples into the output buffer.
+	  * Assumes that the input array contains AT LEAST as many samples as there are output channels multiplied by N.
+	  */
+	void pushSamples(const float* input, const size_t& N);
+
+	/** Copy a single sample to all output channels.
+	  */
+	void copySample(const float& input);
+
+	/** Copy N samples to all output channels
+	  */
+	void copySamples(const float* input, const size_t& N);
+
 	/** Retrieve a single sample from the audio buffer
 	  * If the buffer is empty, the most recent sample will be returned. If this is the case, false will be returned.
 	  * @param output Array of samples to copy into (must have a length of at least 2)
@@ -56,29 +99,34 @@ public:
 	  */
 	bool getSamples(float* output, const size_t& N);
 
-protected:
-	float fEmptyLeft; ///< In the event that the sound buffer is now empty, the last audio sample for the left output channel
-	
-	float fEmptyRight; ///< In the event that the sound buffer is now empty, the last audio sample for the right output channel
+	/** Clear a queue of floats
+	  */
+	static void clearQueue(std::queue<float>& input) {
+		while (!input.empty())
+			input.pop();
+	}
 
+protected:
 	size_t nSamplesPerBuffer; ///< Expected number of audio samples per out-going audio buffer
+
+	size_t nOutputChannels; ///< Number of audio output channels
+
+	size_t nSamples; ///< Number of samples currently in the output buffer
+
+	std::vector<float> vEmpty; ///< 
+
+	std::vector<std::queue<float> > samples; ///< Audio samples for all output channels
 
 	std::mutex lock; ///< Mutex lock for buffer read/write access
 
-	/** Get the next sample for the left output channel
-	  * If the buffer is empty, the backup value will be returned
-	  */
-	float left() const ;
-	
-	/** Get the next sample for the right output channel
-	  * If the buffer is empty, the backup value will be returned
-	  */
-	float right() const ;
-
 	/** Pop the oldest sample off the buffer
-	  * If the buffer will be made empty by the pop, backup the current sample.
+	  * If the buffer will be made empty by the pop, do nothing.
 	  */
 	void popSample();
+
+	/** Check the number of audio samples, and remove samples if the buffer grows too large
+	  */
+	void checkNumberOfSamples();
 };
 
 #endif

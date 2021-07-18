@@ -4,6 +4,12 @@
 #include "SoundBuffer.hpp"
 #include "UnitTimer.hpp"
 
+namespace ott {
+	/** Clamp an input value to the range [low, high]
+	  */
+	float clamp(const float& input, const float& low = 0.f, const float& high = 1.f);
+}
+
 class SoundMixer : public UnitTimer, public SoundBuffer {
 public:
 	/** Default constructor
@@ -139,7 +145,7 @@ public:
 	void setVolume(const float& volume){
 		if(bMuted) // Un-mute
 			bMuted = false;
-		fMasterVolume = clamp(volume);
+		fMasterVolume = ott::clamp(volume);
 		if(fMasterVolume == 0.f)
 			bMuted = true;
 	}
@@ -160,35 +166,35 @@ public:
 	  */
 	void setInputLevel(const unsigned int& ch, const float& volume){
 		if(ch < nInputChannels)
-			fInputVolume[ch] = clamp(volume);
+			fInputVolume[ch] = ott::clamp(volume);
 	}
 	
 	/** Set the volume of all input channels
 	  */
 	void setInputLevels(const float& volume){
 		for(unsigned int i = 0; i < nInputChannels; i++)
-			fInputVolume[i] = clamp(volume);
+			fInputVolume[i] = ott::clamp(volume);
 	}
 	
 	/** Set the volume for one of the output channels
 	  */
 	void setOutputLevel(const unsigned int& ch, const float& volume){
 		if(ch < nOutputChannels)
-			fOutputVolume[ch] = clamp(volume);
+			fOutputVolume[ch] = ott::clamp(volume);
 	}
 	
 	/** Set the volume of all output channels
 	  */
 	void setOutputLevels(const float& volume){
 		for(unsigned int i = 0; i < nOutputChannels; i++)
-			fOutputVolume[i] = clamp(volume);
+			fOutputVolume[i] = ott::clamp(volume);
 	}
 
 	/** Set the negative DC offset of the output audio effectively making the output up to 100% louder (default is 0)
 	  * Offset clamped to range [0, 1]
 	  */
 	void setOffsetDC(const float& offset){
-		fOffsetDC = clamp(offset);
+		fOffsetDC = ott::clamp(offset);
 	}
 
 	/** For mixers with two output channels (left and right), set the left / right audio output balance.
@@ -217,7 +223,7 @@ public:
 	  */
 	void setInputSample(const unsigned int& ch, const float& vol){
 		bModified = true;
-		fInputSamples[ch] = clamp(vol, 0.f, 1.f);
+		fInputSamples[ch] = ott::clamp(vol, 0.f, 1.f);
 	}
 	
 	/** Reset mixer timer to zero
@@ -254,10 +260,6 @@ private:
 	  * @return True if at least one of the input samples was modified and return false otherwise
 	  */
 	bool update();
-	
-	/** Clamp an input value to the range [low, high]
-	  */
-	float clamp(const float& input, const float& low = 0.f, const float& high = 1.f) const ;
 	
 	/** Push the current output sample onto the fifo buffer
 	  */
