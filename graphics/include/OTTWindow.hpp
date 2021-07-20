@@ -220,7 +220,22 @@ public:
 	/** Set GLFW window focus / unfocus callback function.
 	  * Function will be called whenever the window gains or loses focus.
 	  */
-	void setWindowFocusCallback(void (*callback)(const bool&));
+	void setWindowFocusCallback(GLFWwindowfocusfun func);
+
+	/** Set GLFW window position change callback function.
+	  * Function will be called whenever the user moves the window.
+	  */
+	void setWindowPositionCallback(GLFWwindowposfun func);
+
+	/** Set GLFW window size change callback function.
+	  * Function will be called whenever the user resizes the window.
+	  */
+	void setWindowResizeCallback(GLFWwindowsizefun func);
+
+	/** Set GLFW window minimization callback function.
+	  * Function will be called whenever the user minimizes (iconifies) or restores the window.
+	  */
+	void setWindowIconifyCallback(GLFWwindowiconifyfun func);
 
 	/** Set the current draw color.
 	  * After drawing is complete, ensure that the draw color is reset using resetDrawColor().
@@ -553,10 +568,16 @@ protected:
 	
 	MouseStates previousMouseState; ///< State of the mouse cursor before full-screen mode switch
 	
-	void (*userPathDropCallback)(const std::string&);
+	void (*userPathDropCallback)(const std::string&); ///< Callback when user drops a path on window
 
-	void (*userWindowFocusCallback)(const bool&);
+	GLFWwindowfocusfun userWindowFocusCallback; ///< Callback when window gains or loses focus
+
+	GLFWwindowposfun userWindowPositionCallback; ///< Callback when window is moved
 	
+	GLFWwindowsizefun userWindowSizeCallback; ///< Callback when window is re-sized
+
+	GLFWwindowiconifyfun userWindowIconifyCallback; ///< Callback when window is minimized
+
 	/** Update viewport and projection matrix after resizing window
 	  * This method should be called for setting up a viewport and projection matrix for 2d displays.
 	  */
@@ -578,7 +599,8 @@ protected:
 	
 	/** Additional window initialization called from initialize()
 	  */
-	virtual void onUserInitialize() { }
+	virtual void onUserInitialize() { 
+	}
 };
 
 class OTTActiveWindows{

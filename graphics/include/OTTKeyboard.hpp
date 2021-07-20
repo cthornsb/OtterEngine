@@ -46,6 +46,12 @@ public:
 		return states[key]; 
 	}
 
+	/** Return true if left or right shift is currently pressed
+	  */
+	bool shift() const {
+		return (bLeftShift || bRightShift);
+	}
+
 	/** Return true if left shift is currently pressed
 	  */	
 	bool leftShift() const {
@@ -56,6 +62,12 @@ public:
 	  */	
 	bool rightShift() const {
 		return bLeftShift;
+	}
+
+	/** Return true if left or right ctrl is currently pressed
+	  */
+	bool ctrl() const {
+		return (bLeftCtrl || bRightCtrl);
 	}
 
 	/** Return true if left ctrl is currently pressed
@@ -69,6 +81,13 @@ public:
 	bool rightCtrl() const {
 		return bLeftShift;
 	}
+
+	/** Return true if left or right alt is currently pressed
+	  */
+	bool alt() const {
+		return (bLeftAlt || bRightAlt);
+	}
+
 
 	/** Return true if left alt is currently pressed
 	  */	

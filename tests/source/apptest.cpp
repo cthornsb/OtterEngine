@@ -8,6 +8,33 @@
 #include "Matrix.hpp"
 #include "WrappedValue.hpp"
 
+void windowFocus(GLFWwindow* win, int focused) {
+	if (focused == GLFW_TRUE) {
+		std::cout << " Window gained focus :D" << std::endl;
+	}
+	else {
+		std::cout << " Window lost focus :(" << std::endl;
+	}
+}
+
+void windowPosition(GLFWwindow* win, int xpos, int ypos) {
+	std::cout << " Window moved: W=" << xpos << ", H=" << ypos << std::endl;
+}
+
+
+void windowResize(GLFWwindow* win, int width, int height) {
+	std::cout << " Window resized: W=" << width << ", H=" << height << std::endl;
+}
+
+void windowIconify(GLFWwindow* win, int iconified) {
+	if (iconified == GLFW_TRUE) { // Iconified
+		std::cout << " Window iconified" << std::endl;
+	}
+	else { // Restored
+		std::cout << " Window restored" << std::endl;
+	}
+}
+
 class AppTest : public OTTApplication {
 public:
 	AppTest() :
@@ -36,16 +63,35 @@ protected:
 		enableMouse();
 		enableImageBuffer(false);
 
+		// Set callback functions
+		setWindowFocusCallback(windowFocus);
+		setWindowPositionCallback(windowPosition);
+		setWindowResizeCallback(windowResize);
+		setWindowIconifyCallback(windowIconify);
+
 		// Success
 		return true;
 	}
 
-	bool onUserLoop() override {		
+	bool onUserLoop() override {
 		clear(); // Clear the screen
 		buffer.fill(0); // Fill image buffer w/ zeros (black)
 
+		// Left mouse button held
+		if (mouse.check(0)) {
+			const Vector2 xaxis = Vector2(1.f, 0.f);
+			Vector2 mousePosition = Vector2(mouse.getX(), mouse.getY()) - origin;
+			fTheta = mousePosition.angle(xaxis);
+			if (mouse.getY() > origin[1]) { // Bottom half of screen
+				fTheta = (6.28318f - fTheta());
+			}
+		}
+		else {
+			fTheta += 0.35f * (float)dTotalFrameTime;
+		}
+
 		// Get a new rotation matrix
-		Matrix2 rotation = Matrix2::getRotationMatrix(fTheta += 0.35f * (float)dTotalFrameTime);
+		Matrix2 rotation = Matrix2::getRotationMatrix(fTheta());
 		for (int i = 0; i < 4; i++) {
 			transformed[i] = rotation.transform(vertices[i]) + origin;
 		}

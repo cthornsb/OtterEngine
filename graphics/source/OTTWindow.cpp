@@ -44,7 +44,10 @@ OTTWindow::OTTWindow(const int &w, const int &h, const int& scale/*=1*/) :
 	buffer(),
 	previousMouseState(MouseStates::NORMAL),
 	userPathDropCallback(0x0),
-	userWindowFocusCallback(0x0)
+	userWindowFocusCallback(0x0),
+	userWindowPositionCallback(0x0),
+	userWindowSizeCallback(0x0),
+	userWindowIconifyCallback(0x0)
 {
 }
 
@@ -146,8 +149,24 @@ void OTTWindow::setPathDropCallback(void (*callback)(const std::string&)) {
 	userPathDropCallback = callback;
 }
 
-void OTTWindow::setWindowFocusCallback(void (*callback)(const bool&)) {
-	userWindowFocusCallback = callback;
+void OTTWindow::setWindowFocusCallback(GLFWwindowfocusfun func) {
+	userWindowFocusCallback = func;
+	glfwSetWindowFocusCallback(win.get(), func);
+}
+
+void OTTWindow::setWindowPositionCallback(GLFWwindowposfun func) {
+	userWindowPositionCallback = func;
+	glfwSetWindowPosCallback(win.get(), func);
+}
+
+void OTTWindow::setWindowResizeCallback(GLFWwindowsizefun func) {
+	userWindowSizeCallback = func;
+	glfwSetWindowSizeCallback(win.get(), func);
+}
+
+void OTTWindow::setWindowIconifyCallback(GLFWwindowiconifyfun func) {
+	userWindowIconifyCallback = func;
+	glfwSetWindowIconifyCallback(win.get(), func);
 }
 
 void OTTWindow::setDrawColor(ColorRGB *color){
@@ -611,7 +630,7 @@ void OTTWindow::dropSystemPaths(const std::vector<std::string>& paths){
 
 void OTTWindow::setWindowFocus(const bool& focused) {
 	if (userWindowFocusCallback) {
-		(*userWindowFocusCallback)(focused);
+		(*userWindowFocusCallback)(win.get(), focused ? GLFW_TRUE : GLFW_FALSE);
 	}
 }
 
