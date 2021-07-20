@@ -2,6 +2,9 @@
 #define WAV_FILE_HPP
 
 #include <fstream>
+#include <cinttypes>
+#include <cfloat>
+#include <queue>
 
 #include "AudioSampler.hpp"
 #include "SoundMixer.hpp"
@@ -99,30 +102,67 @@ namespace WavFile {
 		WavFilePlayer() :
 			WavHeader(),
 			AudioSampler(),
-			audio()
+			bGood(false),
+			bLoaded(false),
+			audio(),
+			fSamples(),
+			fInterpolated(),
+			nBuffer8(),
+			nBuffer16(),
+			nBuffer24(),
+			fBuffer32(),
+			nBufferIndex(0),
+			nBufferSize(0)
 		{
 		}
 
 		/** Wav file constructor
 		  */
-		WavFilePlayer(const std::string& filename);
+		WavFilePlayer(const std::string& fname);
 
 		/** Destructor
 		  */
 		~WavFilePlayer();
 
-		/** Does nothing. Returns zero
+		/** Open an input wav file and read the header
 		  */
-		float sample(const float&) override { 
-			return 0.f; 
-		}
+		bool load(const std::string& fname);
 
-		/** Read a specified number of samples from the input wav file and write them to an output array
+		/** Reset to beginning of wav file
 		  */
-		void sample(const float& timeStep, float* arr, const unsigned int& N) override ;
+		void reset() override;
 
 	private:
+		bool bGood; ///< Set if audio data still remains
+
+		bool bLoaded; ///< Set if input file stream is loaded successfully
+
 		std::ifstream audio; ///< Input audio file stream
+
+		std::vector<float> fSamples[2]; ///< Current t0 and t1 audio samples for each channel, to be used for interpolation
+
+		std::vector<float> fInterpolated; ///< Current interpolated audio values for each channel
+
+		std::vector<uint8_t> nBuffer8; ///< Buffer containing 8-bit audio data
+
+		std::vector<uint16_t> nBuffer16; ///< Buffer containing 16-bit audio data
+
+		std::vector<uint32_t> nBuffer24; ///< Buffer containing 24-bit audio data
+
+		std::vector<float_t> fBuffer32; ///< Buffer containing 32-bit floating point audio data
+
+		size_t nBufferIndex; ///< Current audio buffer index
+
+		size_t nBufferSize; ///< Total audio buffer size (in bytes)
+
+		/** Sample output audio wave, after incrementing the phase a specified amount, and return the result
+		  */
+		float userSample(const float& dt) override;
+
+		/** Called when waveform phase rolls over.
+		  * Does nothing by default.
+		  */
+		void userPhaseRollover() override;
 	};
 
 	class WavFileRecorder : public WavHeader {

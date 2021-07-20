@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm> // std::min
 #include <vector>
 
 #include "WavFile.hpp"
@@ -11,6 +12,8 @@ namespace WavFile {
 		std::cout << " Sample Rate: " << nSampleRate << " Hz" << std::endl;
 		std::cout << " Number Channels: " << nChannels << std::endl;
 		std::cout << " Length of Audio: " << lengthOfAudio << " s" << std::endl;
+		std::cout << " Bits per channel: " << nBitsPerChannel << std::endl;
+		std::cout << " Bytes per sample: " << nBytesPerSample << std::endl;
 		std::cout << " Audio Bitrate: " << nBitsPerSample * nSamples / (1000.f * lengthOfAudio) << " kbps" << std::endl;
 	}
 
@@ -22,24 +25,34 @@ namespace WavFile {
 			return false;
 		f.read((char*)&nFileSize, 4);
 		f.read(&str[0], 4); // WAVE
+		if (str != "WAVE")
+			return false;
 		f.read(&str[0], 4); // fmt 
+		if (str != "fmt ")
+			return false;
 		f.read((char*)&nLengthFormatData, 4); // 16 is PCM
 		f.read((char*)&nFormat, 2); // 1 is PCM
 		f.read((char*)&nChannels, 2);
 		f.read((char*)&nSampleRate, 4); // in Hz
 		f.read((char*)&nBytesPerSecond, 4); // Data rate (B/s) [(SampleRate * BitsPerSample * Channels) / 8]
 		f.read((char*)&nBytesPerSample, 2); // Bytes per sample [(BitsPerSample * Channels) / 8]
-		f.read((char*)&nBitsPerSample, 2);
+		f.read((char*)&nBitsPerChannel, 2); // Bits per channel
 		f.read(&str[0], 4); // data
+		while (str != "data" && !f.eof()) { // Skip any extraneous data in the header
+			str[0] = str[1];
+			str[1] = str[2];
+			str[2] = str[3];
+			f.read(&str[3], 1);
+		}
 		if (str != "data")
 			return false; // ??
 		f.read((char*)&nLengthData, 4);
 
 		// Compute Wav file parameters
 		nSamples = nLengthData / nBytesPerSample;
-		nBitsPerChannel = nBitsPerSample / nChannels;
 		fSamplePeriod = 1.f / nSampleRate;
 		nLengthRemaining = nLengthData;
+		compute();
 
 		return (f.good() && !f.eof());
 	}
@@ -57,7 +70,7 @@ namespace WavFile {
 		f.write((char*)&nSampleRate, 4); // in Hz
 		f.write((char*)&nBytesPerSecond, 4); // Data rate (B/s) [(SampleRate * BitsPerSample * Channels) / 8]
 		f.write((char*)&nBytesPerSample, 2); // Bytes per sample [(BitsPerSample * Channels) / 8]
-		f.write((char*)&nBitsPerSample, 2);
+		f.write((char*)&nBitsPerChannel, 2);
 		str = "data"; f.write(&str[0], 4); // data
 		f.write((char*)&nLengthData, 4);
 		return (f.good() && !f.eof());
@@ -70,41 +83,132 @@ namespace WavFile {
 		fSamplePeriod = 1.f / nSampleRate;
 	}
 
-	WavFilePlayer::WavFilePlayer(const std::string& filename) :
+	WavFilePlayer::WavFilePlayer(const std::string& fname) :
 		WavFilePlayer()
 	{
-		audio.open(filename.c_str());
-		if (audio.good()) {
-			readHeader(audio);
-		}
+		load(fname);
 	}
 
 	WavFilePlayer::~WavFilePlayer() {
 		audio.close();
 	}
 
-	void WavFilePlayer::sample(const float& timeStep, float* arr, const unsigned int& N) {
-		if (!nLengthRemaining) { // Audio file completed
-			for (unsigned long i = 0; i < N; i++) { // Over all frames
-				arr[i] += 0.f;
+	bool WavFilePlayer::load(const std::string& fname) {
+		audio.open(fname.c_str(), std::ios::binary);
+		if (audio.good()) {
+			if (!readHeader(audio)) {
+				audio.close();
+				return false;
 			}
+			fSamples[0] = std::vector<float>(nChannels, 0.f);
+			fSamples[1] = std::vector<float>(nChannels, 0.f);
+			fInterpolated = std::vector<float>(nChannels, 0.f);
+			if (nBitsPerChannel == 8) {
+				nBuffer8 = std::vector<uint8_t>(nLengthData, 0);
+				audio.read((char*)nBuffer8.data(), nLengthData);
+				nBufferSize = nLengthData;
+			}
+			else if (nBitsPerChannel == 16) {
+				nBuffer16 = std::vector<uint16_t>(nLengthData / 2, 0);
+				audio.read((char*)nBuffer16.data(), nLengthData);
+				nBufferSize = nLengthData / 2;
+			}
+			else if (nBitsPerChannel == 24) {
+				nBufferSize = 0;
+				nBuffer24 = std::vector<uint32_t>(nLengthData / 3, 0);
+				uint8_t readBuffer[3072]; // 1024 24-bit values
+				unsigned int nBytesToRead = 3072;
+				while (nLengthRemaining > 0) {
+					nBytesToRead = std::min(nLengthRemaining, (unsigned int)3072);
+					audio.read((char*)readBuffer, nBytesToRead);
+					for (int i = 0; i < nBytesToRead / 3; i++) {
+						nBuffer24[nBufferSize++] = readBuffer[i * 3] + (readBuffer[i * 3 + 1] << 8) + (readBuffer[i * 3 + 2] << 16);
+					}
+					nLengthRemaining -= nBytesToRead;
+				}
+				nBufferSize = nLengthData / 3;
+			}
+			else if (nBitsPerChannel == 32) {
+				fBuffer32 = std::vector<float_t>(nLengthData / 4, 0);
+				audio.read((char*)fBuffer32.data(), nLengthData);
+				nBufferSize = nLengthData / 4;
+			}
+
+			// Close the file
+			bLoaded = (audio.good() && !audio.eof());
+			bGood = bLoaded;
+			audio.close();
+
+			// Set sampling period and frequency
+			fPeriod = fSamplePeriod;
+			fFrequency = 1.f / fSamplePeriod;
+
+			// Reset waveform parameters
+			reset();
+		}
+		else {
+			std::cout << " [WavFilePlayer] Error! Failed to read input wav file \"" << fname << "\"." << std::endl;
+			audio.close();
+			bGood = false;
+			bLoaded = false;
+		}	
+		return bGood;
+	}
+
+	void WavFilePlayer::reset() {
+		fPhase = 0.f;
+		nBufferIndex = 0;
+		if (bLoaded) {
+			bGood = true;
+			userPhaseRollover(); // Load the first sample
+		}
+	}
+
+	float WavFilePlayer::userSample(const float& dt) {
+		if (!bGood) {
+			return 0.f;
+		}
+		for (unsigned short ch = 0; ch < nChannels; ch++) { // Over all channels
+			fInterpolated[ch] = fSamples[0][ch] + fPhase * (fSamples[1][ch] - fSamples[0][ch]) / fSamplePeriod;
+		}
+		return (fCurrentValue = fInterpolated[0]);
+	}
+
+	void WavFilePlayer::userPhaseRollover() {
+		if (!bGood || (nBufferIndex >= nBufferSize)) { // Not enough bytes
+			bGood = false;
 			return;
 		}
-		unsigned int samplesRequested = (int)(timeStep * N / fSamplePeriod);
-		unsigned int bytesRequested = std::min(nLengthRemaining, samplesRequested * nBytesPerSample); // Total number of bytes requested
-		std::vector<unsigned char> tempData(bytesRequested, 0);
-		audio.read((char*)tempData.data(), bytesRequested * sizeof(unsigned char));
-		unsigned int prevSample = 0;
-		unsigned int currSample = 0;
-		fPhase = 0.f;
-		for (unsigned long i = 0; i < N; i++) { // Over all frames
-			currSample = (unsigned int)(fPhase / fSamplePeriod);
-			arr[i] += (2.f * tempData[currSample] / 255.f - 1.f);
-			if (currSample != prevSample)
-				prevSample = currSample;
-			fPhase += timeStep;
+		switch (nBitsPerChannel) {
+		case 8:
+			for (unsigned short ch = 0; ch < nChannels; ch++) { // Over all channels
+				fSamples[0][ch] = fSamples[1][ch]; // Move all t1 samples to t0
+				fSamples[1][ch] = nBuffer8[nBufferIndex++] / 255.f;
+			}
+			break;
+		case 16:
+			for (unsigned short ch = 0; ch < nChannels; ch++) { // Over all channels
+				fSamples[0][ch] = fSamples[1][ch]; // Move all t1 samples to t0
+				fSamples[1][ch] = ((nBuffer16[nBufferIndex] & 0x8000) == 0 ? nBuffer16[nBufferIndex] / 32767.f : -1.f + (nBuffer16[nBufferIndex] & 0x7fff) / 32767.f);
+				nBufferIndex++;
+			}
+			break;
+		case 24:
+			for (unsigned short ch = 0; ch < nChannels; ch++) { // Over all channels
+				fSamples[0][ch] = fSamples[1][ch]; // Move all t1 samples to t0
+				fSamples[1][ch] = ((nBuffer24[nBufferIndex] & 0x800000) == 0 ? nBuffer24[nBufferIndex] / 8388607.f : -1.f + (nBuffer24[nBufferIndex] & 0x7fffff) / 8388607.f);
+				nBufferIndex++;
+			}
+			break;
+		case 32:
+			for (unsigned short ch = 0; ch < nChannels; ch++) { // Over all channels
+				fSamples[0][ch] = fSamples[1][ch]; // Move all t1 samples to t0
+				fSamples[1][ch] = fBuffer32[nBufferIndex++];
+			}
+			break;
+		default:
+			break;
 		}
-		nLengthRemaining -= bytesRequested;
 	}
 
 	WavFileRecorder::~WavFileRecorder() {

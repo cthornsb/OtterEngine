@@ -1,147 +1,17 @@
 #ifndef SYNTHESIZERS_HPP
 #define SYNTHESIZERS_HPP
 
-#include "PianoKeys.hpp"
-#include "SoundMixer.hpp" // ott::clamp
-
+#include "AudioSampler.hpp"
 #include "OTTRandom.hpp"
 #include "DecayEnvelope.hpp"
 
-namespace Synthesizers{
-	class SimpleSynth : public ott::DecayEnvelope {
-	public:
-		/** Default constructor
-		  */
-		SimpleSynth() : 
-			ott::DecayEnvelope(),
-			bUseVolumeEnvelope(false),
-			fAmplitude(1.f),
-			fFrequency(440.f),
-			fPeriod(1.f / 440.f),
-			fPhase(0.f),
-			fPhaseStep(1.f / 44100.f)
-		{
-		}
-
-		/** Destructor
-		  */
-		virtual ~SimpleSynth() { 
-		}
-		
-		/** Set maximum waveform amplitude
-		  */
-		void setAmplitude(const float& A){ 
-			fAmplitude = ott::clamp(A);
-		}
-
-		/** Set audio waveform frequency to that of a natural music note
-		  */
-		void setFrequency(const PianoKeys::Key& key, const int& octave=4){
-			setFrequency(PianoKeys::getFrequency(key, PianoKeys::Modifier::NONE, octave));
-		}
-	
-		/** Set audio waveform frequency to that of a natural, sharp, or flat music note
-		  */
-		void setFrequency(const PianoKeys::Key& key, const PianoKeys::Modifier& mod, const int& octave=4){
-			setFrequency(PianoKeys::getFrequency(key, mod, octave));
-		}
-		
-		/** Set audio waveform frequency (in Hz)
-		  */
-		void setFrequency(const float& freq){
-			fFrequency = freq;
-			fPeriod = 1.f / freq;
-		}
-
-		/** Set audio output sample rate (in Hz)
-		  */
-		void setSampleRate(const float& freq) {
-			fPhaseStep = 1.f / freq;
-		}
-
-		/** Enable or disable output volume envelope.
-		  * If enabled, volume envelope will be used to moderate waveform amplitude.
-		  */
-		void useVolumeEnvelope(bool state = true) {
-			bUseVolumeEnvelope = state;
-		}
-		
-		/** Get the current maximum waveform amplitude
-		  */
-		float getAmplitude() const { 
-			return fAmplitude; 
-		}
-		
-		/** Get the current volume envelope output volume
-		  */
-		float getVolume() const {
-			return fValue;
-		}
-
-		/** Get the current audio waveform frequency (in Hz)
-		  */
-		float getFrequency() const { 
-			return fFrequency; 
-		}
-		
-		/** Get the current audio waveform period (in seconds)
-		  */
-		float getPeriod() const { 
-			return (1.f / fFrequency); 
-		}
-
-		/** Get a pointer to the output volume envelope
-		  */
-		ott::DecayEnvelope* getVolumeEnvelope() {
-			return reinterpret_cast<ott::DecayEnvelope*>(this);
-		}
-
-		/** Sample output audio wave, after incrementing the phase a specified amount, and return the result
-		  */
-		float sample(const float& dt);
-
-		/** Sample the audio waveform N times, incrementing the phase by the sample rate phase step before each sample.
-		  * Output array must contain AT LEAST N elements.
-		  */
-		void sample(const float& dt, float* arr, const unsigned int& N);
-
-		/** Sample output audio wave, after incrementing the phase by the sample rate phase step, and return the result
-		  */
-		float sample() {
-			return sample(fPhaseStep);
-		}
-
-		/** Sample the audio waveform N times, after incrementing the phase by the sample rate phase step before each sample.
-		  * Output array must contain AT LEAST N elements.
-		  */
-		void sample(float* arr, const unsigned int& N) {
-			sample(fPhaseStep, arr, N);
-		}
-
-	protected:
-		bool bUseVolumeEnvelope; ///< Set if volume envelope will moderate amplitude of audio waveform
-
-		float fAmplitude; ///< Maximum amplitude of audio waveform (clamped between 0 and 1)
-		
-		float fFrequency; ///< Frequency of audio waveform (in Hz)
-		
-		float fPeriod; ///< Period of audio waveform (in seconds)
-
-		float fPhase; ///< Current phase of audio waveform (in seconds)
-
-		float fPhaseStep; ///< Standard phase step of waveform based on sampling frequency (in seconds)
-		
-		/** Sample output audio wave, after incrementing the phase a specified amount, and return the result
-		  */
-		virtual float userSample(const float& dt) = 0;
-	};
-	
-	class SineWave : public SimpleSynth {
+namespace Synthesizers{	
+	class SineWave : public AudioSampler {
 	public:
 		/** Default constructor
 		  */
 		SineWave() :
-			SimpleSynth()
+			AudioSampler()
 		{
 		}
 
@@ -151,12 +21,12 @@ namespace Synthesizers{
 		float userSample(const float& dt) override;
 	};
 
-	class TriangleWave : public SimpleSynth {
+	class TriangleWave : public AudioSampler {
 	public:
 		/** Default constructor
 		  */
 		TriangleWave() :
-			SimpleSynth()
+			AudioSampler()
 		{
 		}
 		
@@ -166,12 +36,12 @@ namespace Synthesizers{
 		float userSample(const float& dt) override;
 	};	
 	
-	class SquareWave : public SimpleSynth {
+	class SquareWave : public AudioSampler {
 	public:
 		/** Default constructor
 		  */
 		SquareWave() :
-			SimpleSynth(),
+			AudioSampler(),
 			nHarmonics(10)
 		{
 		}
@@ -184,12 +54,12 @@ namespace Synthesizers{
 		float userSample(const float& dt) override;
 	};
 
-	class SawtoothWave : public SimpleSynth {
+	class SawtoothWave : public AudioSampler {
 	public:
 		/** Default constructor
 		  */
 		SawtoothWave() :
-			SimpleSynth(),
+			AudioSampler(),
 			nHarmonics(10)
 		{
 		}
@@ -202,12 +72,12 @@ namespace Synthesizers{
 		float userSample(const float& dt) override;
 	};
 
-	class Noise : public SimpleSynth {
+	class Noise : public AudioSampler {
 	public:
 		/** Default constructor
 		  */
 		Noise() :
-			SimpleSynth(),
+			AudioSampler(),
 			bPulseState(false),
 			nShiftRegister(0),
 			random(OTTRandom::Generator::XORSHIFT)
@@ -225,14 +95,20 @@ namespace Synthesizers{
 		/** Sample the shift register at a specified phase
 		  */
 		float userSample(const float& dt) override;
+
+		/** Right shift all bits of shift register when waveform phase rolls over.
+		  * If shift register is now zero, set it to a random 32-bit integer.
+		  * Output state is set to state of bit 0 of shift register.
+		  */
+		void userPhaseRollover() override;
 	};
 
-	class SquarePulse : public SimpleSynth {
+	class SquarePulse : public AudioSampler {
 	public:
 		/** Default constructor
 		  */
 		SquarePulse() :
-			SimpleSynth(),
+			AudioSampler(),
 			bPulseState(false)
 		{
 		}
@@ -243,18 +119,22 @@ namespace Synthesizers{
 		/** Sample the wave at a specified phase
 		  */
 		float userSample(const float& dt) override;
+
+		/** Toggle the state of wave pulse when waveform phase rolls over
+		  */
+		void userPhaseRollover() override;
 	};
 
-	class TrapezoidPulse : public SimpleSynth {
+	class TrapezoidPulse : public AudioSampler {
 	public:
 		/** Default constructor
 		  */
 		TrapezoidPulse() :
-			SimpleSynth(),
+			AudioSampler(),
 			pulse(0.f, 0.0005, 0.0)
 		{
 			pulse.setDecayType(DecayType::LINEAR);
-			pulse.setReleaseTime(0.0005);
+			pulse.setReleaseTime(0.0005f);
 			pulse.setSustainTime(0.0005);
 		}
 
@@ -270,6 +150,10 @@ namespace Synthesizers{
 		/** Sample the wave at a specified phase
 		  */
 		float userSample(const float& dt) override;
+
+		/** Trigger the wave pulse when waveform phase rolls over
+		  */
+		void userPhaseRollover() override;
 	};
 } // namespace Synthesizers
 

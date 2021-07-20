@@ -16,7 +16,7 @@
 // GUI
 #include "OTTGuiSlider.hpp"
 
-Synthesizers::SimpleSynth* synth;
+AudioSampler* synth;
 
 int audioCallback(const void*, void* output, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* data) {
 	float* out = reinterpret_cast<float*>(output);
@@ -60,8 +60,12 @@ protected:
 		enableKeyboard();
 		enableImageBuffer(false);
 
-		std::cout << " Press '+' to increase volume" << std::endl;
-		std::cout << " Press '-' to decrease volume" << std::endl;
+		std::cout << " Press '-' or '+' to decrease / increase waveform amplitude" << std::endl;
+		std::cout << " Press '[' or ']' to decrease / increase waveform frequency" << std::endl;
+		std::cout << " Press '<' or '>' to decrease / increase trapezoid pulse width" << std::endl;
+		std::cout << " Press 's' to switch synthesizer type" << std::endl;
+		std::cout << " Press 'r' to reset output waveform" << std::endl;
+		std::cout << " Press and hold 'space' to play note" << std::endl;
 
 		// Set default output volume
 		mixer.setVolume(0.0125f);
@@ -128,7 +132,11 @@ protected:
 				iter = vSynths.begin();
 			synth = *iter;
 		}
+		if (keys.poll('r')) { // Reset waveform
+			(*iter)->reset();
+		}
 		if (keys.check(0x20)) { // Play note
+			(*iter)->play();
 			(*iter)->trigger(1.f);
 		}
 		else if ((*iter)->isHeld()) {
@@ -175,9 +183,9 @@ private:
 
 	OTTGuiSlider masterVolume;
 
-	std::vector<Synthesizers::SimpleSynth*> vSynths;
+	std::vector<AudioSampler*> vSynths;
 
-	std::vector<Synthesizers::SimpleSynth*>::iterator iter;
+	std::vector<AudioSampler*>::iterator iter;
 };
 
 int main(int argc, char* argv[]) {

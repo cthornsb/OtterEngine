@@ -1,6 +1,5 @@
 # Compile source files
-add_library(
-	OtterAudioObj 
+add_library( OtterAudioObj 
 	OBJECT 
 	AudioSampler.cpp
 	MidiFile.cpp
@@ -13,8 +12,7 @@ add_library(
 	WavFile.cpp
 )
 
-target_compile_definitions(
-	OtterAudioObj 
+target_compile_definitions( OtterAudioObj 
 	PRIVATE 
 	ENABLE_PORT_AUDIO
 )
@@ -22,14 +20,12 @@ target_compile_definitions(
 # Generate the audio library
 if(WIN32 OR INSTALL_STATIC_LIBRARIES)
 	# Building dlls on Windows is a nightmare, so we just won't do it
-	add_library(
-		OtterAudio
+	add_library( OtterAudio
 		STATIC 
 		$<TARGET_OBJECTS:OtterAudioObj>
 	)
 else()
-	add_library(
-		OtterAudio
+	add_library( OtterAudio
 		SHARED 
 		$<TARGET_OBJECTS:OtterAudioObj>
 	)
