@@ -83,7 +83,8 @@ public:
 
 	/** Destructor
 	  */
-	~SoundMixer() { }
+	~SoundMixer() { 
+	}
 
 	/** Direct element access operator for current raw output samples (no output volume applied)
 	  */
@@ -218,12 +219,12 @@ public:
 		bSendInputToOutput[output][input] = state;
 	}
 	
-	/** Set the audio sample for a specified channel (clamped to 0 to 1)
+	/** Set the audio sample for a specified channel (clamped to -1 to 1)
 	  * Also sets the mixer's modified flag
 	  */
 	void setInputSample(const unsigned int& ch, const float& vol){
 		bModified = true;
-		fInputSamples[ch] = ott::clamp(vol, 0.f, 1.f);
+		fInputSamples[ch] = ott::clamp(vol, -1.f);
 	}
 	
 	/** Reset mixer timer to zero

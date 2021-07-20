@@ -103,17 +103,17 @@ namespace WavFile {
 			fSamples[0] = std::vector<float>(nChannels, 0.f);
 			fSamples[1] = std::vector<float>(nChannels, 0.f);
 			fInterpolated = std::vector<float>(nChannels, 0.f);
-			if (nBitsPerChannel == 8) {
+			if (nBitsPerChannel == 8) { // Unsigned 8-bit integer
 				nBuffer8 = std::vector<uint8_t>(nLengthData, 0);
 				audio.read((char*)nBuffer8.data(), nLengthData);
 				nBufferSize = nLengthData;
 			}
-			else if (nBitsPerChannel == 16) {
+			else if (nBitsPerChannel == 16) { // Signed 16-bit integer
 				nBuffer16 = std::vector<uint16_t>(nLengthData / 2, 0);
 				audio.read((char*)nBuffer16.data(), nLengthData);
 				nBufferSize = nLengthData / 2;
 			}
-			else if (nBitsPerChannel == 24) {
+			else if (nBitsPerChannel == 24) { // Signed 24-bit integer
 				nBufferSize = 0;
 				nBuffer24 = std::vector<uint32_t>(nLengthData / 3, 0);
 				uint8_t readBuffer[3072]; // 1024 24-bit values
@@ -128,7 +128,7 @@ namespace WavFile {
 				}
 				nBufferSize = nLengthData / 3;
 			}
-			else if (nBitsPerChannel == 32) {
+			else if (nBitsPerChannel == 32) { // 32-bit floating point
 				fBuffer32 = std::vector<float_t>(nLengthData / 4, 0);
 				audio.read((char*)fBuffer32.data(), nLengthData);
 				nBufferSize = nLengthData / 4;
@@ -269,8 +269,52 @@ namespace WavFile {
 	}
 
 	bool WavFileRecorder::addSample(const SoundMixer& mixer) {
-		// Not implemented
-		return false;
+		if (!bRecording)
+			return false;
+		if (nBitsPerChannel == 8) { // Unsigned 8-bit integer
+			// -1 -> 0
+			//  0 -> 127
+			// +1 -> 255
+			uint8_t sample;
+			for (unsigned short ch = 0; ch < nChannels; ch++) {
+				sample = (uint8_t)(0.5f * (ott::clamp(mixer[ch], -1.f) + 1.f) * 255.f);
+				audio.write(reinterpret_cast<char*>(&sample), 1);
+			}
+		}
+		else if (nBitsPerChannel == 16) { // Signed 16-bit integer
+			// -1 -> -32768
+			//  0 -> 0
+			// +1 -> 32767
+			int16_t sample;
+			for (unsigned short ch = 0; ch < nChannels; ch++) {
+				sample = (int16_t)(-32768.f + (0.5f * (ott::clamp(mixer[ch], -1.f) + 1.f) * 65535.f));
+				audio.write(reinterpret_cast<char*>(&sample), 2);
+			}
+		}
+		else if (nBitsPerChannel == 24) { // Signed 24-bit integer
+			// -1 -> -8388608
+			//  0 -> 0
+			// +1 -> 8388607
+			int32_t sample;
+			for (unsigned short ch = 0; ch < nChannels; ch++) {
+				sample = (int32_t)(-8388608.f + (0.5f * (ott::clamp(mixer[ch], -1.f) + 1.f) * 16777215.f));
+				audio.write(reinterpret_cast<char*>(&sample), 3);
+			}
+		}
+		else if (nBitsPerChannel == 32) { // 32-bit floating point
+			float_t sample;
+			for (unsigned short ch = 0; ch < nChannels; ch++) {
+				sample = (float_t)ott::clamp(mixer[ch], -1.f);
+				audio.write(reinterpret_cast<char*>(&sample), 4);
+			}
+		}
+		else { // Unknown bit depth
+			return false;
+		}
+		nSamples++;
+		nFileSize += nBytesPerSample;
+		nLengthData += nBytesPerSample;
+		return true;
 	}
 
 } // namespace WavFile

@@ -193,12 +193,13 @@ namespace WavFile {
 		  */
 		bool stopRecording();
 
-		/** Add an audio sample directly to the output file 
+		/** Add a raw audio sample directly to the output file.
+		  * Input array must contain AT LEAST nBytesPerSample.
 		  */
 		bool addSample(void* ptr);
 
-		/** Add an audio sample from an audio mixer directly to the output file.
-		  * Not implemented.
+		/** Add an audio sample from an audio mixer to the output file.
+		  * Sound mixer must contain AT LEAST as many channels as the recorded wav file.
 		  */
 		bool addSample(const SoundMixer& mixer);
 
