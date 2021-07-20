@@ -3,9 +3,7 @@
 
 #include <vector>
 
-#ifdef WIN32
-#define USE_GLFW_TIMER
-#endif
+#include "MovingAverage.hpp"
 
 #ifndef USE_GLFW_TIMER
 
@@ -15,65 +13,6 @@
 typedef std::chrono::high_resolution_clock hclock;
 
 #endif // ifndef USE_GFLW_TIMER
-
-class MovingAverage {
-public:
-	/** Default constructor (100 values)
-	  */
-	MovingAverage() :
-		bFull(false),
-		nValues(0),
-		dTotal(0),
-		dValues(100, 0),
-		iter(dValues.begin())
-	{
-	}
-
-	/** N value constructor
-	  */
-	MovingAverage(const unsigned short& N) :
-		bFull(false),
-		nValues(0),
-		dTotal(0),
-		dValues(N, 0),
-		iter(dValues.begin())
-	{
-	}
-
-	/** Get the current running average
-	  */
-	double operator () () const {
-		return (nValues > 0 ? (dTotal / nValues) : 0);
-	}
-
-	/** Add a new value to the running average and subtract the oldest value
-	  * @return The current running average
-	  */
-	double operator () (const double& value);
-
-	/** Add a new value to the running average and subtract the oldest value
-	  */
-	void add(const double& value);
-
-	/** Reset the current running average and all saved values
-	  */
-	void reset();
-
-private:
-	bool bFull; ///< Set when the moving average is full of values
-
-	unsigned short nValues; ///< Total number of values to average
-
-	double dTotal; ///< Current running average
-
-	std::vector<double> dValues; ///< Vector of running average values
-
-	std::vector<double>::iterator iter; ///< The next value which will be modified
-
-	/** Recompute the total sum to remove any rounding errors which may have been introduced
-	  */
-	void recount();
-};
 
 /// <summary>
 /// High resolution frame render timer which will attempt to maintain a target 
@@ -104,10 +43,10 @@ public:
 	  */
 	double getTimeElapsed() const;
 
-	/** Get the average amount of time for each render (in microseconds)
+	/** Get the average amount of time for each render (in seconds)
 	  */
 	double getAverageRenderTime() const { 
-		return averageCycleTime();
+		return averageDeltaTime();
 	}
 
 	/** Get the instantaneous framerate (in frames per second) of the most recent frame update
@@ -128,13 +67,13 @@ public:
 		return dFramerateCap;
 	}
 
-	/** Get the current frame period (in microseconds)
+	/** Get the current frame period (in seconds)
 	  */
 	double getFramePeriod() const {
 		return dFramePeriod;
 	}
 
-	/** Get the current frame period time offset (in microseconds)
+	/** Get the current frame period time offset (in seconds)
 	  */
 	double getFramePeriodOffet() const {
 		return dConstantOffset;
@@ -146,11 +85,12 @@ public:
 		return nFrameCount;
 	}
 
-	/** Set the constant frame period time offset to fine tune frame timing.
-	  * Setting the frame period offset will disable time offset averaging. Set the period to <= 0 to re-enable default time averaging behavior.
+	/** Set the constant frame period time offset to fine tune frame timing (in microseconds).
+	  * Setting the frame period offset will disable time offset averaging. 
+	  * Set the period to <= 0 to re-enable default time averaging behavior.
 	  */
 	void setFramePeriodOffset(const double& offset) {
-		dConstantOffset = offset;
+		dConstantOffset = offset / 1E6;
 	}
 
 	/** Set the target maximum framerate for rendering (in Hz)
@@ -158,7 +98,7 @@ public:
 	  */
 	void setFramerateCap(const double &fps);
 
-	/** Set the period for each successive frame (in microseconds)
+	/** Set the period for each successive frame (in seconds)
 	  */
 	void setFrameratePeriod(const double& period);
 
@@ -170,6 +110,19 @@ public:
 	  */
 	void quit(){
 		bQuitting = true;
+	}
+
+	/** Restart frame timer
+	  */
+	void enable() {
+		bEnabled = true;
+		update(); // Reset timer
+	}
+
+	/** Stop frame timer
+	  */
+	void disable() {
+		bEnabled = false;
 	}
 
 	/** Update the time elapsed since last loop.
@@ -199,15 +152,17 @@ public:
 	static void sleep(const long long& usec);
 
 protected:
+	bool bEnabled; ///< Set if frame timer is running
+
 	bool bQuitting; ///< Set if the main execution loop should exit
 
 	double dFramerate; ///< The instantaneous framerate of the last render
 
 	double dFramerateCap; ///< The target render framerate (in Hz)
 
-	double dFramePeriod; ///< Target frame period (microseconds)
+	double dFramePeriod; ///< Target frame period (seconds)
 
-	double dConstantOffset; ///< Constant frame period time offset (microseconds)
+	double dConstantOffset; ///< Constant frame period time offset (seconds)
 
 	unsigned long long nFrameCount; ///< The number of frames which have been rendered
 
@@ -225,15 +180,16 @@ protected:
 
 	double dTotalFrameTime; ///< The total time taken for the most recent frame (i.e. between successive sync() calls, in seconds)
 
-	MovingAverage averageCycleTime; ///< Moving average cycle time
+	ott::MovingAverage averageDeltaTime; ///< Average extra time due to high-res timing and sleep calls (in seconds)
 
-	MovingAverage averageFramerate; ///< Moving average framerate
+	ott::MovingAverage averageFramerate; ///< Average framerate
 
-	MovingAverage averageDeltaTime; ///< Moving average difference between target frame period and actual frame period
+	ott::MovingAverage averageFrameTime; ///< Average frame period (in seconds)
 
 	/** Function to be executed once per main loop when execute() is called
 	  */
-	virtual void userIdleTask() { }
+	virtual void userIdleTask() { 
+	}
 };
 
 #endif
