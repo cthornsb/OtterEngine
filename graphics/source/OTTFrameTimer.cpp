@@ -94,18 +94,22 @@ double OTTFrameTimer::sync() {
 		double timeToSleep = dFramePeriod - dTotalFrameTime - (dConstantOffset + averageDeltaTime()); // Amount of time remaining until end of frame period (seconds)
 		if (timeToSleep > 0) { // Sleep until end of frame period
 			std::this_thread::sleep_for(std::chrono::microseconds((long long)(1E6 * timeToSleep)));
-		}
 
-		// Compute the time elapsed since last call to sync()
+			// Compute the time elapsed since last call to sync()
 #ifndef USE_GLFW_TIMER
-		double dExtraTime = std::chrono::duration<double>(hclock::now() - timeOfLastUpdate).count(); // Total frame time, in seconds
-		timeOfLastUpdate = hclock::now(); // update()
+			double dExtraTime = std::chrono::duration<double>(hclock::now() - timeOfLastUpdate).count(); // Total frame time, in seconds
 #else
-		double dExtraTime = glfwGetTime() - dTimeOfLastUpdate; // Total frame time, in seconds
-		dTimeOfLastUpdate = glfwGetTime(); // update()
+			double dExtraTime = glfwGetTime() - dTimeOfLastUpdate; // Total frame time, in seconds
 #endif // ifndef USE_GLFW_TIMER
-		averageDeltaTime.add(dExtraTime - dTotalFrameTime - timeToSleep);
-		dTotalFrameTime = dExtraTime;
+			averageDeltaTime.add(dExtraTime - dTotalFrameTime - timeToSleep);
+			dTotalFrameTime = dExtraTime;
+		}
+		// Update the time
+#ifndef USE_GLFW_TIMER
+		timeOfLastUpdate = hclock::now();
+#else
+		dTimeOfLastUpdate = glfwGetTime();
+#endif // ifndef USE_GLFW_TIMER
 	}
 
 	// Update moving average frame time

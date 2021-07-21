@@ -99,7 +99,10 @@ void scene::clear(const ColorRGB &color/*=Colors::BLACK*/){
 }
 
 #ifndef SOFTWARE_RENDERER
-bool scene::update() {
+bool scene::drawOpenGL() {
+	// Update frame timer
+	this->update();
+
 	// Clear the screen with a color
 	clear(Colors::BLACK);
 

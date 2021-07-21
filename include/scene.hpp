@@ -172,7 +172,7 @@ public:
 	/** Draw objects on the screen using OpenGL renderer (or software renderer)
 	  * @return True if the update was successful and return false if the user closed the window
 	  */
-	bool update();
+	bool drawOpenGL();
 
 private:
 	bool drawOrigin; ///< Flag indicating that the X, Y, and Z axes will be drawn at the origin

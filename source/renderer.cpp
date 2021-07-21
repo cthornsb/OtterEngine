@@ -214,7 +214,7 @@ int main(){
 	bool isDone = false;
 	Matrix3 lightRotation;
 	lightRotation.setRotation(0, 0, 0.08f);
-	while(!isDone && myScene.update()){
+	while(!isDone && myScene.drawOpenGL()){
 		// Check for keypresses 
 		if(!keys->empty()){			
 			// Pressed keys (toggles)
@@ -279,11 +279,12 @@ int main(){
 		// Update player kinematics
 		player.update(timeElapsed);
 
+		// Render the scene
+		window->render();
+
 		// Cap the framerate
 		timeElapsed = (float)myScene.sync();
 		totalTimeElapsed += timeElapsed;
-
-		window->render();
 	}
 	
 	return 0;
