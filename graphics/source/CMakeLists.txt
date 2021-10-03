@@ -6,6 +6,7 @@ add_library( OtterCoreObj
 	OTTApplication.cpp
 	OTTBitmap.cpp
 	OTTCharacterMap.cpp
+	OTTConfigFile.cpp
 	OTTConsole.cpp
 	OTTFrameTimer.cpp
 	OTTHighResTimer.cpp
