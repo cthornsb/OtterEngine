@@ -138,17 +138,25 @@ public:
 	  **/
 	bool delta(double& dx, double& dy);
 
-	/** Check if a mouse button is pressed but do not reset its state
-	  * @note This method should be used for mouse buttons which are held down
+	/** Check if a mouse button is currently being held
 	  **/
 	bool check(const unsigned char& button) const {
 		return bStates[button];
 	}
 
-	/** Check if a mouse button is pressed and reset its state
+	/** Check if a mouse button was pressed
 	  * @note This method should be used for mouse button presses, where holding the button down is ignored
 	  **/
 	bool poll(const int& button);
+
+	/** Check if a mouse button was pressed (performs the same function as OTTMouse::poll)
+	  * @note This method should be used for mouse button presses, where holding the button down is ignored
+	  **/
+	bool pressed(const int& button);
+
+	/** Check if a mouse button was released
+	  **/
+	bool released(const int& button);
 
 	/** Set a mouse button as pressed
 	  * @note Typically this method should be called by the external mouse callback
@@ -185,7 +193,11 @@ private:
 	
 	double dDeltaY; ///< Delta Y position of mouse
 
-	bool bStates[3]; ///< Mouse button states for left, middle, and right buttons (true indicates button is down) 
+	bool bStates[3]; ///< Flags which are set when left, right, and middle mouse buttons are currently held	
+
+	bool bPressed[3]; ///< Flags set when the left, right, and middle mouse buttons are pressed
+
+	bool bReleased[3]; ///< Flags set when the left, right, and middle mouse buttons are released
 
 	GLFWcursor* cursor; ///< Pointer to custom mouse cursor (if in use)
 	

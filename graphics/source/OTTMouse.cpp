@@ -9,6 +9,8 @@ OTTMouse::OTTMouse() :
 	dDeltaX(0),
 	dDeltaY(0),
 	bStates{ false, false, false },
+	bPressed{ false, false, false },
+	bReleased{ false, false, false },
 	cursor(0x0),
 	parent(0x0)
 {
@@ -105,8 +107,20 @@ bool OTTMouse::delta(double& deltaX, double& deltaY) {
 }
 
 bool OTTMouse::poll(const int& button) {
-	if (bStates[button]) {
-		bStates[button] = false;
+	if (bPressed[button]) {
+		bPressed[button] = false;
+		return true;
+	}
+	return false;
+}
+
+bool OTTMouse::pressed(const int& button) {
+	return poll(button);
+}
+
+bool OTTMouse::released(const int& button) {
+	if (bReleased[button]) {
+		bReleased[button] = false;
 		return true;
 	}
 	return false;
@@ -115,6 +129,8 @@ bool OTTMouse::poll(const int& button) {
 void OTTMouse::down(const int& button) {
 	if (!bStates[button]) {
 		bStates[button] = true;
+		bPressed[button] = true;
+		bReleased[button] = false;
 		nCount++;
 	}
 }
@@ -122,13 +138,18 @@ void OTTMouse::down(const int& button) {
 void OTTMouse::up(const int& button) {
 	if (bStates[button]) {
 		bStates[button] = false;
+		bPressed[button] = false;
+		bReleased[button] = true;
 		nCount--;
 	}
 }
 
 void OTTMouse::reset() {
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++) {
 		bStates[i] = false;
+		bPressed[i] = false;
+		bReleased[i] = false;
+	}
 	nCount = 0;
 }
 
@@ -162,7 +183,7 @@ void OTTMouse::setupCallbacks(bool bEnable/*=true*/) {
 	if(bEnable){
 		glfwSetMouseButtonCallback(parent, OTTMouse::handleMouse); // Set mouse button callback
 		glfwSetCursorPosCallback(parent, OTTMouse::handleMouseMove); // Set mouse movement callback
-		glfwSetCursorEnterCallback(parent, OTTMouse::handleMouseEnter); // Set curser enter / exit callback
+		glfwSetCursorEnterCallback(parent, OTTMouse::handleMouseEnter); // Set cursor enter / exit callback
 		glfwSetScrollCallback(parent, OTTMouse::handleMouseScroll); // Set mouse scroll callback
 	}
 	else{
