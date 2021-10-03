@@ -48,7 +48,12 @@ public:
 	
 	/** Destructor
 	  */
-	~OTTSpriteSet(){ }
+	~OTTSpriteSet(){ 
+	}
+
+	/**
+	  */
+	OTTSpriteSet& operator [] (const size_t& index);
 	
 	/** Set the rate at which sprite frames are advanced (in frames per second)
 	  */
