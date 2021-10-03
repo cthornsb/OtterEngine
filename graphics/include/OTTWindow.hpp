@@ -103,7 +103,7 @@ public:
 	
 	/** Get the height of the window (in pixels)
 	  */
-	int getNativetHeight() const {
+	int getNativeHeight() const {
 		return nNativeHeight;
 	}
 
