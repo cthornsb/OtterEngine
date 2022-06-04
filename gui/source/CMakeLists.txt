@@ -9,6 +9,9 @@ add_library( OtterGuiObj
 	OTTGuiSlider.cpp
 )
 
+# Target include directory
+target_include_directories(OtterGuiObj PUBLIC ..)
+
 # Build Gui library
 if(WIN32 OR INSTALL_STATIC_LIBRARIES)
 	add_library( OtterGui

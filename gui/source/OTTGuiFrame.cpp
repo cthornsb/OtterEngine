@@ -1,7 +1,8 @@
-#include "OTTImageBuffer.hpp"
 #include "OTTGuiFrame.hpp"
 
-OTTGuiFrame::OTTGuiFrame() :
+#include <graphics/core/OTTImageBuffer.hpp>
+
+ott::GuiFrame::GuiFrame() :
 	bMouseInside(false),
 	bDebugMode(false),
 	x0(0),
@@ -13,7 +14,7 @@ OTTGuiFrame::OTTGuiFrame() :
 {
 }
 
-OTTGuiFrame::OTTGuiFrame(const int& x, const int& y, const int& w, const int& h) :
+ott::GuiFrame::GuiFrame(const int32_t& x, const int32_t& y, const int32_t& w, const int32_t& h) :
 	bMouseInside(false),
 	bDebugMode(false),
 	x0(x),
@@ -25,21 +26,21 @@ OTTGuiFrame::OTTGuiFrame(const int& x, const int& y, const int& w, const int& h)
 {
 }
 
-void OTTGuiFrame::setPosition(const int& x, const int& y) {
+void ott::GuiFrame::SetPosition(const int32_t& x, const int32_t& y) {
 	x0 = x;
 	y0 = y;
 	x1 = x + nWidth;
 	y1 = y + nHeight;
 }
 
-void OTTGuiFrame::setSize(const int& w, const int& h) {
+void ott::GuiFrame::SetSize(const int32_t& w, const int32_t& h) {
 	nWidth = w;
 	nHeight = h;
 	x1 = x0 + nWidth;
 	y1 = y0 + nHeight;
 }
 
-void OTTGuiFrame::draw(OTTImageBuffer* buffer) {
+void ott::GuiFrame::Draw(ImageBuffer* buffer) {
 	// Draw a simple wireframe bounding box, for debugging
-	buffer->drawRectangle(x0, y0, x1, y1);
+	buffer->DrawRectangle(x0, y0, x1, y1);
 }

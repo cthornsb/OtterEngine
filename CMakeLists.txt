@@ -49,9 +49,9 @@ if(NOT WIN32)
 	#Build static libraries instead of shared (Linux)
 	option(INSTALL_STATIC_LIBRARIES "Build static libraries instead of shared." OFF)
 endif()
-option(STRICT_OPENGL_VERSION "Enable the use of the OpenGL library version number header." OFF)
 option(BUILD_TEST_PROGRAMS "Compile library test programs." OFF)
 option(BUILD_TOOL_PROGRAMS "Compile various tools." OFF)
+option(SOFTWARE_RENDERER "Use software 3d rendering algorithm" OFF)
 
 #------------------------------------------------------------------------------
 
@@ -77,10 +77,10 @@ set(INSTALL_LIB_DIR     ${CMAKE_INSTALL_PREFIX}/lib)
 set(INSTALL_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include)
 set(INSTALL_SHARE_DIR   ${CMAKE_INSTALL_PREFIX}/cmake)
 
-set(INCLUDE_DIR_GRAPHICS ${CMAKE_SOURCE_DIR}/graphics/include)
-set(INCLUDE_DIR_AUDIO    ${CMAKE_SOURCE_DIR}/audio/include)
-set(INCLUDE_DIR_MATH     ${CMAKE_SOURCE_DIR}/math/include)
-set(INCLUDE_DIR_3D       ${CMAKE_SOURCE_DIR}/3d/include)
+set(INCLUDE_DIR_GRAPHICS ${CMAKE_SOURCE_DIR}/graphics)
+set(INCLUDE_DIR_AUDIO    ${CMAKE_SOURCE_DIR}/audio)
+set(INCLUDE_DIR_MATH     ${CMAKE_SOURCE_DIR}/math)
+set(INCLUDE_DIR_3D       ${CMAKE_SOURCE_DIR}/3d)
 
 #Add the global include directories.
 include_directories(
@@ -89,21 +89,12 @@ include_directories(
 	${GLEW_INCLUDE_DIRS}
 	${SOIL_INCLUDE_DIRS}
 	${PORT_AUDIO_INCLUDE_DIRS}
-	graphics/include
-	audio/include
-	math/include
-	gui/include
-	include
+	${CMAKE_SOURCE_DIR}
 )
 
 if(BUILD_TOOL_PROGRAMS)
 	#Build tool programs
 	add_subdirectory(tools/source)
-
-	#Add the newly generated library versions header
-	if(STRICT_OPENGL_VERSION)
-		include_directories(${VERSION_HEADER_DIR})
-	endif()
 endif()
 
 if(BUILD_TEST_PROGRAMS)
@@ -111,11 +102,16 @@ if(BUILD_TEST_PROGRAMS)
 endif()
 
 #Add the graphics directory.
-add_subdirectory(graphics/source)
-add_subdirectory(audio/source)
-add_subdirectory(math/source)
-add_subdirectory(gui/source)
-add_subdirectory(source)
+add_subdirectory("core/source")
+add_subdirectory("graphics/3d/source")
+add_subdirectory("graphics/app/source")
+add_subdirectory("graphics/core/source")
+add_subdirectory("graphics/geometry/source")
+add_subdirectory("graphics/texture/source")
+add_subdirectory("input/source")
+#add_subdirectory("audio/source")
+add_subdirectory("math/source")
+add_subdirectory("gui/source")
 
 #Build/install the miscellaneous stuff
 # Build and install shared libraries.

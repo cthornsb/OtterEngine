@@ -15,7 +15,7 @@ float Synthesizers::TriangleWave::userSample(const float& dt){
 float Synthesizers::SquareWave::userSample(const float& dt){
 	const float coeff = 2 * PI * fFrequency * fPhase;
 	float sum = 0.f;
-	for(int i = 1; i <= nHarmonics; i++){
+	for(int32_t i = 1; i <= nHarmonics; i++){
 		sum += std::sinf(coeff * (2.f * i - 1)) / (2.f * i - 1);
 	}
 	return (4.f * sum / PI);
@@ -24,7 +24,7 @@ float Synthesizers::SquareWave::userSample(const float& dt){
 float Synthesizers::SawtoothWave::userSample(const float& dt){
 	const float coeff = 2 * PI * fFrequency * fPhase;
 	float sum = 0.f;
-	for(int i = 1; i <= nHarmonics; i++){
+	for(int32_t i = 1; i <= nHarmonics; i++){
 		sum += (i % 2 == 0 ? 1.f : -1.f) * std::sinf(coeff * i) / i;
 	}
 	return (-2.f * sum / PI);

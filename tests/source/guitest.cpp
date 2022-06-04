@@ -2,42 +2,43 @@
 #include <cmath>
 
 // Core
-#include "OTTApplication.hpp"
+#include <graphics/app/OTTApplication.hpp>
 
 // Gui
-#include "OTTGuiContainer.hpp"
-#include "OTTGuiButton.hpp"
-#include "OTTGuiRadioButton.hpp"
-#include "OTTGuiCheckbox.hpp"
-#include "OTTGuiSlider.hpp"
+#include <gui/OTTGuiButton.hpp>
+#include <gui/OTTGuiCheckbox.hpp>
+#include <gui/OTTGuiContainer.hpp>
+#include <gui/OTTGuiRadioButton.hpp>
+#include <gui/OTTGuiSlider.hpp>
 
 // Math
-#include "WrappedValue.hpp"
-#include "DecayEnvelope.hpp"
+#include <math/OTTWrappedValue.hpp>
+//#include "DecayEnvelope.hpp"
 
-void buttonClicked(OTTGuiElement*, bool);
+namespace ott {
 
-void stateChanged(OTTGuiElement*, bool);
+void ButtonClicked(GuiElement*, bool);
+void StateChanged(GuiElement*, bool);
+void EditingFinished(GuiElement*, bool);
 
-void editingFinished(OTTGuiElement*, bool);
-
-class SpriteApp : public OTTApplication {
+class SpriteApp : public Application {
 public:
+
 	SpriteApp() :
-		OTTApplication(640, 480),
+		Application(640, 480),
 		gui(100, 100, 320, 240),
 		button(),
 		checkbox(),
 		radio(),
 		sliders{
-			OTTGuiSlider(0.f, -1.f, 1.f),
-			OTTGuiSlider(0.f, -1.f, 1.f),
-			OTTGuiSlider(0.f,  0.f, 1.f),
-			OTTGuiSlider(0.f,  0.f, 1.f)
+			GuiSlider(0.f, -1.f, 1.f),
+			GuiSlider(0.f, -1.f, 1.f),
+			GuiSlider(0.f,  0.f, 1.f),
+			GuiSlider(0.f,  0.f, 1.f)
 		},
-		theta(0.f, 0.f, 6.28318f),
-		envelope1(),
-		envelope2()
+		theta(0.f, 0.f, 6.28318f)
+		//envelope1(),
+		//envelope2()
 	{
 	}
 
@@ -45,52 +46,53 @@ public:
 		// Nothing to clean up, window will be closed by OTTWindow class
 	}
 
-	void clicked() {
+	void Clicked() {
 		// "Press" the buttons
-		envelope1.trigger(1.f);
-		envelope2.trigger(1.f);
+		//envelope1.trigger(1.f);
+		//envelope2.trigger(1.f);
 
 		// Release them
-		envelope1.release();
-		envelope2.release();
+		//envelope1.release();
+		//envelope2.release();
 	}
 
 protected:
-	bool onUserCreateWindow() override {
+
+	bool OnUserCreateWindow() override {
 		// Enable mouse and keyboard support
-		enableKeyboard();
-		enableMouse();
-		enableImageBuffer(false);
+		this->EnableKeyboard();
+		this->EnableMouse();
+		this->EnableImageBuffer(false);
 
-		button.setPosition(100, 100);
-		button.setSize(50, 25);
-		button.setLeftMouseButtonPressed(buttonClicked);
+		button.SetPosition(100, 100);
+		button.SetSize(50, 25);
+		button.SetLeftMouseButtonPressed(ButtonClicked);
 
-		checkbox.setPosition(175, 100);
-		checkbox.setSize(50, 25);
-		checkbox.setOnStateChanged(stateChanged);
+		checkbox.SetPosition(175, 100);
+		checkbox.SetSize(50, 25);
+		checkbox.SetOnStateChanged(StateChanged);
 
-		radio.setPosition(175, 200);
-		radio.setSize(50, 50);
-		radio.setOnStateChanged(stateChanged);
+		radio.SetPosition(175, 200);
+		radio.SetSize(50, 50);
+		radio.SetOnStateChanged(StateChanged);
 
-		gui.add(&button);
-		gui.add(&checkbox);
-		gui.add(&radio);
+		gui.Add(&button);
+		gui.Add(&checkbox);
+		gui.Add(&radio);
 
-		for(int i = 0; i < 4; i++){
-			sliders[i].setPosition(250, 100 + 25 * i);
-			sliders[i].setSize(50, 25);
-			sliders[i].setOnEditingFinished(editingFinished);
-			gui.add(&sliders[i]);
+		for(int32_t i = 0; i < 4; i++){
+			sliders[i].SetPosition(250, 100 + 25 * i);
+			sliders[i].SetSize(50, 25);
+			sliders[i].SetOnEditingFinished(EditingFinished);
+			gui.Add(&sliders[i]);
 		}
 
 		// Select this window
-		setCurrent();
+		this->SetCurrent();
 		
 		// Set decay acceleration for envelopes
-		envelope1.setReleaseSlope(0.15f);
-		envelope2.setReleaseSlope(0.125f);
+		//envelope1.setReleaseSlope(0.15f);
+		//envelope2.setReleaseSlope(0.125f);
 		
 		std::cout << " Press escape to quit" << std::endl;
 
@@ -98,72 +100,75 @@ protected:
 		return true;
 	}
 
-	bool onUserLoop() override {
+	bool OnUserLoop() override {
 		// Clear the image buffer
-		buffer.fill(0);
+		buffer.Fill(0);
 
 		// Draw the gui
-		gui.draw(&buffer);
+		gui.Draw(&buffer);
 		
 		// Update window events
 		//processEvents(); // Not needed, OTTApplication calls this every loop
 
 		// Check for button events
-		gui.handleMouseEvents(&mouse);
+		gui.HandleMouseEvents(mouse);
 		
 		theta += 1.f * dTotalFrameTime;
-		sliders[0].setValue(std::sin(theta.get()));
-		sliders[1].setValue(std::cos(theta.get()));
-		sliders[2].setValue(envelope1.get());
-		sliders[3].setValue(envelope2.get());
+		sliders[0].SetValue(std::sin(theta.Get()));
+		sliders[1].SetValue(std::cos(theta.Get()));
+		//sliders[2].SetValue(envelope1.get());
+		//sliders[3].SetValue(envelope2.get());
 		
-		envelope1.update(dTotalFrameTime);
-		envelope2.update(dTotalFrameTime);
+		//envelope1.update(dTotalFrameTime);
+		//envelope2.update(dTotalFrameTime);
 		
 		// Draw the screen
-		renderBuffer();
+		this->RenderBuffer();
 
 		return true;
 	}
 
 private:
-	OTTGuiContainer gui;
+	GuiContainer gui;
 
-	OTTGuiButton button;
+	GuiButton button;
 
-	OTTGuiCheckbox checkbox;
+	GuiCheckbox checkbox;
 
-	OTTGuiRadioButton radio;
+	GuiRadioButton radio;
 
-	OTTGuiSlider sliders[4];
+	GuiSlider sliders[4];
 	
 	WrappedValue theta;
 	
-	ott::DecayEnvelope envelope1;
+	//DecayEnvelope envelope1;
 	
-	ott::DecayEnvelope envelope2;
+	//DecayEnvelope envelope2;
 };
 
-// Declare a new 2d application
-SpriteApp app;
+} /* namespace ott */
 
-void buttonClicked(OTTGuiElement*, bool state) {
-	if(state)
-		app.clicked();	
+// Declare a new 2d application
+ott::SpriteApp app;
+
+void ott::ButtonClicked(GuiElement*, bool state) {
+	if (state) {
+		app.Clicked();
+	}
 }
 
-void stateChanged(OTTGuiElement*, bool) {
+void ott::StateChanged(GuiElement*, bool) {
 	std::cout << " TOGGLED\n";
 }
 
-void editingFinished(OTTGuiElement*, bool) {
+void ott::EditingFinished(GuiElement*, bool) {
 	std::cout << " DONE\n";
 }
 
-int main(int argc, char* argv[]) {
+int32_t main(int32_t argc, char* argv[]) {
 	// Initialize application and open output window
-	app.start(argc, argv);
+	app.Start(argc, argv);
 
 	// Run the main loop
-	return app.execute();
+	return app.Execute();
 }

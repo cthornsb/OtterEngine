@@ -1,18 +1,17 @@
-#include <iostream> // TEMP
-
 #include "OTTGuiCheckbox.hpp"
-#include "OTTImageBuffer.hpp"
 
-OTTGuiCheckbox::OTTGuiCheckbox() :
-	OTTGuiElement()
+#include <graphics/core/OTTImageBuffer.hpp>
+
+ott::GuiCheckbox::GuiCheckbox() :
+	GuiElement()
 {
 }
 
-void OTTGuiCheckbox::draw(OTTImageBuffer* buffer) {
+void ott::GuiCheckbox::Draw(ImageBuffer* buffer) {
 	// Draw a simple wireframe bounding box, for debugging
 	if (!bState) {
-		buffer->setDrawColor(backgroundColor);
-		buffer->drawRectangle(
+		buffer->SetDrawColor(backgroundColor);
+		buffer->DrawRectangle(
 			x0 + xOffset,
 			y0 + yOffset,
 			x1 + xOffset,
@@ -21,28 +20,28 @@ void OTTGuiCheckbox::draw(OTTImageBuffer* buffer) {
 		//buffer->drawSubImage(x0 + xOffset, y0 + yOffset, normalStateImage);
 	}
 	else {
-		buffer->setDrawColor(backgroundColor);
-		buffer->drawRectangle(
+		buffer->SetDrawColor(backgroundColor);
+		buffer->DrawRectangle(
 			x0 + xOffset,
 			y0 + yOffset,
 			x1 + xOffset,
 			y1 + yOffset
 		);
-		buffer->drawLine(x0 + xOffset, y0 + yOffset, x1 + xOffset, y1 + yOffset);
-		buffer->drawLine(x0 + xOffset, y1 + yOffset, x1 + xOffset, y0 + yOffset);
+		buffer->DrawLine(x0 + xOffset, y0 + yOffset, x1 + xOffset, y1 + yOffset);
+		buffer->DrawLine(x0 + xOffset, y1 + yOffset, x1 + xOffset, y0 + yOffset);
 		//buffer->drawSubImage(x0 + xOffset, y0 + yOffset, activeStateImage);
 	}
 }
 
-bool OTTGuiCheckbox::onUserMouseEnter(const int& x, const int& y) {
+bool ott::GuiCheckbox::OnUserMouseEnter(const int32_t& x, const int32_t& y) {
 	return false;
 }
 
-bool OTTGuiCheckbox::onUserMouseExit(const int& x, const int& y) {
+bool ott::GuiCheckbox::OnUserMouseExit(const int32_t& x, const int32_t& y) {
 	return false;
 }
 
-bool OTTGuiCheckbox::onUserMousePressed(const int& x, const int& y, const unsigned char& buttons) {
+bool ott::GuiCheckbox::OnUserMousePressed(const int32_t& x, const int32_t& y, const uint8_t& buttons) {
 	bState = !bState;
 	if (onStateChanged) {
 		(*onStateChanged)(this, bState);
@@ -50,6 +49,6 @@ bool OTTGuiCheckbox::onUserMousePressed(const int& x, const int& y, const unsign
 	return bState;
 }
 
-bool OTTGuiCheckbox::onUserMouseReleased(const int& x, const int& y, const unsigned char& buttons) {
+bool ott::GuiCheckbox::OnUserMouseReleased(const int32_t& x, const int32_t& y, const uint8_t& buttons) {
 	return bState;
 }

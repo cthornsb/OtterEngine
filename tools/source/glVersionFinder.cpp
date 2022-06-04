@@ -10,12 +10,12 @@
 // Set if a fatal error occured
 bool bHadError = false;
 
-void handleErrorsGLFW(int error, const char* description) {
+void handleErrorsGLFW(int32_t error, const char* description) {
 	std::cout << " [glfw] Error! id=" << error << " : " << description << std::endl;
 	bHadError = true;
 }
 
-int main(int argc, char* argv[]) {
+int32_t main(int32_t argc, char* argv[]) {
 	std::string outputFilename;
 	if (argc >= 2) { // User set output directory
 		outputFilename = std::string(argv[1]);
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 	glfwSetErrorCallback(handleErrorsGLFW);
 
 	// Initialize GLFW
-	int glfwRetval = glfwInit();
+	int32_t glfwRetval = glfwInit();
 	if (glfwRetval == GLFW_FALSE) { // GLFW initialization error
 		std::cout << " [glVersionFinder] Encountered fatal error!" << std::endl;
 		return 1;

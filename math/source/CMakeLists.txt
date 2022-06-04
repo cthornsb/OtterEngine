@@ -1,14 +1,17 @@
 # Compile source files
-add_library(
-	OtterMathObj 
+add_library(OtterMathObj 
 	OBJECT
-	DecayEnvelope.cpp
-	Matrix.cpp
-	MovingAverage.cpp
+	OTTConstants.cpp
+	OTTDecayEnvelope.cpp
+	OTTMatrix.cpp
+	OTTMovingAverage.cpp
 	OTTRandom.cpp
-	Vector.cpp
-	WrappedValue.cpp
+	OTTVector.cpp
+	OTTWrappedValue.cpp
 )
+
+# Target include directory
+target_include_directories(OtterMathObj PUBLIC ..)
 
 # Generate math library
 if(WIN32 OR INSTALL_STATIC_LIBRARIES)

@@ -121,7 +121,7 @@ void SoundManager::execute(){
 	terminate();
 }
 
-int SoundManager::defaultCallback( 
+int32_t SoundManager::defaultCallback( 
 	const void *input, 
 	void *output, 
 	unsigned long framesPerBuffer, 

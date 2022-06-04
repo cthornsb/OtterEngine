@@ -1,14 +1,14 @@
+#include <graphics/app/OTTApplication.hpp>
+#include <input/OTTMouse.hpp>
+#include <math/OTTMatrix.hpp>
+#include <math/OTTWrappedValue.hpp>
+
 #include <iostream>
 #include <cmath>
 
-// Core
-#include "OTTApplication.hpp"
+namespace ott {
 
-// Math
-#include "Matrix.hpp"
-#include "WrappedValue.hpp"
-
-void windowFocus(GLFWwindow* win, int focused) {
+void WindowFocus(GLFWwindow* win, int32_t focused) {
 	if (focused == GLFW_TRUE) {
 		std::cout << " Window gained focus :D" << std::endl;
 	}
@@ -17,16 +17,15 @@ void windowFocus(GLFWwindow* win, int focused) {
 	}
 }
 
-void windowPosition(GLFWwindow* win, int xpos, int ypos) {
+void WindowPosition(GLFWwindow* win, int32_t xpos, int32_t ypos) {
 	std::cout << " Window moved: W=" << xpos << ", H=" << ypos << std::endl;
 }
 
-
-void windowResize(GLFWwindow* win, int width, int height) {
+void WindowResize(GLFWwindow* win, int32_t width, int32_t height) {
 	std::cout << " Window resized: W=" << width << ", H=" << height << std::endl;
 }
 
-void windowIconify(GLFWwindow* win, int iconified) {
+void WindowIconify(GLFWwindow* win, int32_t iconified) {
 	if (iconified == GLFW_TRUE) { // Iconified
 		std::cout << " Window iconified" << std::endl;
 	}
@@ -35,10 +34,11 @@ void windowIconify(GLFWwindow* win, int iconified) {
 	}
 }
 
-class AppTest : public OTTApplication {
+class AppTest : public Application {
 public:
+
 	AppTest() :
-		OTTApplication(640, 480),
+		Application(640, 480),
 		nLoops(0),
 		origin(320.f, 240.f),
 		vertices{
@@ -57,32 +57,33 @@ public:
 	}
 
 protected:
-	bool onUserCreateWindow() override {
+
+	bool OnUserCreateWindow() override {
 		// Enable mouse and keyboard support
-		enableKeyboard();
-		enableMouse();
-		enableImageBuffer(false);
+		this->EnableKeyboard();
+		this->EnableMouse();
+		this->EnableImageBuffer(false);
 
 		// Set callback functions
-		setWindowFocusCallback(windowFocus);
-		setWindowPositionCallback(windowPosition);
-		setWindowResizeCallback(windowResize);
-		setWindowIconifyCallback(windowIconify);
+		this->SetWindowFocusCallback(WindowFocus);
+		this->SetWindowPositionCallback(WindowPosition);
+		this->SetWindowResizeCallback(WindowResize);
+		this->SetWindowIconifyCallback(WindowIconify);
 
 		// Success
 		return true;
 	}
 
-	bool onUserLoop() override {
-		clear(); // Clear the screen
-		buffer.fill(0); // Fill image buffer w/ zeros (black)
+	bool OnUserLoop() override {
+		this->Clear(); // Clear the screen
+		buffer.Fill(0); // Fill image buffer w/ zeros (black)
 
 		// Left mouse button held
-		if (mouse.check(0)) {
+		if (mouse->Check(0)) {
 			const Vector2 xaxis = Vector2(1.f, 0.f);
-			Vector2 mousePosition = Vector2(mouse.getX(), mouse.getY()) - origin;
-			fTheta = mousePosition.angle(xaxis);
-			if (mouse.getY() > origin[1]) { // Bottom half of screen
+			Vector2 mousePosition = Vector2(mouse->X(), mouse->Y()) - origin;
+			fTheta = mousePosition.Angle(xaxis);
+			if (mouse->Y() > origin[1]) { // Bottom half of screen
 				fTheta = (6.28318f - fTheta());
 			}
 		}
@@ -91,18 +92,18 @@ protected:
 		}
 
 		// Get a new rotation matrix
-		Matrix2 rotation = Matrix2::getRotationMatrix(fTheta());
-		for (int i = 0; i < 4; i++) {
-			transformed[i] = rotation.transform(vertices[i]) + origin;
+		Matrix2 rotation = Matrix2::RotationMatrix(fTheta());
+		for (int32_t i = 0; i < 4; i++) {
+			transformed[i] = rotation.Transform(vertices[i]) + origin;
 		}
-		Vector2 unitX = rotation.transform(Vector2(50.f, 0.f)) + origin;
-		Vector2 unitY = rotation.transform(Vector2(0.f, -50.f)) + origin; // Flipped because screen space Y is inverted
-		buffer.setDrawColor(Colors::GREEN);
-		buffer.drawLine(origin[0], origin[1], unitX[0], unitX[1]);
-		buffer.setDrawColor(Colors::BLUE);
-		buffer.drawLine(origin[0], origin[1], unitY[0], unitY[1]);
-		buffer.setDrawColor(Colors::RED);
-		buffer.drawQuad(
+		Vector2 unitX = rotation.Transform(Vector2(50.f, 0.f)) + origin;
+		Vector2 unitY = rotation.Transform(Vector2(0.f, -50.f)) + origin; // Flipped because screen space Y is inverted
+		buffer.SetDrawColor(colors::Green);
+		buffer.DrawLine(origin[0], origin[1], unitX[0], unitX[1]);
+		buffer.SetDrawColor(colors::Black);
+		buffer.DrawLine(origin[0], origin[1], unitY[0], unitY[1]);
+		buffer.SetDrawColor(colors::Red);
+		buffer.DrawQuad(
 			transformed[0][0], transformed[0][1],
 			transformed[1][0], transformed[1][1],
 			transformed[2][0], transformed[2][1],
@@ -110,16 +111,16 @@ protected:
 		);
 
 		if (nLoops++ % 120 == 0) // Frame count (every 2 seconds by default)
-			std::cout << getFramerate() << " fps\r" << std::flush;
+			std::cout << this->Framerate() << " fps\r" << std::flush;
 
 		// Draw the screen
-		renderBuffer();
+		this->RenderBuffer();
 
 		return true;
 	}
 
 private:
-	int nLoops; ///< Total number of main loops executed
+	int32_t nLoops; ///< Total number of main loops executed
 
 	Vector2 origin; ///< Origin of the viewport
 
@@ -130,13 +131,15 @@ private:
 	WrappedValue fTheta; ///< Floating point angle wrapped between 0 and 2pi radians
 };
 
-int main(int argc, char* argv[]) {
+} /* namespace ott */
+
+int32_t main(int32_t argc, char* argv[]) {
 	// Declare a new 2d application
-	AppTest app;
+	ott::AppTest app;
 
 	// Initialize application and open output window
-	app.start(argc, argv);
+	app.Start(argc, argv);
 
 	// Run the main loop
-	return app.execute();
+	return app.Execute();
 }

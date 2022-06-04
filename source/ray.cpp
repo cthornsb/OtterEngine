@@ -1,3 +1,0 @@
-#include "ray.hpp"
-
-// Nothing

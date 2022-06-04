@@ -1,3 +1,6 @@
+# Target include directories
+include_directories(../..)
+
 # Add all test programs
 add_executable( apptest 
 	apptest.cpp
@@ -17,6 +20,9 @@ add_executable( stringtest
 add_executable( randtest 
 	randtest.cpp
 )
+add_executable( renderer 
+	renderer.cpp
+)
 add_executable( synthtest 
 	synthtest.cpp
 )
@@ -29,6 +35,7 @@ set( TestPrograms
 	consoletest
 	stringtest
 	randtest
+	renderer
 	synthtest
 )
 
@@ -36,20 +43,30 @@ foreach(PROG IN LISTS TestPrograms)
 	target_link_libraries( ${PROG}
 		OtterCore
 		OtterSystem
+		OtterGraphicsCore
+		OtterGraphicsApp
+		OtterGraphicsTexture
 		OtterGui
-		OtterMath	
+		OtterInput
+		OtterMath
 		OpenGL::GL
 		OpenGL::GLU
-		${GLFW3_LIBRARY}
 		GLEW::GLEW
+		${GLFW3_LIBRARY}
 		${SOIL_LIBRARY}
 	)
+	target_compile_definitions( ${PROG} PUBLIC ASSETS_DIRECTORY="${ASSETS_DIRECTORY}")
 	if(WIN32)
 		target_link_libraries( ${PROG}
 			Winmm
 		)
 	endif()
 endforeach()
+
+target_link_libraries( renderer
+	OtterGraphics3d
+	OtterGraphicsGeometry
+)
 
 target_link_libraries( synthtest
 	OtterAudio

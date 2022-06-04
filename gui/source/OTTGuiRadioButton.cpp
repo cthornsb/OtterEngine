@@ -1,30 +1,35 @@
 #include "OTTGuiRadioButton.hpp"
-#include "OTTImageBuffer.hpp"
 
-OTTGuiRadioButton::OTTGuiRadioButton() :
-	OTTGuiElement()
+#include <graphics/core/OTTImageBuffer.hpp>
+
+ott::GuiRadioButton::GuiRadioButton() :
+	GuiElement()
 {
 }
 
-void OTTGuiRadioButton::draw(OTTImageBuffer* buffer) {
+void ott::GuiRadioButton::Draw(ImageBuffer* buffer) {
 	// Draw a simple wireframe bounding box, for debugging
-	if (!bState) {
-		if(!normalStateImage)
-			buffer->setDrawColor(Colors::GREEN);
-		else
-		buffer->drawSubImage(x0 + xOffset, y0 + yOffset, normalStateImage);
+	if (bState == false) {
+		if (normalStateImage == false) {
+			buffer->SetDrawColor(colors::Green);
+		}
+		else {
+			buffer->DrawSubImage(x0 + xOffset, y0 + yOffset, normalStateImage);
+		}
 	}
 	else {
-		if(!activeStateImage)
-			buffer->setDrawColor(Colors::YELLOW);
-		else
-			buffer->drawSubImage(x0 + xOffset, y0 + yOffset, activeStateImage);
+		if (activeStateImage == false) {
+			buffer->SetDrawColor(colors::Yellow);
+		}
+		else {
+			buffer->DrawSubImage(x0 + xOffset, y0 + yOffset, activeStateImage);
+		}
 	}
-	buffer->drawCircle(
+	buffer->DrawCircle(
 		x0 + xOffset,
 		y0 + yOffset,
 		nWidth / 2.f);
-	buffer->drawCircle(
+	buffer->DrawCircle(
 		x0 + xOffset,
 		y0 + yOffset,
 		0.75f * nWidth / 2.f,
@@ -32,16 +37,16 @@ void OTTGuiRadioButton::draw(OTTImageBuffer* buffer) {
 	);
 }
 
-bool OTTGuiRadioButton::onUserMouseEnter(const int& x, const int& y) {
+bool ott::GuiRadioButton::OnUserMouseEnter(const int32_t& x, const int32_t& y) {
 	return false;
 }
 
-bool OTTGuiRadioButton::onUserMouseExit(const int& x, const int& y) {
+bool ott::GuiRadioButton::OnUserMouseExit(const int32_t& x, const int32_t& y) {
 	bState = false;
 	return false;
 }
 
-bool OTTGuiRadioButton::onUserMousePressed(const int& x, const int& y, const unsigned char& buttons) {
+bool ott::GuiRadioButton::OnUserMousePressed(const int32_t& x, const int32_t& y, const uint8_t& buttons) {
 	bState = true;
 	if (onStateChanged) {
 		(*onStateChanged)(this, bState);
@@ -49,7 +54,7 @@ bool OTTGuiRadioButton::onUserMousePressed(const int& x, const int& y, const uns
 	return true;
 }
 
-bool OTTGuiRadioButton::onUserMouseReleased(const int& x, const int& y, const unsigned char& buttons) {
+bool ott::GuiRadioButton::OnUserMouseReleased(const int32_t& x, const int32_t& y, const uint8_t& buttons) {
 	bState = false;
 	if (onStateChanged) {
 		(*onStateChanged)(this, bState);

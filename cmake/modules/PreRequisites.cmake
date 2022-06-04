@@ -85,7 +85,7 @@ endfunction()
 # Find SOIL install
 # Sets the variables:
 # SOIL_LIBRARY
-# SOIL_INCLUDE_DIR
+# SOIL_INCLUDE_DIRS
 function(ott_find_soil)
 	find_package(SOIL REQUIRED)
 	message(STATUS "Found SOIL: ${SOIL_LIBRARY}")

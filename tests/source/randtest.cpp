@@ -1,18 +1,16 @@
+#include <core/OTTHighResTimer.hpp>
+#include <graphics/app/OTTApplication.hpp>
+#include <input/OTTKeyboard.hpp>
+#include <math/OTTRandom.hpp>
+
 #include <iostream>
 
-// Core
-#include "OTTApplication.hpp"
+namespace ott {
 
-// Graphics
-#include "OTTHighResTimer.hpp"
-
-// Math
-#include "OTTRandom.hpp"
-
-class AppTest : public OTTApplication {
+class AppTest : public Application {
 public:
 	AppTest() :
-		OTTApplication(512, 512),
+		Application(512, 512),
 		generator(),
 		timer()
 	{
@@ -23,18 +21,18 @@ public:
 	}
 
 protected:
-	void fillImageBuffer() {
-		for (int i = 0; i < 512; i++) { // Over columns
-			for (int j = 0; j < 512; j++) { // Over rows
-				buffer.setPixel(i, j, (generator(2) == 1 ? Colors::WHITE : Colors::BLACK));
+	void FillImageBuffer() {
+		for (int32_t i = 0; i < 512; i++) { // Over columns
+			for (int32_t j = 0; j < 512; j++) { // Over rows
+				buffer.SetPixel(i, j, (generator(2) == 1 ? colors::White : colors::Black));
 			}
 		}
 	}
 
-	bool onUserCreateWindow() override {
+	bool OnUserCreateWindow() override {
 		// Enable keyboard support
-		enableKeyboard();
-		enableImageBuffer(false);
+		this->EnableKeyboard();
+		this->EnableImageBuffer(false);
 
 		std::cout << " Press 'g' to switch psuedo random number generator" << std::endl;
 		std::cout << " Press 't' to generate one new noise map and print the time taken" << std::endl;
@@ -45,55 +43,57 @@ protected:
 		return true;
 	}
 
-	bool onUserLoop() override {
-		clear(); // Clear the screen
+	bool OnUserLoop() override {
+		this->Clear(); // Clear the screen
 
-		if (keys.check(0x20)) { // Spacebar	
-			fillImageBuffer();
+		if (keys->Check(0x20)) { // Spacebar	
+			this->FillImageBuffer();
 		}
-		if (keys.poll('t')) { // Fill the entire frame with random noise and display the amount of time taken
-			timer.start();
-			fillImageBuffer();
-			double dElapsedTime = timer.stop();
+		if (keys->Poll('t')) { // Fill the entire frame with random noise and display the amount of time taken
+			timer.Start();
+			this->FillImageBuffer();
+			double dElapsedTime = timer.Stop();
 			std::cout << "  dT=" << dElapsedTime << ", " << 1E6 * dElapsedTime / 65536.0 << " us / pixel" << std::endl;
 		}
-		if (keys.poll('g')) { // Cycle through all availables generators
-			switch (generator.getGenerator()) {
-			case OTTRandom::Generator::DEFAULT:
-				generator.setGenerator(OTTRandom::Generator::XORSHIFT);
+		if (keys->Poll('g')) { // Cycle through all availables generators
+			switch (generator.GetGenerator()) {
+			case Random::Generator::Default:
+				generator.SetGenerator(Random::Generator::XorShift);
 				std::cout << " [randtest] Generator switched to XORSHIFT" << std::endl;
 				break;
-			case OTTRandom::Generator::XORSHIFT:
-				generator.setGenerator(OTTRandom::Generator::DEFAULT);
+			case Random::Generator::XorShift:
+				generator.SetGenerator(Random::Generator::Default);
 				std::cout << " [randtest] Generator switched to DEFAULT" << std::endl;
 				break;
 			default:
 				break;
 			}
 		}
-		if (keys.poll('s')) { // Seed RNG
-			generator.seed();
+		if (keys->Poll('s')) { // Seed RNG
+			generator.Seed();
 		}
 
 		// Draw the screen
-		renderBuffer();
+		this->RenderBuffer();
 
 		return true;
 	}
 
 private:
-	OTTRandom generator;
+	Random generator;
 
-	OTTHighResTimer timer;
+	HighResTimer timer;
 };
 
-int main(int argc, char* argv[]) {
+} /* namespace ott */
+
+int32_t main(int32_t argc, char* argv[]) {
 	// Declare a new 2d application
-	AppTest app;
+	ott::AppTest app;
 
 	// Initialize application and open output window
-	app.start(argc, argv);
+	app.Start(argc, argv);
 
 	// Run the main loop
-	return app.execute();
+	return app.Execute();
 }

@@ -6,11 +6,11 @@ float ott::clamp(const float& input, const float& low/* = 0.f*/, const float& hi
 	return std::max(low, std::min(high, input));
 }
 
-float SoundMixer::get(const unsigned int& ch) const {
+float SoundMixer::get(const uint32_t& ch) const {
 	return (ch < nOutputChannels ? ((1.f + fOffsetDC) * fMasterVolume * fOutputVolume[ch] * fOutputSamples[ch]) - fOffsetDC : 0.f);
 }
 
-bool SoundMixer::get(const unsigned int& ch, float& sample) const {
+bool SoundMixer::get(const uint32_t& ch, float& sample) const {
 	if (ch >= nOutputChannels)
 		return false;
 	sample = get(ch);
@@ -37,13 +37,13 @@ void SoundMixer::reset(){
 
 bool SoundMixer::update(){
 	if(bMuted){
-		for(unsigned int i = 0; i < nOutputChannels; i++)
+		for(uint32_t i = 0; i < nOutputChannels; i++)
 			fOutputSamples[i] = 0.f;
 		return false;
 	}
-	for(unsigned int i = 0; i < nOutputChannels; i++){ // Over left and right output channels
+	for(uint32_t i = 0; i < nOutputChannels; i++){ // Over left and right output channels
 		fOutputSamples[i] = 0.f;
-		for(unsigned int j = 0; j < nInputChannels; j++){ // Over input channels
+		for(uint32_t j = 0; j < nInputChannels; j++){ // Over input channels
 			fOutputSamples[i] += fInputVolume[j] * (bSendInputToOutput[i][j] ? fInputSamples[j] : 0.f);
 		}
 		// Normalize audio output
@@ -51,10 +51,10 @@ bool SoundMixer::update(){
 	}
 	if(bMonoOutput){ // Re-mix for mono output
 		float fAverage = 0.f;
-		for(unsigned int i = 0; i < nOutputChannels; i++)
+		for(uint32_t i = 0; i < nOutputChannels; i++)
 			fAverage += fOutputSamples[i];
 		fAverage /= nOutputChannels; // 0 to 1
-		for(unsigned int i = 0; i < nOutputChannels; i++)
+		for(uint32_t i = 0; i < nOutputChannels; i++)
 			fOutputSamples[i] = fAverage;
 	}
 	bModified = false;

@@ -12,6 +12,9 @@ add_library( OtterAudioObj
 	WavFile.cpp
 )
 
+# Target include directory
+target_include_directories(OtterAudioObj PUBLIC ..)
+
 target_compile_definitions( OtterAudioObj 
 	PRIVATE 
 	ENABLE_PORT_AUDIO

@@ -18,19 +18,19 @@ float AudioSampler::sample(const float& dt) {
 	return (fCurrentValue = fValue * fAmplitude * ott::clamp(userSample(dt), -1.f));
 }
 
-void AudioSampler::sample(const float& dt, float* arr, const unsigned int& N) {
+void AudioSampler::sample(const float& dt, float* arr, const uint32_t& N) {
 	if (!bPlaying) {
-		for (unsigned int i = 0; i < N; i++)
+		for (uint32_t i = 0; i < N; i++)
 			arr[i] = 0.f;
 	}
 	if (!bUseVolumeEnvelope) { // Volume envelope not in use
-		for (unsigned int i = 0; i < N; i++) {
+		for (uint32_t i = 0; i < N; i++) {
 			incrementPhase(dt);
 			arr[i] = (fAmplitude * ott::clamp(userSample(dt), -1.f));
 		}
 	}
 	else {
-		for (unsigned int i = 0; i < N; i++) {
+		for (uint32_t i = 0; i < N; i++) {
 			incrementPhase(dt);
 			this->update(dt);
 			arr[i] = (fValue * fAmplitude * ott::clamp(userSample(dt), -1.f));

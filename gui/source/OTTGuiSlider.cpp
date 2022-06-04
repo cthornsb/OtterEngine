@@ -1,21 +1,24 @@
 #include "OTTGuiSlider.hpp"
-#include "OTTImageBuffer.hpp"
 
-void OTTGuiSlider::draw(OTTImageBuffer* buffer) {
+#include <graphics/core/OTTImageBuffer.hpp>
+
+void ott::GuiSlider::Draw(ImageBuffer* buffer) {
 	// Draw a simple wireframe bounding box, for debugging
-	if (!bState)
-		buffer->setDrawColor(Colors::VIOLET);
-	else
-		buffer->setDrawColor(Colors::MAGENTA);
-	buffer->drawRectangle(
+	if (bState == false) {
+		buffer->SetDrawColor(colors::Violet);
+	}
+	else {
+		buffer->SetDrawColor(colors::Magenta);
+	}
+	buffer->DrawRectangle(
 		x0 + xOffset,
 		y0 + yOffset,
 		x1 + xOffset,
 		y1 + yOffset
 	);
 	if (bHorizontal) {
-		int lineX = (int)(fValue * nWidth);
-		buffer->drawRectangle(
+		int32_t lineX = (int32_t)(fValue * nWidth);
+		buffer->DrawRectangle(
 			x0 + xOffset,
 			y0 + yOffset,
 			x0 + xOffset + lineX,
@@ -24,8 +27,8 @@ void OTTGuiSlider::draw(OTTImageBuffer* buffer) {
 		);
 	}
 	else {
-		int lineY = (int)(fValue * nHeight);
-		buffer->drawLine(
+		int32_t lineY = (int32_t)(fValue * nHeight);
+		buffer->DrawLine(
 			x0 + xOffset,
 			y0 + yOffset,
 			x1 + xOffset,
@@ -34,18 +37,20 @@ void OTTGuiSlider::draw(OTTImageBuffer* buffer) {
 	}
 }
 
-void OTTGuiSlider::updateMouse(const int& x, const int& y) {
-	if(bHorizontal)
+void ott::GuiSlider::UpdateMouse(const int32_t& x, const int32_t& y) {
+	if (bHorizontal) {
 		fValue = 1.f * x / nWidth; // 0 to 1
-	else
+	}
+	else {
 		fValue = 1.f * y / nHeight; // 0 to 1
+	}
 }
 
-bool OTTGuiSlider::onUserMouseEnter(const int& x, const int& y) {
+bool ott::GuiSlider::OnUserMouseEnter(const int32_t& x, const int32_t& y) {
 	return false;
 }
 
-bool OTTGuiSlider::onUserMouseExit(const int& x, const int& y) {
+bool ott::GuiSlider::OnUserMouseExit(const int32_t& x, const int32_t& y) {
 	if (bState && onEditingFinished) {
 		(*onEditingFinished)(this, true);
 	}
@@ -53,7 +58,7 @@ bool OTTGuiSlider::onUserMouseExit(const int& x, const int& y) {
 	return false;
 }
 
-bool OTTGuiSlider::onUserMousePressed(const int& x, const int& y, const unsigned char& buttons) {
+bool ott::GuiSlider::OnUserMousePressed(const int32_t& x, const int32_t& y, const uint8_t& buttons) {
 	bState = true;
 	if (onStateChanged) {
 		(*onStateChanged)(this, bState);
@@ -61,7 +66,7 @@ bool OTTGuiSlider::onUserMousePressed(const int& x, const int& y, const unsigned
 	return true;
 }
 
-bool OTTGuiSlider::onUserMouseReleased(const int& x, const int& y, const unsigned char& buttons) {
+bool ott::GuiSlider::OnUserMouseReleased(const int32_t& x, const int32_t& y, const uint8_t& buttons) {
 	bState = false;
 	if (onStateChanged) {
 		(*onStateChanged)(this, bState);
