@@ -4,22 +4,32 @@
 #include <algorithm> // copy
 #include <memory> // unique_ptr
 
+ott::SpriteSet& ott::SpriteSet::operator [] (const size_t& index) {
+	if (index < spriteList.size()) {
+		currentSprite = spriteList.begin() + index;
+	}
+	return (*this);
+}
+
 void ott::SpriteSet::SetFramerate(const double& fps){
 	dFramePeriod = 1 / fps;
 	dAnimationLength = dFramePeriod * spriteList.size();
 }
 
 void ott::SpriteSet::Prev(){
-	if(currentSprite != spriteList.begin())
+	if (currentSprite != spriteList.begin()) {
 		currentSprite--;
-	else
+	}
+	else {
 		currentSprite = spriteList.end() - 1;
+	}
 	nContext = (*currentSprite);
 }
 
 void ott::SpriteSet::Next(){
-	if(++currentSprite == spriteList.end())
+	if (++currentSprite == spriteList.end()) {
 		currentSprite = spriteList.begin();
+	}
 	nContext = (*currentSprite);
 }
 
@@ -68,8 +78,9 @@ bool ott::SpriteSet::AddSprites(const std::string& fname, const int& px, const i
 	std::unique_ptr<Texture> sprite(new Texture());
 
 	// Read input image file
-	if(!sprite->Read(fname))
+	if (!sprite->Read(fname)) {
 		return false;
+	}
 
 	// Iterate over all sub-images
 	return this->AddSprites(sprite.get(), 0, 0, px, py, sprite->Width() / px, sprite->Height() / py);
@@ -94,8 +105,8 @@ bool ott::SpriteSet::AddSprites(ImageBuffer* buffer, const int& x0, const int& y
 	// Set sprite unit vectors
 	nWidth = px;
 	nHeight = py;
-	uX = Vector2(px / 2, 0);
-	uY = Vector2(0, py / 2);
+	uX = Vector2(px / 2.f, 0);
+	uY = Vector2(0, py / 2.f);
 
 	// Pixel data storage array
 	std::unique_ptr<unsigned char[]> subimage(new unsigned char[px * py * 4]);

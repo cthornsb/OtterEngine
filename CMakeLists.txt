@@ -117,22 +117,24 @@ add_subdirectory("gui/source")
 # Build and install shared libraries.
 if(INSTALL_LIBRARIES)
 	# Install header files
-	file(GLOB_RECURSE OTTER_HEADERS *.hpp)
-	if(STRICT_OPENGL_VERSION)
-		set( OTTER_HEADERS ${OTTER_HEADERS} "${VERSION_HEADER_DIR}/OTTVersions.hpp" )
-	endif()
-	install(
-		FILES ${OTTER_HEADERS}
-		DESTINATION ${INSTALL_INCLUDE_DIR}
-	)
+	#file(GLOB_RECURSE OTTER_HEADERS *.hpp)
+	#install(
+	#	FILES ${OTTER_HEADERS}
+	#	DESTINATION ${INSTALL_INCLUDE_DIR}
+	#)
 	# Export libraries
 	export(
 		TARGETS
+#		OtterAudio
 		OtterCore
-		Otter3dCore 
-		OtterAudio
-		OtterMath
+		OtterGraphics3d
+		OtterGraphicsApp
+		OtterGraphicsCore
+		OtterGraphicsGeometry
+		OtterGraphicsTexture
 		OtterGui
+		OtterInput
+		OtterMath
 		OtterSystem
 		NAMESPACE Ott::
 		FILE "${INSTALL_SHARE_DIR}/OtterExport.cmake"

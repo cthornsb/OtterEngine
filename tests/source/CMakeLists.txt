@@ -23,9 +23,9 @@ add_executable( randtest
 add_executable( renderer 
 	renderer.cpp
 )
-add_executable( synthtest 
-	synthtest.cpp
-)
+#add_executable( synthtest 
+#	synthtest.cpp
+#)
 
 # Build a list of all programs
 set( TestPrograms 
@@ -36,7 +36,7 @@ set( TestPrograms
 	stringtest
 	randtest
 	renderer
-	synthtest
+#	synthtest
 )
 
 foreach(PROG IN LISTS TestPrograms)
@@ -68,7 +68,7 @@ target_link_libraries( renderer
 	OtterGraphicsGeometry
 )
 
-target_link_libraries( synthtest
-	OtterAudio
-	${PORT_AUDIO_LIBRARY}
-)
+#target_link_libraries( synthtest
+#	OtterAudio
+#	${PORT_AUDIO_LIBRARY}
+#)

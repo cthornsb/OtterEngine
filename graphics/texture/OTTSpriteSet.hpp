@@ -53,7 +53,7 @@ public:
 	  */
 	SpriteSet& operator = (const SpriteSet&) = delete;
 
-	/**
+	/** Set the current frame of animation
 	  */
 	SpriteSet& operator [] (const size_t& index);
 	

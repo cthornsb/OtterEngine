@@ -1,10 +1,10 @@
 # - Config file for OtterEngine package (OtterConfig.cmake)
 #
 # Defines the following variables
-#  OTTER_INCLUDE_DIRS - include directories for OtterEngine
-#  OTTER_LIBRARY_DIR  - shared library install directory
-#  OTTER_BINARY_DIR   - binary install directory
-#  OTTER_MODULE_PATH  - path to OtterEngine cmake modules
+#  OTTER_INCLUDE_DIR - include directories for OtterEngine
+#  OTTER_LIBRARY_DIR - shared library install directory
+#  OTTER_BINARY_DIR  - binary install directory
+#  OTTER_MODULE_PATH - path to OtterEngine cmake modules
 #
 # The following libraries will be imported (with their alternative path variables)
 #  Ott::OtterAudio            (OTTER_AUDIO_LIB)            - Sound library
@@ -29,16 +29,16 @@
 #  include(otter/install/path/OtterConfig.cmake)
 
 # Set paths
-set( OTTER_INCLUDE_DIRS "@INSTALL_INCLUDE_DIR@")
-set( OTTER_LIBRARY_DIR  "@INSTALL_LIB_DIR@")
-set( OTTER_BINARY_DIR   "@INSTALL_BIN_DIR@")
+set( OTTER_INCLUDE_DIR "@CMAKE_SOURCE_DIR@")
+set( OTTER_LIBRARY_DIR "@INSTALL_LIB_DIR@")
+set( OTTER_BINARY_DIR  "@INSTALL_BIN_DIR@")
 
 # Add CMake modules path
 set( OTTER_MODULE_PATH "@CMAKE_MODULE_PATH@")
 
 # Remove some unnecessary clutter
 mark_as_advanced(
-	OTTER_INCLUDE_DIRS
+	OTTER_INCLUDE_DIR
 	OTTER_LIBRARY_DIR
 	OTTER_BINARY_DIR
 	OTTER_MODULE_PATH
