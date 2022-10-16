@@ -6,35 +6,8 @@
 #include <iostream>
 #include <GL/glew.h>
 
-void ott::Shader3d::EnableObjectShader(const Object* obj) const {
-	(*enableFunc)(const_cast<Shader3d*>(this), obj);
-	this->OnUserShaderEnable(obj);
-}
-
-void ott::Shader3d::DisableObjectShader(const Object* obj) const {
-	(*disableFunc)(const_cast<Shader3d*>(this), obj);
-	this->OnUserShaderDisable(obj);
-}
-
-void ott::Shader3d::DefaultShaderEnable(Shader*, const Object*) {
-}
-
-void ott::Shader3d::DefaultShaderDisable(Shader*, const Object*) {
-}
-
-void ott::Shader3d::BindObjectTexture(Shader*, const Object* obj) {
-	// Bind object texture (if available)
-	if (obj->GetTexture())
-		glBindTexture(GL_TEXTURE_2D, obj->GetTexture()->Context());
-}
-
-void ott::Shader3d::UnbindObjectTexture(Shader*, const Object*) {
-	// Unbind OpenGL texture
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
-
 ott::shaders::DefaultShader::DefaultShader(const ShaderType& stype_) :
-	Shader3d(),
+	Shader(),
 	good(false),
 	type(stype_),
 	name("none")
@@ -65,8 +38,8 @@ ott::shaders::DefaultShader::DefaultShader(const ShaderType& stype_) :
 	case ShaderType::Texture:
 		name = "texture";
 		good = this->Generate(vertexTexture, fragmentTexture);
-		enableFunc = &this->BindObjectTexture;
-		disableFunc = &this->UnbindObjectTexture;
+		enableFunc = &Shader::DefaultShaderEnable;
+		disableFunc = &Shader::DefaultShaderDisable;
 		break;
 	default:
 		break;

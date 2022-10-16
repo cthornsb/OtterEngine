@@ -15,8 +15,9 @@ class Matrix4;
 
 class Object;
 class Shader;
+class Texture;
 
-typedef void (*ShaderStateFunction_t)(Shader*, const Object*);
+typedef void (*ShaderStateFunction_t)(Shader*, const Texture* const, const void* const);
 
 /// <summary>
 /// Default shader types
@@ -39,6 +40,8 @@ public:
 		nGeomShader(0),
 		nFragShader(0),
 		nProgram(0),
+		enableFunc(&Shader::DefaultShaderEnable),
+		disableFunc(&Shader::DefaultShaderDisable),
 		shaderData(0x0)
 	{
 	}
@@ -49,9 +52,11 @@ public:
 		nGeomShader(0),
 		nFragShader(0),
 		nProgram(0),
+		enableFunc(&Shader::DefaultShaderEnable),
+		disableFunc(&Shader::DefaultShaderDisable),
 		shaderData(0x0)
 	{
-		this->Generate(vert, frag);
+		this->Compile(vert, frag);
 	}
 
 	~Shader();
@@ -68,30 +73,44 @@ public:
 		bHidden = false;
 	}
 
-	void EnableShader() const;
+	void EnableShader();
 
-	void DisableShader() const;
+	void DisableShader();
+
+	void EnableShader(const Texture* const tex);
+
+	void DisableShader(const Texture* const tex);
 
 	uint32_t Program() const {
 		return nProgram;
 	}
 
-	void* ShaderDataPointer() {
+	const void* ShaderData() const {
 		return shaderData;
 	}
+
+	int32_t UniformLocation(const std::string& name) const;
 
 	/** Generate a shader program containing a vertex and fragment shader
 	  * @return True if the shader program is compiled successfully
 	  */
-	bool Generate(const std::string& vert, const std::string& frag);
+	bool Compile(const std::string& vert, const std::string& frag);
 
 	/** Generate a shader program containing a vertex, geometry, and fragment shader
 	  * @return True if the shader program is compiled successfully
 	  */
 	bool Generate(const std::string& vert, const std::string& geom, const std::string& frag);
 
-	void SetShaderDataPointer(void* ptr) {
+	void SetShaderData(const void* ptr) {
 		shaderData = ptr;
+	}
+
+	void SetShaderEnableFunction(ShaderStateFunction_t func) {
+		enableFunc = func;
+	}
+
+	void SetShaderDisableFunction(ShaderStateFunction_t func) {
+		disableFunc = func;
 	}
 
 	void SetBool(const std::string& name, const bool& value) const;
@@ -136,7 +155,9 @@ public:
 
 	void SetMatrix4(const std::string& name, const float* mat) const;
 
-	int32_t GetUniformLocation(const std::string& name) const;
+	static void DefaultShaderEnable(Shader*, const Texture* const tex, const void* const);
+
+	static void DefaultShaderDisable(Shader*, const Texture* const, const void* const);
 
 protected:
 	bool bHidden; ///< Set if any Object with this shader should be hidden
@@ -149,7 +170,11 @@ protected:
 
 	uint32_t nProgram; ///< OpenGL program ID
 
-	void* shaderData;
+	ShaderStateFunction_t enableFunc;
+
+	ShaderStateFunction_t disableFunc;
+
+	const void* shaderData;
 
 	bool ReadShader(const std::string& fname, std::string& retval);
 
@@ -171,6 +196,10 @@ protected:
 	bool BuildFragmentShader(const std::string& fname);
 
 	bool GenerateProgram();
+
+	virtual void OnUserShaderEnable() const { }
+
+	virtual void OnUserShaderDisable() const { }
 };
 
 } /* namespace ott */

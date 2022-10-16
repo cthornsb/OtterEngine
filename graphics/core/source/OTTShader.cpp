@@ -1,5 +1,6 @@
 #include "OTTShader.hpp"
 
+#include <graphics/texture/OTTTexture.hpp>
 #include <math/OTTVector.hpp>
 #include <math/OTTMatrix.hpp>
 
@@ -10,24 +11,43 @@
 constexpr uint16_t kLogBufferSizeBytes = 512;
 
 ott::Shader::~Shader() {
-	if (nVertShader)
+	if (nVertShader) {
 		glDeleteShader(nVertShader);
-	if (nGeomShader)
+	}
+	if (nGeomShader) {
 		glDeleteShader(nGeomShader);
-	if (nFragShader)
+	}
+	if (nFragShader) {
 		glDeleteShader(nFragShader);
+	}
 	glDeleteProgram(nProgram);
 }
 
-void ott::Shader::EnableShader() const {
+void ott::Shader::EnableShader() {
+	this->EnableShader(nullptr);
+}
+
+void ott::Shader::DisableShader() {
+	this->DisableShader(nullptr);
+}
+
+void ott::Shader::EnableShader(const Texture* const tex) {
 	glUseProgram(nProgram);
+	(*enableFunc)(this, tex, shaderData);
+	this->OnUserShaderEnable();
 }
 
-void ott::Shader::DisableShader() const {
+void ott::Shader::DisableShader(const Texture* const tex) {
 	glUseProgram(0);
+	(*disableFunc)(this, tex, shaderData);
+	this->OnUserShaderDisable();
 }
 
-bool ott::Shader::Generate(const std::string& vert, const std::string& frag) {
+int ott::Shader::UniformLocation(const std::string& name) const {
+	return glGetUniformLocation(nProgram, name.c_str());
+}
+
+bool ott::Shader::Compile(const std::string& vert, const std::string& frag) {
 	// Create the vertex shader
 	if (this->BuildVertexShader(vert) == false) {
 		return false;
@@ -100,12 +120,15 @@ bool ott::Shader::GenerateProgram() {
 	glBindAttribLocation(nProgram, 2, "vTexture");
 
 	// Link shader program
-	if(nVertShader)
+	if (nVertShader) {
 		glAttachShader(nProgram, nVertShader);
-	if(nGeomShader)
+	}
+	if (nGeomShader) {
 		glAttachShader(nProgram, nGeomShader);
-	if(nFragShader)
+	}
+	if (nFragShader) {
 		glAttachShader(nProgram, nFragShader);
+	}
 	glLinkProgram(nProgram);
 	glGetProgramiv(nProgram, GL_LINK_STATUS, &retval);
 	if (retval != GL_TRUE) {
@@ -116,12 +139,15 @@ bool ott::Shader::GenerateProgram() {
 		std::cout << log << std::endl;
 		return false;
 	}
-	if (nVertShader)
+	if (nVertShader) {
 		std::cout << " [Shader] debug: nVertShader=" << nVertShader << std::endl;
-	if(nGeomShader)
+	}
+	if (nGeomShader) {
 		std::cout << " [Shader] debug: nGeomShader=" << nGeomShader << std::endl;
-	if(nFragShader)
+	}
+	if (nFragShader) {
 		std::cout << " [Shader] debug: nFragShader=" << nFragShader << std::endl;
+	}
 	std::cout << " [Shader] debug: nProgram=" << nProgram << std::endl;
 
 	return true;
@@ -211,8 +237,16 @@ void ott::Shader::SetMatrix4(const std::string& name, const float* mat) const {
 	glUniformMatrix4fv(glGetUniformLocation(nProgram, name.c_str()), 1, GL_FALSE, mat);
 }
 
-int ott::Shader::GetUniformLocation(const std::string& name) const {
-	return glGetUniformLocation(nProgram, name.c_str());
+void ott::Shader::DefaultShaderEnable(Shader*, const Texture* const tex, const void* const) {
+	// Bind object texture (if available)
+	if (tex) {
+		glBindTexture(GL_TEXTURE_2D, tex->Context());
+	}
+}
+
+void ott::Shader::DefaultShaderDisable(Shader*, const Texture* const, const void* const) {
+	// Unbind OpenGL texture
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 bool ott::Shader::ReadShader(const std::string& fname, std::string& retval) {

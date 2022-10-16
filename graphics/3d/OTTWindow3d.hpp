@@ -41,7 +41,7 @@ public:
 	
 	/** Get a pointer to a loaded shader
 	  */
-	Shader3d* GetShader(const ShaderType& type);
+	Shader* GetShader(const ShaderType& type);
 
 	/** Draw a point at position (x, y, z) in the scene
 	  */

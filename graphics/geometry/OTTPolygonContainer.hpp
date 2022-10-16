@@ -16,7 +16,6 @@ public:
 	PolygonContainer() :
 		bDebugMode(false),
 		vertexVBO(0),
-		indexVBO(0),
 		nReservedVertices(0),
 		nTotalNumberOfBytes(0),
 		nVertexAttributes(0),
@@ -24,7 +23,6 @@ public:
 		rawData(),
 		rawOffsets(),
 		rawNumElements(),
-		indicies(),
 		polys()
 	{
 		// Add vertex position to VBO
@@ -47,10 +45,6 @@ public:
 
 	uint32_t VertexVBO() const {
 		return vertexVBO;
-	}
-
-	uint32_t IndexVBO() const {
-		return indexVBO;
 	}
 
 	bool Empty() const {
@@ -132,8 +126,6 @@ private:
 
 	uint32_t vertexVBO;
 
-	uint32_t indexVBO;
-
 	size_t nReservedVertices; ///< Number of vertices reserved in memory
 
 	size_t nTotalNumberOfBytes; ///< Total number of bytes in object VBO
@@ -148,8 +140,6 @@ private:
 
 	std::vector<size_t> rawNumElements; ///< Number of elements for each vertex attribute
 
-	std::vector<uint16_t> indicies; ///< Polygon vertex indicies
-
 	std::vector<Polygon> polys; ///< Polygon information
 
 	void AddVertex(const Vertex* vert);
@@ -159,7 +149,7 @@ private:
 	  */
 	bool AddVertexAttribute(const size_t& nElements);
 
-	void SetupVBOs();
+	void Setup();
 };
 
 } /* namespace ott */

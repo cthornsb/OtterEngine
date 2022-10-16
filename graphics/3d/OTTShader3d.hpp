@@ -10,57 +10,6 @@
 
 namespace ott {
 
-class Shader3d : public Shader {
-public:
-
-	Shader3d() :
-		Shader(),
-		enableFunc(&DefaultShaderEnable),
-		disableFunc(&DefaultShaderDisable)
-	{
-	}
-
-	Shader3d(const std::string& vert, const std::string& frag) :
-		Shader(),
-		enableFunc(&DefaultShaderEnable),
-		disableFunc(&DefaultShaderDisable)
-	{
-		this->Generate(vert, frag);
-	}
-
-	void SetShaderEnableFunction(ShaderStateFunction_t func) {
-		enableFunc = func;
-	}
-
-	void SetShaderDisableFunction(ShaderStateFunction_t func) {
-		disableFunc = func;
-	}
-
-	void EnableObjectShader(const Object* obj) const;
-
-	void DisableObjectShader(const Object* obj) const;
-
-	static void DefaultShaderEnable(Shader*, const Object*);
-
-	static void DefaultShaderDisable(Shader*, const Object*);
-
-	static void BindObjectTexture(Shader*, const Object* obj);
-
-	static void UnbindObjectTexture(Shader*, const Object*);
-
-protected:
-
-	ShaderStateFunction_t enableFunc;
-
-	ShaderStateFunction_t disableFunc;
-
-	virtual void OnUserShaderEnable(const Object* obj) const {
-	}
-
-	virtual void OnUserShaderDisable(const Object* obj) const {
-	}
-};
-
 namespace shaders {
 
 extern const std::vector<std::string> vertexSimple;
@@ -81,10 +30,10 @@ extern const std::vector<std::string> fragmentZDepth;
 extern const std::vector<std::string> vertexTexture;
 extern const std::vector<std::string> fragmentTexture;
 
-class DefaultShader : public Shader3d {
+class DefaultShader : public Shader {
 public:
 	DefaultShader() :
-		Shader3d(),
+		Shader(),
 		good(false),
 		type(ShaderType::None),
 		name("none")
@@ -127,10 +76,11 @@ public:
 	/** Get a pointer to a shader in the list of defined shaders
 	  * If the shader does not exist, attempt to create it
 	  */
-	Shader3d* Get(const ShaderType& type) {
+	Shader* Get(const ShaderType& type) {
 		ShaderMapIterator iter = shaders.find(type);
-		if (iter != shaders.end())
+		if (iter != shaders.end()) {
 			return (iter->second.get());
+		}
 		DefaultShader* shdr = new DefaultShader(type);
 		shaders[type] = std::unique_ptr<DefaultShader>(shdr);
 		return shdr;

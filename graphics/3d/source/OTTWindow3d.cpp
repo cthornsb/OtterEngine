@@ -9,7 +9,7 @@
 ott::Window3d::~Window3d(){
 }
 
-ott::Shader3d* ott::Window3d::GetShader(const ShaderType& type) {
+ott::Shader* ott::Window3d::GetShader(const ShaderType& type) {
 	return shaders->Get(type);
 }
 

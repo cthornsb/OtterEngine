@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_OTT_SHADER_HPP
-#define GRAPHICS_OTT_SHADER_HPP
+#ifndef GRAPHICS_OTT_SPRITE_HPP
+#define GRAPHICS_OTT_SPRITE_HPP
 
 #include "OTTTexture.hpp"
 
@@ -8,23 +8,29 @@
 #include <math/OTTWrappedValue.hpp>
 
 #include <cstdint>
+#include <vector>
 
 namespace ott {
+
+class Shader;
 
 class Sprite : public Texture {
 public:
 	/** Default constructor
 	  */
-	Sprite() :
+	Sprite(uint32_t context = 0) :
 		Texture(),
-		horizScale(1.f),
-		vertScale(1.f),
+		vertexVBO(0),
+		rawOffsets(),
 		theta(0.f, 0.f, 6.28318f),
 		center(0.f, 0.f),
+		scale(1.f, 1.f),
 		uX(1.f, 0.f),
 		uY(0.f, 1.f),
-		rotation(constants::kIdentityMatrix2)
+		rotation(constants::kIdentityMatrix2),
+		shader(nullptr)
 	{ 
+		nContext = context;
 	}
 
 	/** Filename constructor
@@ -33,43 +39,40 @@ public:
 	  */
 	Sprite(const std::string& fname, const std::string& name = "") :
 		Texture(fname, name),
-		horizScale(1.f),
-		vertScale(1.f),
+		vertexVBO(0),
+		rawOffsets(),
 		theta(0.f, 0.f, 6.28318f),
 		center(0.f, 0.f),
+		scale(1.f, 1.f),
 		uX(1.f, 0.f),
 		uY(0.f, 1.f),
-		rotation(constants::kIdentityMatrix2)
+		rotation(constants::kIdentityMatrix2),
+		shader(nullptr)
 	{
 		this->GetTexture(); // Convert the image to an OpenGL texture
 	}
 
 	/** Destructor
 	  */
-	~Sprite() { 
-	}
+	~Sprite();
 
 	/** Set the scaling factor of the horizontal and vertical axes of the sprite relative to its current scale
 	  * @note The original aspect ratio of the sprite is preserved
-	  * @param scale Scaling factor of the horizontal and vertical axes
+	  * @param factor Scaling factor of the horizontal and vertical axes
 	  */
-	void Scale(const float& scale);
+	void Scale(const float& factor);
 
 	/** Set the scaling factor of the horizontal and vertical axes of the sprite
 	  * @note The original aspect ratio of the sprite is preserved
-	  * @param scale Scaling factor of the horizontal and vertical axes
+	  * @param factor Scaling factor of the horizontal and vertical axes
 	  */
-	void SetScale(const float& scale);
+	void SetScale(const float& factor);
 
-	/** Set the scaling factor of the horizontal axis of the sprite
-	  * @param scale Scaling factor of the horizontal axis
+	/** Set the scaling factor of the horizontal and vertical axes of the sprite
+	  * @param x Scaling factor of the horizontal axis
+	  * @param y Scaling factor of the vertical axis
 	  */
-	void SetHorizontalScale(const float& scale);
-
-	/** Set the scaling factor of the vertical axis of the sprite
-	  * @param scale Scaling factor of the vertical axis
-	  */
-	void SetVerticalScale(const float &scale);
+	void SetScale(const float& x, const float& y);
 
 	/** Set the position of the sprite on the screen
 	  */
@@ -103,47 +106,29 @@ public:
 	  */
 	void FlipVertical();
 
-	/** Draw the sprite at its current position relative to its upper left corner 
-	  * @note Horizontal and vertical mirroring will affect 
+	/** Set the shader to use for rendering.
+	  * @param shdr Pointer to the shader to use for rendering this sprite
 	  */
-	void DrawCorner();
-
-	/** Draw the sprite, with position relative to its upper left corner 
-	  * @note Horizontal and vertical mirroring will affect 
-	  * @param x Horizontal coordinate of the upper left corner of the sprite
-	  * @param y Vertical coordinate of the upper left corner of the sprite
-	  */
-	void DrawCorner(const float& x, const float& y);
-
-	/** Draw the sprite, with position relative to its upper left corner 
-	  * @note Horizontal and vertical mirroring will affect 
-	  * @param offset Pixel coordinate of the upper left corner of the sprite
-	  */
-	void DrawCorner(const Vector2& offset);
+	void SetShader(Shader* shdr, bool reverse_winding = false) {
+		this->shader = shdr;
+		this->SetupGeometry(reverse_winding);
+	}
 
 	/** Draw the sprite at its current position relative to its center
 	  */
 	void Draw();
 
-	/** Draw the sprite, with position relative to its center
-	  * @param x Horizontal coordinate of the center of the sprite
-	  * @param y Vertical coordinate of the center of the sprite
-	  */
-	void Draw(const float& x, const float& y);
-
-	/** Draw the sprite, with position relative to its center
-	  * @param offset Pixel coordinate of the center of the sprite
-	  */
-	void Draw(const Vector2& offset);
-
 protected:
-	float horizScale; ///< Scaling factor along the horizontal axis of the sprite
-	
-	float vertScale; ///< Scaling factor along the vertical axis of the sprite
+
+	uint32_t vertexVBO;
+
+	std::vector<size_t> rawOffsets;
 
 	WrappedValue theta; ///< Current angle of rotation of the sprite (radians)
 
-	Vector2 center; ///< Position of center of sprite on screen (in pixels)
+	Vector2 center; ///< NDC position of center of sprite on screen (+/- Z is into or out of the screen)
+
+	Vector2 scale; ///< Scaling factor along the horizontal and vertical axes of the sprite
 
 	Vector2 uX; ///< Vector along sprite's local horizontal axis with length of half the width of sprite
 	
@@ -151,15 +136,13 @@ protected:
 
 	Matrix2 rotation; ///< Two dimensional rotation vector for the current rotation of the sprite
 
-	/** Update the local horizontal and vertical axes of the sprite
-	  */
-	void Update();
+	Shader* shader; ///< Pointer to an OpenGL shader to use for rendering
 	
-	virtual void OnUserBindTexture();
-	
-	virtual void OnUserUnbindTexture();
+	void UpdateUnitVectors();
+
+	void SetupGeometry(bool reverse_winding);
 };
 
 } /* namespace ott */
 
-#endif // #ifndef GRAPHICS_OTT_SHADER_HPP
+#endif // #ifndef GRAPHICS_OTT_SPRITE_HPP

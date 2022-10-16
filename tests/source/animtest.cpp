@@ -1,4 +1,7 @@
+#include <core/OTTSystem.hpp> // ott::getAssetsPath
 #include <graphics/app/OTTApplication.hpp>
+#include <graphics/core/OTTShader.hpp>
+#include <graphics/core/OTTWindow.hpp>
 #include <graphics/texture/OTTSprite.hpp>
 #include <graphics/texture/OTTSpriteSet.hpp>
 #include <input/OTTKeyboard.hpp>
@@ -28,7 +31,8 @@ public:
 			Vector2(0.f, 1.f),
 			Vector2(-1.f, 0.f)
 		},
-		animatedSprites()
+		animatedSprites(),
+		shader()
 	{
 	}
 
@@ -39,6 +43,10 @@ public:
 protected:
 
 	bool OnUserCreateWindow() override {
+
+		// Build shader program
+		shader.Compile(AssetsPath("Shaders/sprite.vert"), AssetsPath("Shaders/sprite.frag"));
+
 		// Enable mouse and keyboard support
 		this->EnableKeyboard();
 
@@ -77,10 +85,11 @@ protected:
 		
 		for(int32_t i = 0; i < 4; i++){
 			animatedSprites[i].SetFramerate(6);
+			animatedSprites[i].SetShader(&shader);
 		}
 		
 		// Set initial sprite positions
-		updateBoxes(0);
+		this->UpdateBoxes(0);
 		
 		// Select this window
 		this->SetCurrent();
@@ -119,10 +128,10 @@ protected:
 
 		if (!keys->Empty()){ // Rotate CCW
 			if(keys->Check('q')){
-				updateBoxes(1.f * dTotalFrameTime);
+				this->UpdateBoxes(1.f * dTotalFrameTime);
 			}
 			if(keys->Check('w')){ // Rotate CW
-				updateBoxes(-1.f * dTotalFrameTime);
+				this->UpdateBoxes(-1.f * dTotalFrameTime);
 			}
 			if(keys->Poll('z')){
 				for(int32_t i = 0; i < 4; i++)
@@ -158,16 +167,21 @@ private:
 	
 	SpriteSet animatedSprites[4]; ///< Animated sprites
 	
-	void updateBoxes(const double& dTheta) {
-		Matrix2 rotation = Matrix2::RotationMatrix(theta += dTheta);
+	Shader shader;
+
+	void UpdateBoxes(const double& dTheta) {
+		const Matrix2 kRotation = Matrix2::RotationMatrix(theta += dTheta);
 		for(int32_t i = 0; i < 4; i++){
-			Vector2 rotated = rotation.Transform(positions[i]);
-			animatedSprites[i].SetPosition(250.f + 125 * rotated[0], 250);
-			animatedSprites[i].SetScale((2.f + rotated[1]) * 0.25f);
-			if(rotated[1] <= 0.f) // Background
+			const Vector2 kRotated = kRotation.Transform(positions[i]);
+			animatedSprites[i].SetPosition(0.5f * kRotated[0], 0.f);
+			animatedSprites[i].SetScale(0.125f + 0.0625f * kRotated[1]);
+			animatedSprites[i].SetRotation(theta += dTheta / 8);
+			if (kRotated[1] <= 0.f) { // Background
 				bForeground[i] = false;
-			else // Foreground
+			}
+			else { // Foreground
 				bForeground[i] = true;
+			}
 		}
 	}
 };

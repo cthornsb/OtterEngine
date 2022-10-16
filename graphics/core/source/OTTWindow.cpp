@@ -665,7 +665,40 @@ void ott::ActiveWindows::Add(GLFWwindow* glfw, Window* win){
 ott::Window* ott::ActiveWindows::Find(GLFWwindow* glfw){
 	Window* retval = 0x0;
 	auto win = listOfWindows.find(glfw);
-	if(win != listOfWindows.end())
+	if (win != listOfWindows.end()) {
 		retval = win->second;
+	}
 	return retval;
+}
+
+/*
+ * Public functions
+ */
+
+uint32_t ott::GenerateVertexBufferObject(const std::vector<std::vector<float> >& elements, std::vector<size_t>& offsets) {
+	// Generate Vertex VBO
+	uint32_t vbo = 0;
+	glCreateBuffers(1, &vbo);
+
+	const size_t kNumberAttributes = elements.size();
+
+	// Compute the total number of bytes
+	size_t total_bytes = 0;
+	std::vector<size_t> lengths(kNumberAttributes, 0);
+	offsets = std::vector<size_t>(kNumberAttributes, 0);
+	for (size_t i = 0; i < kNumberAttributes; i++) {
+		lengths[i] = elements[i].size() * sizeof(float);
+		offsets[i] = total_bytes;
+		total_bytes += lengths[i];
+	}
+
+	// Bind buffer and reserve Vertex buffer memory
+	glNamedBufferData(vbo, total_bytes, 0x0, GL_STATIC_DRAW);
+
+	// Copy data to GPU
+	for (size_t i = 0; i < kNumberAttributes; i++) {
+		glNamedBufferSubData(vbo, (GLintptr)offsets[i], (GLsizeiptr)lengths[i], reinterpret_cast<const void*>(elements[i].data()));
+	}
+
+	return vbo;
 }

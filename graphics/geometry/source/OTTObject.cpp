@@ -32,9 +32,9 @@ ott::Object::Object() :
 	vertices(),
 	polys(),
 	children(),
-	parent(0x0),
-	shader(0x0),
-	texture(0x0),
+	parent(nullptr),
+	shader(nullptr),
+	texture(nullptr),
 	ambientColor(1.f, 1.f, 1.f),
 	modelMatrix()
 {
@@ -96,7 +96,7 @@ void ott::Object::SetPosition(const Vector3 &pos){
 	position = pos;
 }
 
-void ott::Object::SetShader(const Shader3d* shdr, bool bSetChildren/*=false*/) {
+void ott::Object::SetShader(Shader* shdr, bool bSetChildren/*=false*/) {
 	bHidden = (shdr == 0x0);
 	shader = shdr; 
 	if (bSetChildren) {
@@ -170,74 +170,31 @@ void ott::Object::Build() {
 }
 
 void ott::Object::Draw(Window3d* win, Matrix4* proj, Matrix4* view) {
-	if (bHidden) // Object is hidden
+	if (bHidden) { // Object is hidden
 		return;
+	}
 
 	// Set object's ambient color (used by some shaders)
 	win->SetDrawColor(ambientColor);
 
 	// Setup MVP matrices
-	Matrix4* model = this->ModelMatrix();
-	Matrix4 mvp = Matrix4::Concatenate(proj, view, model);
+	const Matrix4* const model = this->ModelMatrix();	
 
 	// Draw the parent
 	if (polys.VertexVBO() && (shader && !shader->IsHidden())) { // Object must have a shader to be rendered		
 		// Enable shader and set uniform transformation matrices (used by most shaders)
-		shader->EnableShader();
-		shader->SetMatrix4("MVP", mvp);
-		shader->SetMatrix4("model", model);
-		shader->SetMatrix4("view", view);
-		shader->SetMatrix4("proj", proj);
-
-		// Draw the parent geometry
-		shader->EnableObjectShader(this);
-		win->DrawObject(this);
-		shader->DisableObjectShader(this);
-
-		// Disable shader program
-		shader->DisableShader();
+		this->DrawShader(win, model, view, proj);
 	}
 
 	// Draw all child objects (if any)
-	for (std::vector<Object*>::const_iterator ch = children.cbegin(); ch != children.cend(); ch++) { 
-		const Shader3d* childShader = (*ch)->GetShader(); // Child objects may have different shaders than the parent
-		if (!childShader)
+	for (Object* ch : children) { 
+		Shader* childShader = ch->GetShader(); // Child objects may have different shaders than the parent
+		if (!childShader) {
 			continue;
-
-		// Update child model matrix
-		Matrix4* submodel = (*ch)->ModelMatrix(*model);
-		Matrix4 submvp = Matrix4::Concatenate(proj, view, submodel);
+		}
 
 		// Set uniform transformation matrices (used by most shaders)
-		childShader->EnableShader();
-		childShader->SetMatrix4("MVP", submvp);
-		childShader->SetMatrix4("model", submodel);
-		childShader->SetMatrix4("view", view);
-		childShader->SetMatrix4("proj", proj);
-		
-		childShader->EnableObjectShader(*ch);
-		win->DrawObject(*ch);
-		childShader->DisableObjectShader(*ch);
-		childShader->DisableShader();
-	}
-
-	// Debugging
-	if (bDrawOrigin || bDrawNormals) {
-		Shader* defShader = win->GetShader(ShaderType::Default);
-		defShader->EnableShader();
-		defShader->SetMatrix4("MVP", mvp);
-		if (bDrawOrigin) { // Draw object unit vectors
-			win->DrawAxes();
-		}
-		if (bDrawNormals) { // Draw face normals
-			win->SetDrawColor(colors::Cyan);
-			for (auto tri = polys.Polygons()->cbegin(); tri != polys.Polygons()->cend(); tri++) {
-				Vector3 base = tri->InitialCenterPoint();
-				Vector3 tip = base + tri->InitialNormal() * 0.25f;
-				win->DrawLine(base, tip);
-			}
-		}
-		defShader->DisableShader();
+		ch->DrawShader(win, ch->ModelMatrix(*model), view, proj);
 	}
 }
 
@@ -364,6 +321,43 @@ void ott::Object::AddStaticQuad(const uint16_t& i0, const uint16_t& i1, const ui
 	// Eventually this will use a quad face, but for now we get two triangles
 	polys.Add(i0, i1, i2, &vertices, this);
 	polys.Add(i2, i3, i0, &vertices, this);
+}
+
+void ott::Object::DrawShader(Window3d* win, const Matrix4* const M, const Matrix4* const V, const Matrix4* const P) {
+
+	const Matrix4 mvp = Matrix4::Concatenate(P, V, M);
+
+	shader->EnableShader(this->texture);
+	shader->SetMatrix4("MVP", mvp);
+	shader->SetMatrix4("model", M);
+	shader->SetMatrix4("view", V);
+	shader->SetMatrix4("proj", P);
+
+	/*
+	 * Draw the object
+	 */
+	win->DrawObject(this);
+
+	shader->DisableShader(this->texture);
+
+	// Debugging
+	if (bDrawOrigin || bDrawNormals) {
+		Shader* defShader = win->GetShader(ShaderType::Default);
+		defShader->EnableShader();
+		defShader->SetMatrix4("MVP", mvp);
+		if (bDrawOrigin) { // Draw object unit vectors
+			win->DrawAxes();
+		}
+		if (bDrawNormals) { // Draw face normals
+			win->SetDrawColor(colors::Cyan);
+			for (auto tri = polys.Polygons()->cbegin(); tri != polys.Polygons()->cend(); tri++) {
+				Vector3 base = tri->InitialCenterPoint();
+				Vector3 tip = base + tri->InitialNormal() * 0.25f;
+				win->DrawLine(base, tip);
+			}
+		}
+		defShader->DisableShader();
+	}
 }
 
 //void ott::SubObject::AddSubGeometry(Vertex* v0, Vertex* v1, Vertex* v2) {

@@ -626,6 +626,8 @@ private:
 	}
 };
 
+uint32_t GenerateVertexBufferObject(const std::vector<std::vector<float> >& elements, std::vector<size_t>& offsets);
+
 } /* namespace ott */
 
 #endif // #ifndef CORE_OTT_WINDOW_HPP

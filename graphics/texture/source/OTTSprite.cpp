@@ -1,109 +1,107 @@
 #include "OTTSprite.hpp"
 
-#ifdef WIN32
-#include <windows.h>
-#endif
+#include <graphics/core/OTTShader.hpp>
+#include <graphics/core/OTTWindow.hpp>
 
-#include <GL/gl.h>
-
-void ott::Sprite::Scale(const float& scale) {
-	this->horizScale *= scale;
-	this->vertScale *= scale;
-	this->Update();
+ott::Sprite::~Sprite() {
+	if (vertexVBO) {
+		glDeleteBuffers(1, &vertexVBO);
+	}
 }
 
-void ott::Sprite::SetScale(const float& scale) {
-	this->horizScale = scale;
-	this->vertScale = scale;
-	this->Update();
+void ott::Sprite::Scale(const float& factor) {
+	this->scale *= factor;
+	this->UpdateUnitVectors();
 }
 
-void ott::Sprite::SetHorizontalScale(const float& scale) {
-	this->horizScale = scale;
-	this->Update();
+void ott::Sprite::SetScale(const float& factor) {
+	this->scale[0] = factor;
+	this->scale[1] = factor;
+	this->UpdateUnitVectors();
 }
 
-void ott::Sprite::SetVerticalScale(const float& scale) {
-	this->vertScale = scale;
-	this->Update();
+void ott::Sprite::SetScale(const float& x, const float& y) {
+	this->scale[0] = x;
+	this->scale[1] = y;
+	this->UpdateUnitVectors();
 }
 
 void ott::Sprite::Rotate(const float& angle) {
 	this->rotation.SetRotation(theta += angle);
-	this->Update();
+	this->UpdateUnitVectors();
 }
 
 void ott::Sprite::SetRotation(const float& angle) {
 	this->rotation.SetRotation(theta = angle);
-	this->Update();
+	this->UpdateUnitVectors();
 }
 
 void ott::Sprite::FlipHorizontal() { 
-	this->horizScale *= -1.f;
-	this->Update();
+	this->scale[0] *= -1.f;
+	this->UpdateUnitVectors();
 }
 
 void ott::Sprite::FlipVertical() {
-	this->vertScale *= -1.f;
-	this->Update();
-}
-
-void ott::Sprite::DrawCorner() {
-	this->DrawCorner(center - uX - uY);
-}
-
-void ott::Sprite::DrawCorner(const float& x, const float& y) {
-	this->DrawCorner(Vector2(x, y));
-}
-
-void ott::Sprite::DrawCorner(const Vector2& offset) {
-	this->OnUserBindTexture(); // Bind the texture
-	glBegin(GL_QUADS);
-	auto setVertex = [](const float& tx, const float& ty, const Vector2& vec) {
-		glTexCoord2f(tx, ty);
-		glVertex2f(vec[0], vec[1]);
-	};
-	setVertex(0.f, 0.f, offset);
-	setVertex(1.f, 0.f, offset + uX * 2.f);
-	setVertex(1.f, 1.f, offset + uX * 2.f + uY * 2.f);
-	setVertex(0.f, 1.f, offset + uY * 2.f);
-	glEnd();
-	this->OnUserUnbindTexture(); 
+	this->scale[1] *= -1.f;
+	this->UpdateUnitVectors();
 }
 
 void ott::Sprite::Draw() {
-	this->Draw(center);
+	if (shader != nullptr) {
+		shader->EnableShader(this);
+		shader->SetMatrix2("mRotation", rotation);
+		shader->SetFloat("fScaleX", scale[0]);
+		shader->SetFloat("fScaleY", scale[1]);
+		//shader->SetVector2("vUnitX", uX);
+		//shader->SetVector2("vUnitY", uY);
+		shader->SetVector2("vCenter", center);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexVBO);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (const void*)rawOffsets[0]);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (const void*)rawOffsets[1]);
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glDrawArrays(GL_QUADS, 0, 4);
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		shader->DisableShader(this);
+	}
+	else {
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, nContext);
+		glDisable(GL_TEXTURE_2D);
+	}
 }
 
-void ott::Sprite::Draw(const float& x, const float& y) {
-	this->Draw(Vector2(x, y));
+void ott::Sprite::UpdateUnitVectors() {
+
+	uX = rotation.Transform(Vector2(scale[0], 0));
+	uY = rotation.Transform(Vector2(0, scale[1]));
 }
 
-void ott::Sprite::Draw(const Vector2& offset) {
-	this->OnUserBindTexture(); // Bind the texture
-	glBegin(GL_QUADS);
-	auto setVertex = [](const float& tx, const float& ty, const Vector2& vec) {
-		glTexCoord2f(tx, ty);
-		glVertex2f(vec[0], vec[1]);
-	};
-	setVertex(0.f, 0.f, offset - uX - uY);
-	setVertex(1.f, 0.f, offset + uX - uY);
-	setVertex(1.f, 1.f, offset + uX + uY);
-	setVertex(0.f, 1.f, offset - uX + uY);
-	glEnd();
-	this->OnUserUnbindTexture(); 
+void ott::Sprite::SetupGeometry(bool reverse_winding) {
+
+	std::vector<std::vector<float> > rawData;
+	if (reverse_winding == false) {
+		rawData.push_back({ 1,  1, 0,
+						    1, -1, 0,
+                           -1, -1, 0,
+                           -1,  1, 0}); // (x,y,z)
+		rawData.push_back({1, 0,
+                           1, 1,
+						   0, 1,
+						   0, 0}); // (u,v)
+	}
+	else {
+		rawData.push_back({-1,  1, 0,
+                           -1, -1, 0,
+                            1, -1, 0,
+							1,  1, 0}); // (x,y,z)
+		rawData.push_back({0, 0,
+						   0, 1,
+						   1, 1,
+						   1, 0}); // (u,v)
+	}
+	this->vertexVBO = ott::GenerateVertexBufferObject(rawData, rawOffsets);
 }
 
-void ott::Sprite::Update() {
-	this->uX = rotation.Transform(Vector2(nWidth * horizScale / 2, 0));
-	this->uY = rotation.Transform(Vector2(0, nHeight * vertScale / 2));
-}
-
-void ott::Sprite::OnUserBindTexture() {
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, nContext);
-}
-
-void ott::Sprite::OnUserUnbindTexture() {
-	glDisable(GL_TEXTURE_2D);
-}

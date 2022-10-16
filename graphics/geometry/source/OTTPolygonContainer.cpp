@@ -2,12 +2,15 @@
 #include "OTTVertex.hpp"
 #include "OTTVertexContainer.hpp"
 
+#include <graphics/core/OTTWindow.hpp>
+
 #include <iostream>
 #include <GL/glew.h>
 
 ott::PolygonContainer::~PolygonContainer() {
-	// Delete VBOs
-	glDeleteBuffers(1, &vertexVBO);
+	if (vertexVBO) {
+		glDeleteBuffers(1, &vertexVBO);
+	}
 }
 
 void ott::PolygonContainer::Reserve(const size_t& N) {
@@ -15,7 +18,6 @@ void ott::PolygonContainer::Reserve(const size_t& N) {
 	for (size_t i = 0; i < nVertexAttributes; i++) { // Reserve raw data arrays
 		rawData[i].reserve(rawNumElements[i] * nReservedVertices);
 	}
-	indicies.reserve(3 * N);
 	polys.reserve(N);
 }
 
@@ -67,9 +69,8 @@ void ott::PolygonContainer::Finalize() {
 	if (polys.empty()) // No geometry
 		return;
 	// Setup buffer objects
-	this->SetupVBOs();	
+	this->Setup();	
 	rawData.clear();
-	indicies.clear();
 }
 
 void ott::PolygonContainer::AddVertex(const Vertex* vert) {
@@ -94,43 +95,25 @@ void ott::PolygonContainer::AddVertex(const Vertex* vert) {
 }
 
 bool ott::PolygonContainer::AddVertexAttribute(const size_t& nElements) {
-	if (nElements == 0 || nElements > 4) // As per OpenGL requirements
+	if (nElements == 0 || nElements > 4) { // As per OpenGL requirements
 		return false;
+	}
 	rawData.push_back(std::vector<float>());
-	rawOffsets.push_back(0);
 	rawNumElements.push_back(nElements);
 	nVertexAttributes++;
 	return true;
 }
 
-void ott::PolygonContainer::SetupVBOs() {
-	// Generate Vertex VBO
-	glCreateBuffers(1, &vertexVBO);
+void ott::PolygonContainer::Setup() {
+	/*
+	 * Generate vertex buffer object (VBO)
+	 */
+	vertexVBO = ott::GenerateVertexBufferObject(rawData, rawOffsets);
 
-	if (bDebugMode)
+	if (bDebugMode) {
 		std::cout << " [debug] vertexVBO=" << vertexVBO << std::endl;
-	
-	// Compute the total
-	nTotalNumberOfBytes = 0;
-	std::vector<size_t> rawLengths(nVertexAttributes, 0);
-	for (size_t i = 0; i < nVertexAttributes; i++) {
-		rawLengths[i] = rawData[i].size() * sizeof(float);
-		rawOffsets[i] = nTotalNumberOfBytes;
-		nTotalNumberOfBytes += rawLengths[i];
-	}
-	
-	// Bind buffer and reserve Vertex buffer memory
-	glNamedBufferData(vertexVBO, nTotalNumberOfBytes, 0x0, GL_STATIC_DRAW);
-
-	// Copy data to GPU
-	for (size_t i = 0; i < nVertexAttributes; i++) {
-		glNamedBufferSubData(vertexVBO, (GLintptr)rawOffsets[i], (GLsizeiptr)rawLengths[i], (const void*)rawData[i].data());
-		if (bDebugMode)
-			std::cout << " [debug]  (location = " << i <<") elements=" << rawNumElements[i] << ", size=" << rawLengths[i] << " B" << std::endl;
-	}
-
-	if(bDebugMode)
 		std::cout << " [debug] VBO: triangles=" << polys.size() << ", vertices=" << nVertices << std::endl;
+	}
 }
 
 void ott::PolygonContainer::Free() {

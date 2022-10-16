@@ -14,7 +14,7 @@
 namespace ott {
 
 class Camera;
-class Shader3d;
+class Shader;
 class Texture;
 class Window3d;
 
@@ -142,7 +142,7 @@ public:
 
 	/** Get a const pointer to the shader used to render the object
 	  */
-	const Shader3d* GetShader() const {
+	Shader* GetShader() {
 		return shader;
 	}
 
@@ -174,12 +174,6 @@ public:
 	  */
 	uint32_t VertexVBO() const {
 		return polys.VertexVBO();
-	}
-
-	/** Get OpenGL VBO id number corresponding to object vertex indicies
-	  */
-	uint32_t IndexVBO() const {
-		return polys.IndexVBO();
 	}
 
 	/** Get the modelview matrix
@@ -285,7 +279,7 @@ public:
 	  * @param shdr Pointer to the shader to use for rendering this object
 	  * @param bSetChildShaders If set, specified shader will also be set for all child objects (if any)
 	  */
-	void SetShader(const Shader3d* shdr, bool bSetChildShaders=false);
+	void SetShader(Shader* shdr, bool bSetChildShaders=false);
 
 	/** Scale object relative to its current size
 	  */
@@ -444,9 +438,9 @@ protected:
 
 	const Object* parent; ///< Pointer to parent object
 
-	const Shader3d* shader; ///< Pointer to an OpenGL shader to use for rendering
-
 	const Texture* texture; ///< OpenGL texture
+
+	Shader* shader; ///< Pointer to an OpenGL shader to use for rendering
 
 	ColorRGB ambientColor; ///< Ambient object color
 
@@ -548,6 +542,8 @@ protected:
 	  * @note Static triangles cannot be moved or rotated
 	  */
 	void AddStaticQuad(const uint16_t& i0, const uint16_t& i1, const uint16_t& i2, const uint16_t& i3);
+
+	void DrawShader(Window3d* win, const Matrix4* const M, const Matrix4* const V, const Matrix4* const P);
 
 	/** Build this object by adding polygons to the vector of polygons
 	  */

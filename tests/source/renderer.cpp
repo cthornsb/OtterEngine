@@ -6,6 +6,7 @@
 #include <graphics/3d/OTTScene.hpp>
 #include <graphics/3d/OTTWindow3d.hpp>
 #include <graphics/core/OTTShader.hpp>
+#include <graphics/texture/OTTSprite.hpp>
 #include <graphics/geometry/OTTModelObj.hpp>
 #include <graphics/geometry/OTTPrimitives.hpp>
 #include <graphics/texture/OTTTexture.hpp>
@@ -39,7 +40,7 @@ constexpr uint8_t KEYBOARD_SPACE = 0x20;
 namespace ott {
 
 // Shader data
-struct ShaderData {
+struct ShaderData_t {
 	Vector3 lightPos;
 	Vector3 lightDir;
 	Vector3 lightColor;
@@ -52,14 +53,15 @@ struct ShaderData {
 };
 
 // Shader enable function
-void TestShaderEnable(Shader* shdr, const Object* const obj) {
-	// Bind object texture (if available)
-	if (obj->GetTexture()) {
-		glBindTexture(GL_TEXTURE_2D, obj->GetTexture()->Context());
-	}
+void TestShaderEnable(Shader* shdr, const Texture* const tex, const void* const data) {
 
 	// Get shader data
-	ShaderData* ptr = static_cast<ShaderData*>(shdr->ShaderDataPointer());
+	const ShaderData_t* ptr = reinterpret_cast<const ShaderData_t*>(data);
+
+	// Bind object texture (if available)
+	if (tex) {
+		glBindTexture(GL_TEXTURE_2D, tex->Context());
+	}
 
 	// Lights
 	shdr->SetVector3("lightPos", ptr->lightPos);
@@ -131,7 +133,7 @@ int main(){
 	
 	// Setup the scene with our camera
 	Scene myScene(&cam);
-	ott::Window3d* window = myScene.GetWindow();
+	Window3d* window = myScene.GetWindow();
 
 	// Set the color of the world light
 	myScene.GetWorldLight()->Disable();
@@ -140,11 +142,11 @@ int main(){
 	myScene.EnableVSync();
 
 	// Build shader program
-	ShaderData data;
-	Shader3d shader(AssetsPath("Shaders/test.vert"), AssetsPath("Shaders/test.frag"));
+	ShaderData_t data;
+	Shader shader(AssetsPath("Shaders/test.vert"), AssetsPath("Shaders/test.frag"));
 	shader.SetShaderEnableFunction(TestShaderEnable);
-	shader.SetShaderDisableFunction(Shader3d::UnbindObjectTexture);
-	shader.SetShaderDataPointer(&data);
+	shader.SetShaderDisableFunction(Shader::DefaultShaderDisable);
+	shader.SetShaderData(&data);
 
 	// Set object shaders
 	myShape.SetShader(&shader);
@@ -166,10 +168,11 @@ int main(){
 
 	// Load textures
 	TextureManager* textures = &TextureManager::Instance();
-	textures->Load(AssetsPath("Textures/Floor.jpg"), "floor");
-	textures->Load(AssetsPath("Textures/Brick.jpg"), "brick");
+	textures->Load(AssetsPath("Textures/floor.jpg"), "floor");
+	textures->Load(AssetsPath("Textures/brick.jpg"), "brick");
 	textures->Load(AssetsPath("Textures/crate.jpg"), "crate");
 	textures->Load(AssetsPath("Textures/dumbDice.png"), "dice");
+	textures->Load(AssetsPath("Textures/cursor.png"), "cursor");
 
 	// Set object textures (be sure to add the objects to the scene first)
 	textures->SetTexture(&floor, "floor");
@@ -213,6 +216,15 @@ int main(){
 	data.lightCosAngle = std::cos(30.f * constants::kDeg2rad);
 	data.lightDropoff = 0.5f;
 
+	// Sprite test
+	Sprite cursor(textures->FindByName("cursor")->Context());
+	cursor.SetPosition(0, 0);
+	cursor.SetScale(0.25f);
+
+	// Build sprite shader
+	Shader cursor_shader(AssetsPath("Shaders/sprite.vert"), AssetsPath("Shaders/sprite.frag"));
+	cursor.SetShader(&cursor_shader, true);
+
 	// "Animate" the object by rotating it and moving the camera
 	int32_t count = 0;
 	double dX = 0;
@@ -231,10 +243,12 @@ int main(){
 			if(keys->Poll('p'))
 				cam.ResetOrientation();
 			if (keys->Poll('f')){ // Flashlight
-				if (data.lightIntensity > 0.f)
+				if (data.lightIntensity > 0.f) {
 					data.lightIntensity = 0.f;
-				else
+				}
+				else {
 					data.lightIntensity = 100.f;
+				}
 			}
 
 			// Held keys
@@ -289,6 +303,10 @@ int main(){
 
 		// Update player kinematics
 		player.Update(timeElapsed);
+
+		// Draw cursor
+		cursor.Draw();
+		//window->DrawTextureNDC(4, Vector2(0, 0), Vector2(0.5f, 0.5f), -1);
 
 		// Render the scene
 		window->Render();
